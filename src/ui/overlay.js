@@ -52,7 +52,6 @@ TT.UI = (function () {
     var html =
       '<div class="menu">' +
       '<section class="menu-hero">' +
-      '<div class="eyebrow">FPO 2026/2 · Trabalho tema 4</div>' +
       '<h1><span>O JOGO DO</span>Truco de Turing</h1>' +
       '<p>Monte uma rede neural carta por carta, da entrada à saída. Tune seus neurônios, aplique overfit no adversário, fuja do vanishing gradient e, quando sentir a mão boa, grite TRUCO.</p>' +
       '<div class="legend"><span><i class="dot" style="background:var(--blue)"></i><b>Azul</b> é a sua rede</span><span><i class="dot" style="background:var(--orange)"></i><b>Laranja</b> é a do adversário</span></div>' +
@@ -62,7 +61,7 @@ TT.UI = (function () {
       '<button class="btn" id="m-codex">Grimório</button>' +
       '<button class="btn" id="m-ach">Conquistas</button>' +
       '</div>' +
-      '<div class="credits">Regras originais: prof. Peng Yaohao (FPO 2026/2, PPCA/UnB). Inspirado no <a href="https://playground.tensorflow.org/" target="_blank" rel="noopener">TensorFlow Playground</a>. Feito com Phaser. Código aberto sob a licença <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>.</div>' +
+      '<div class="credits">Regras originais: prof. Peng Yaohao (FPO 2026/2, PPCA/UnB). Feito com Phaser. Código aberto sob a licença <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>.</div>' +
       '</section>' +
       '<section class="sheet menu-panel">' +
       '<h3 style="margin-top:0">Configurar a mesa</h3>' +
