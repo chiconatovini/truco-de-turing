@@ -2,9 +2,8 @@
 var TT = (globalThis.TT = globalThis.TT || {});
 
 (function () {
-  var MS = 0.52;          /* escala das cartas da mesa (120x168 -> 62x87) */
-  var HS = 0.4;           /* escala das cartas na mão (240x336 -> 96x134) */
-  var PS = 0.82;          /* escala da inspeção */
+  /* tamanhos no mundo do jogo (1280x720); a densidade real vem de TT.Q */
+  var fitBoard = function (sp) { sp.setDisplaySize(TT.SIZE.boardW, TT.SIZE.boardH); sp.baseSX = sp.scaleX; return sp; };
   var ROW_GAP = 95, BOARD_CY = 334;
   var colX = function (l) { return 318 + l * 97; };
   var rowY = function (l, i) { var n = TT.LAYER_SIZES[l]; return BOARD_CY + (i - (n - 1) / 2) * ROW_GAP; };
@@ -24,7 +23,8 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.match = TT.newMatch(this.opts.target);
       this.sessionSeen = this.app.sessionSeen;
 
-      this.add.image(0, 0, 'felt').setOrigin(0);
+      TT.setupCamera(this);
+      this.add.image(0, 0, 'felt').setOrigin(0).setDisplaySize(TT.W, TT.H);
       this.drawStatic();
       this.connG = this.add.graphics().setDepth(2);
       this.emptyG = this.add.graphics().setDepth(1);
@@ -91,7 +91,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tx = function (x, y, s, style) { return self.add.text(x, y, s, Object.assign({ fontFamily: F_UI, fontSize: '14px', color: '#efe3c6' }, style || {})).setDepth(7); };
       var h = (this.hud = {});
       /* adversário (topo esquerdo) */
-      h.oppAvatar = this.add.image(44, 40, 'avatar-gato').setScale(0.56).setDepth(7);
+      h.oppAvatar = this.add.image(44, 40, 'avatar-gato').setDisplaySize(64, 64).setDepth(7);
       h.oppName = tx(84, 16, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '18px', color: '#f6dc8f' });
       h.oppSub = tx(84, 42, '', { fontSize: '13px', color: '#c9b993' });
       h.bubble = this.add.container(700, 40).setDepth(30).setVisible(false);
@@ -99,22 +99,22 @@ var TT = (globalThis.TT = globalThis.TT || {});
       h.bubbleText = this.add.text(0, 0, '', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '17px', color: '#24170c', wordWrap: { width: 230 } }).setOrigin(0.5);
       h.bubble.add([h.bubbleBg, h.bubbleText]);
       /* inspeção */
-      h.preview = this.add.image(130, 250, 'terrain-' + this.opts.terrain).setScale(PS).setDepth(7);
+      h.preview = this.add.image(130, 250, 'terrain-' + this.opts.terrain).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH).setDepth(7);
       h.previewNote = tx(130, 396, '', { fontSize: '12px', color: '#c9b993', align: 'center', wordWrap: { width: 230 } }).setOrigin(0.5, 0);
       /* pilhas */
-      h.limbo = this.add.image(72, 462, 'back-mini').setScale(0.42).setDepth(7).setInteractive();
+      h.limbo = this.add.image(72, 462, 'back-mini').setDisplaySize(50, 71).setDepth(7).setInteractive();
       h.limboTxt = tx(72, 504, '', { fontSize: '13px', align: 'center' }).setOrigin(0.5, 0);
-      h.grave = this.add.image(188, 462, 'back-mini').setScale(0.42).setDepth(7).setInteractive();
+      h.grave = this.add.image(188, 462, 'back-mini').setDisplaySize(50, 71).setDepth(7).setInteractive();
       h.graveTxt = tx(188, 504, '', { fontSize: '13px', align: 'center' }).setOrigin(0.5, 0);
       h.limbo.on('pointerover', function () { self.showPreview('back-full', 'Limbo: cartas queimadas no início (ruído). Só voltam por transfer learning.'); });
       h.grave.on('pointerover', function () {
         var top = self.st && self.st.graveyard[self.st.graveyard.length - 1];
-        self.showPreview(top ? TT.texFull(self, top, self.st.cfg.deck) : 'back-full', 'Cemitério: ' + (self.st ? self.st.graveyard.length : 0) + ' carta(s) fora de jogo. Mostrando a última.');
+        self.showPreview(top ? TT.texPreview(self, top, self.st.cfg.deck) : 'back-full', 'Cemitério: ' + (self.st ? self.st.graveyard.length : 0) + ' carta(s) fora de jogo. Mostrando a última.');
       });
       h.terrainTxt = tx(130, 534, '', { fontSize: '13px', align: 'center', color: '#d9c79a', wordWrap: { width: 230 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
       h.terrainTxt.on('pointerover', function () { self.showPreview('terrain-' + self.opts.terrain, TT.TERRAINS[self.opts.terrain].name); });
       /* eu (rodapé esquerdo) */
-      h.meAvatar = this.add.image(36, 604, 'avatar-p1').setScale(0.42).setDepth(7);
+      h.meAvatar = this.add.image(36, 604, 'avatar-p1').setDisplaySize(48, 48).setDepth(7);
       h.meName = tx(66, 592, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '16px', color: '#bfe2fa' });
       h.hint = tx(18, 628, '', { fontFamily: F_BODY, fontSize: '14.5px', color: '#efe3c6', wordWrap: { width: 226 }, lineSpacing: 1 });
 
@@ -159,6 +159,9 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.vanishSeen = [false, false];
       this.trucoChecked = -1;
       if (this.boardObjs) this.boardObjs.forEach(function (o) { o.destroy(); });
+      (this.handSprites || []).forEach(function (o) { o.destroy(); });
+      this.handSprites = [];
+      TT.releaseHandTextures(this);
       this.boardObjs = [];
       var players = this.hot
         ? [{ name: 'Jogador 1', kind: 'human' }, { name: 'Jogador 2', kind: 'human' }]
@@ -168,7 +171,8 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.slotSprites = {};
       this.st.layers.forEach(function (layer) {
         layer.forEach(function (slot) {
-          var sp = self.add.image(colX(slot.layer), rowY(slot.layer, slot.idx), 'back-mini').setScale(MS).setDepth(3).setInteractive({ useHandCursor: true });
+          var sp = self.add.image(colX(slot.layer), rowY(slot.layer, slot.idx), 'back-mini').setDepth(3).setInteractive({ useHandCursor: true });
+          fitBoard(sp);
           sp.slotId = slot.id;
           sp.on('pointerdown', function () { self.onSlotClick(slot.id); });
           sp.on('pointerover', function () { self.onSlotHover(slot.id, true); });
@@ -207,7 +211,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       return p === 0 ? 'avatar-p1' : 'avatar-p2';
     }
 
-    showPreview(key, note) { this.hud.preview.setTexture(key); this.hud.previewNote.setText(note || ''); }
+    showPreview(key, note) { this.hud.preview.setTexture(key).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH); this.hud.previewNote.setText(note || ''); }
 
     /* ------------------------------------------------------------------ render */
     renderAll() {
@@ -227,10 +231,10 @@ var TT = (globalThis.TT = globalThis.TT || {});
           }
           o.sp.setVisible(true);
           if (slot.faceUp) {
-            o.sp.setTexture(TT.texMini(self, slot.cards[0], deck));
+            o.sp.setTexture(TT.texMini(self, slot.cards[0], deck)); fitBoard(o.sp);
             o.mem.setVisible(false);
           } else {
-            o.sp.setTexture('back-mini');
+            o.sp.setTexture('back-mini'); fitBoard(o.sp);
             o.mem.setVisible(slot.known).setText(slot.known ? 'lembra: ' + TT.cardLabel(slot.cards[0]) : '');
           }
           o.badge.setVisible(slot.cards.length > 1).setText('×' + slot.cards.length);
@@ -254,11 +258,11 @@ var TT = (globalThis.TT = globalThis.TT || {});
         var x = 610 + (i - (n - 1) / 2) * spacing;
         var selected = self.sel.indexOf(card.id) >= 0;
         var y = selected ? 632 : 652;
-        var sp = self.add.image(x, y, showHand ? TT.texFull(self, card, deck) : 'back-full').setScale(HS).setDepth(10 + i);
+        var sp = self.add.image(x, y, showHand ? TT.texFull(self, card, deck) : 'back-hand').setDisplaySize(TT.SIZE.handW, TT.SIZE.handH).setDepth(10 + i);
         sp.baseY = y;
         if (showHand) {
           sp.setInteractive({ useHandCursor: true });
-          sp.on('pointerover', function () { sp.y = sp.baseY - 8; self.showPreview(TT.texFull(self, card, deck), self.handCardNote(card)); });
+          sp.on('pointerover', function () { sp.y = sp.baseY - 8; self.showPreview(TT.texPreview(self, card, deck), self.handCardNote(card)); });
           sp.on('pointerout', function () { sp.y = sp.baseY; });
           sp.on('pointerdown', function () { self.onHandClick(card.id); });
         }
@@ -268,7 +272,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tp = this.topPlayer();
       var on = st.players[tp].hand.length;
       for (var i = 0; i < on; i++) {
-        var o = this.add.image(560 + (i - (on - 1) / 2) * 34, 40, 'back-mini').setScale(0.34).setDepth(7).setAngle((i - (on - 1) / 2) * 4);
+        var o = this.add.image(560 + (i - (on - 1) / 2) * 34, 40, 'back-mini').setDisplaySize(41, 57).setDepth(7).setAngle((i - (on - 1) / 2) * 4);
         this.oppSprites.push(o);
       }
       /* destaque das cartas selecionadas */
@@ -318,7 +322,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       h.limboTxt.setText('Limbo ' + st.limbo.length);
       h.graveTxt.setText('Cemitério ' + st.graveyard.length);
       var top = st.graveyard[st.graveyard.length - 1];
-      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : 'back-mini').setAlpha(top ? 1 : 0.25);
+      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : 'back-mini').setDisplaySize(50, 71).setAlpha(top ? 1 : 0.25);
       var tline = 'Terreno: ' + TT.TERRAINS[st.cfg.terrain].name + ' · Baralho: ' + TT.DECKS[st.cfg.deck].name;
       if (st.cfg.terrain === 'oceano' && st.wind) tline += '\nVento: ' + TT.SUIT_INFO[st.wind].sym + ' ' + TT.SUIT_INFO[st.wind].name + ' vale dobro';
       if (st.cfg.terrain !== 'neutro') tline += '\nRodada ' + st.round;
@@ -483,9 +487,9 @@ var TT = (globalThis.TT = globalThis.TT || {});
       if (slot.faceUp) {
         var owner = slot.owner >= 0 ? st.players[slot.owner].name : '';
         var sc = slot.owner >= 0 ? this.scores[slot.owner].neurons.find(function (n) { return n.slot.id === id; }) : null;
-        this.showPreview(TT.texFull(this, slot.cards[0], deck), 'Neurônio de ' + owner + (sc ? ': vale ' + sc.v + (sc.notes.length ? ' (' + sc.notes.join(', ') + ')' : '') : '') + (slot.cards.length > 1 ? ' · ' + slot.cards.length + ' cartas empilhadas' : ''));
+        this.showPreview(TT.texPreview(this, slot.cards[0], deck), 'Neurônio de ' + owner + (sc ? ': vale ' + sc.v + (sc.notes.length ? ' (' + sc.notes.join(', ') + ')' : '') : '') + (slot.cards.length > 1 ? ' · ' + slot.cards.length + ' cartas empilhadas' : ''));
       } else if (slot.known) {
-        this.showPreview(TT.texFull(this, slot.cards[0], deck), 'Neurônio desvirado por dropout. Todos lembram que é ' + TT.cardLabel(slot.cards[0]) + '.');
+        this.showPreview(TT.texPreview(this, slot.cards[0], deck), 'Neurônio desvirado por dropout. Todos lembram que é ' + TT.cardLabel(slot.cards[0]) + '.');
       } else {
         this.showPreview('back-full', TT.layerName(slot.layer) + ': neurônio desconhecido.');
       }
@@ -742,12 +746,12 @@ var TT = (globalThis.TT = globalThis.TT || {});
         if (ev.t === 'reveal') {
           var o = self.slotSprites[ev.slot];
           o.sp.scaleX = 0;
-          self.tweens.add({ targets: o.sp, scaleX: MS, duration: 200, ease: 'Sine.out' });
+          self.tweens.add({ targets: o.sp, scaleX: o.sp.baseSX, duration: 200, ease: 'Sine.out' });
           TT.Sfx.flip();
           var xy = self.slotXY(ev.slot);
           var neuron = self.scores[ev.p].neurons.find(function (n) { return n.slot.id === ev.slot; });
           self.floatText(xy.x, xy.y - 50, '+' + (neuron ? neuron.v : 0), PCSS[ev.p], 22);
-          self.showPreview(TT.texFull(self, ev.card, deck), st.players[ev.p].name + ' ativou ' + TT.cardName(ev.card, deck) + '.');
+          self.showPreview(TT.texPreview(self, ev.card, deck), st.players[ev.p].name + ' ativou ' + TT.cardName(ev.card, deck) + '.');
           self.codexToast('neuronio');
           if (st.players[ev.p].path.length >= 2) self.codexToast('forward');
           if (st.players[ev.p].path.length >= 3) self.codexToast('pesos');
@@ -764,9 +768,9 @@ var TT = (globalThis.TT = globalThis.TT || {});
           var xy3 = self.slotXY(ev.slot);
           var played = move && move.cards ? move.cards.length : 1;
           for (var k = 0; k < played; k++) self.flyCard(ev.cards[ev.cards.length - 1 - k], isBot ? 560 : 610, isBot ? 40 : 652, xy3.x, xy3.y, k * 110);
-          var ghost = self.add.image(xy3.x, xy3.y, TT.texMini(self, ev.cards[0], deck)).setScale(MS).setDepth(15);
+          var ghost = self.add.image(xy3.x, xy3.y, TT.texMini(self, ev.cards[0], deck)).setDisplaySize(TT.SIZE.boardW, TT.SIZE.boardH).setDepth(15);
           self.tweens.add({ targets: ghost, x: '+=6', yoyo: true, repeat: 4, duration: 50, delay: 300 });
-          self.tweens.add({ targets: ghost, alpha: 0, scale: MS * 1.5, angle: 25, duration: 500, delay: 560, onComplete: function () { ghost.destroy(); } });
+          self.tweens.add({ targets: ghost, alpha: 0, displayWidth: TT.SIZE.boardW * 1.5, displayHeight: TT.SIZE.boardH * 1.5, angle: 25, duration: 500, delay: 560, onComplete: function () { ghost.destroy(); } });
           var col = { overfit: 0xffa24a, earlystop: 0xff4d5e, stackoverflow: 0xff4dd2 }[ev.t];
           var title = { overfit: 'OVERFIT!', earlystop: 'EARLY STOP!', stackoverflow: 'STACK OVERFLOW!' }[ev.t];
           self.time.delayedCall(420, function () {
@@ -786,7 +790,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
           ev.slots.forEach(function (id, i) {
             var o2 = self.slotSprites[id];
             o2.sp.scaleX = 0;
-            self.tweens.add({ targets: o2.sp, scaleX: MS, duration: 220, delay: i * 120 });
+            self.tweens.add({ targets: o2.sp, scaleX: o2.sp.baseSX, duration: 220, delay: i * 120 });
           });
           TT.Sfx.dropout();
           self.banner('GatoNet! Dropout ×' + ev.slots.length, '#6fe7ff', 40);
@@ -811,7 +815,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
         } else if (ev.t === 'start') {
           if (ev.cards) {
             ev.cards.forEach(function (c, i) {
-              var img = self.add.image(520 + i * 180, 330, TT.texFull(self, c, deck)).setScale(0.5).setDepth(25).setAlpha(0);
+              var img = self.add.image(520 + i * 180, 330, TT.texFullBig(self, c, deck)).setDisplaySize(120, 168).setDepth(25).setAlpha(0);
               self.tweens.add({ targets: img, alpha: 1, duration: 200 });
               var lbl = self.add.text(520 + i * 180, 430, st.players[i].name, { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '16px', color: PCSS[i] }).setOrigin(0.5).setDepth(25);
               self.time.delayedCall(1700, function () { self.tweens.add({ targets: [img, lbl], alpha: 0, duration: 300, onComplete: function () { img.destroy(); lbl.destroy(); } }); });
@@ -844,12 +848,12 @@ var TT = (globalThis.TT = globalThis.TT || {});
     }
 
     flyCard(card, x0, y0, x1, y1, delay) {
-      var img = this.add.image(x0, y0, TT.texMini(this, card, this.st.cfg.deck)).setScale(0.6).setDepth(16);
-      this.tweens.add({ targets: img, x: x1 + 8, y: y1 - 8, scale: MS, angle: 8, duration: 320, delay: delay || 0, ease: 'Cubic.out', onComplete: function () { img.destroy(); } });
+      var img = this.add.image(x0, y0, TT.texMini(this, card, this.st.cfg.deck)).setDisplaySize(72, 101).setDepth(16);
+      this.tweens.add({ targets: img, x: x1 + 8, y: y1 - 8, displayWidth: TT.SIZE.boardW, displayHeight: TT.SIZE.boardH, angle: 8, duration: 320, delay: delay || 0, ease: 'Cubic.out', onComplete: function () { img.destroy(); } });
     }
 
     burst(x, y, color, n) {
-      var em = this.add.particles(x, y, 'spark', { speed: { min: 80, max: 260 }, lifespan: 650, scale: { start: 0.9, end: 0 }, tint: color, blendMode: 'ADD', emitting: false }).setDepth(18);
+      var em = this.add.particles(x, y, 'spark', { speed: { min: 80, max: 260 }, lifespan: 650, scale: { start: 13 / (32 * Math.min(TT.RES, 2)), end: 0 }, tint: color, blendMode: 'ADD', emitting: false }).setDepth(18);
       em.explode(n);
       this.time.delayedCall(900, function () { em.destroy(); });
     }

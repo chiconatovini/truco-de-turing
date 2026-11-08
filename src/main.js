@@ -72,8 +72,8 @@ TT.boot = function () {
   TT.App.game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: 'game',
-    width: TT.W,
-    height: TT.H,
+    width: Math.round(TT.W * TT.RES),
+    height: Math.round(TT.H * TT.RES),
     backgroundColor: '#06180f',
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { antialias: true, roundPixels: false },
