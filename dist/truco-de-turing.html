@@ -326,7 +326,7 @@ html, body { overscroll-behavior: none; }
 .dica-flutuante .agora { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(60, 40, 20, 0.35); font-weight: 600; }
 .dica-flutuante .conceito { display: block; margin-top: 4px; font-style: italic; color: #4b3a26; font-size: 12.5px; }
 
-/* Aviso de rotação: só durante a partida, em celulares na vertical */
+/* Aviso de rotação: em celulares na vertical ele substitui o jogo inteiro, desde a tela inicial */
 #girar {
   position: fixed; inset: 0; z-index: 20; display: none; place-items: center;
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
@@ -338,7 +338,11 @@ html, body { overscroll-behavior: none; }
 .girar-caixa span { font: 400 16px var(--fonte-texto); color: #d6c8a6; line-height: 1.4; }
 .girar-caixa .celular { transform-origin: 32px 30px; animation: inclinar 2.4s ease-in-out infinite; }
 @keyframes inclinar { 0%, 25% { transform: rotate(0deg); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
-@media (orientation: portrait) and (max-width: 600px) { body.em-partida #girar { display: grid; } }
+@media (orientation: portrait) and (max-width: 600px) {
+  #girar { display: grid; }
+  #jogo, #paineis, #avisos { visibility: hidden; }
+}
+.girar-caixa .marca { font: 900 15px var(--fonte-titulo); color: #d9b260; letter-spacing: 0.12em; margin-bottom: 4px; }
 @media (prefers-reduced-motion: reduce) { .girar-caixa .celular { animation: none; transform: rotate(-90deg); } }
 
 /* Menu em telas baixas (celular na horizontal) */
@@ -384,8 +388,9 @@ html, body { overscroll-behavior: none; }
 <div id="girar" role="status">
   <div class="girar-caixa">
     <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true"><g class="celular"><rect x="20" y="8" width="24" height="44" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="46" r="2" fill="currentColor"/></g><path d="M50 22a20 20 0 0 1 0 20" fill="none" stroke="#f59322" stroke-width="3" stroke-linecap="round"/><path d="M47 40l3 3 3-4" fill="none" stroke="#f59322" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div class="marca">TRUCO DE TURING</div>
     <b>Gire o celular</b>
-    <span>A mesa do Truco de Turing foi feita para a horizontal.</span>
+    <span>O jogo é feito para a tela na horizontal. Vire o aparelho para começar.</span>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
@@ -7427,7 +7432,7 @@ html, body { overscroll-behavior: none; }
   var MEMORIA_DE_DICAS = 6;
   function conceitoCurto(id) {
     const verbete = VERBETES.find((v) => v.id === id);
-    return verbete ? verbete.conceito.split(/(?<=\.)\s/)[0] : "";
+    return verbete ? (verbete.conceito.match(/^[^.]*\./) || [verbete.conceito])[0] : "";
   }
   var metodosDeDicas = {
     /** Botão "Ativar dicas": avisa sobre as conquistas antes de ligar; desliga direto. */
@@ -7603,20 +7608,36 @@ html, body { overscroll-behavior: none; }
   );
 
   // src/principal.js
+  var celularEmPe = globalThis.matchMedia ? matchMedia("(orientation: portrait) and (max-width: 600px)") : null;
+  function criarJogo() {
+    Aplicacao.jogo = new Phaser.Game({
+      type: FORCAR_CANVAS ? Phaser.CANVAS : Phaser.AUTO,
+      parent: "jogo",
+      width: Math.round(MUNDO.largura * RESOLUCAO),
+      height: Math.round(MUNDO.altura * RESOLUCAO),
+      backgroundColor: "#06180f",
+      scale: { mode: Phaser.Scale.EXPAND, autoCenter: Phaser.Scale.CENTER_BOTH },
+      render: { antialias: true, roundPixels: false },
+      /* cliques nos painéis HTML não vazam para o canvas */
+      input: { windowEvents: false },
+      scene: [CenaCarregamento, CenaMenu, CenaMesa]
+    });
+  }
+  function iniciarJogo() {
+    if (Aplicacao.jogo) return;
+    if (!celularEmPe || !celularEmPe.matches) return criarJogo();
+    const aoGirar = () => {
+      if (celularEmPe.matches) return;
+      removeEventListener("resize", aoGirar);
+      removeEventListener("orientationchange", aoGirar);
+      setTimeout(iniciarJogo, 150);
+    };
+    addEventListener("resize", aoGirar);
+    addEventListener("orientationchange", aoGirar);
+  }
   prepararTextoNitido();
   Aplicacao.iniciar();
-  Aplicacao.jogo = new Phaser.Game({
-    type: FORCAR_CANVAS ? Phaser.CANVAS : Phaser.AUTO,
-    parent: "jogo",
-    width: Math.round(MUNDO.largura * RESOLUCAO),
-    height: Math.round(MUNDO.altura * RESOLUCAO),
-    backgroundColor: "#06180f",
-    scale: { mode: Phaser.Scale.EXPAND, autoCenter: Phaser.Scale.CENTER_BOTH },
-    render: { antialias: true, roundPixels: false },
-    /* cliques nos painéis HTML não vazam para o canvas */
-    input: { windowEvents: false },
-    scene: [CenaCarregamento, CenaMenu, CenaMesa]
-  });
+  iniciarJogo();
   globalThis.__TRUCO_DE_TURING__ = Aplicacao;
 })();
 

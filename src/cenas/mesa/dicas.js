@@ -31,7 +31,7 @@ const MEMORIA_DE_DICAS = 6;
 /** Primeira frase do conceito de um verbete (para a linha "conceito" das dicas). */
 function conceitoCurto(id) {
   const verbete = VERBETES.find((v) => v.id === id);
-  return verbete ? verbete.conceito.split(/(?<=\.)\s/)[0] : '';
+  return verbete ? (verbete.conceito.match(/^[^.]*\./) || [verbete.conceito])[0] : '';
 }
 
 export const metodosDeDicas = {

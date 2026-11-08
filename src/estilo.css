@@ -314,7 +314,7 @@ html, body { overscroll-behavior: none; }
 .dica-flutuante .agora { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(60, 40, 20, 0.35); font-weight: 600; }
 .dica-flutuante .conceito { display: block; margin-top: 4px; font-style: italic; color: #4b3a26; font-size: 12.5px; }
 
-/* Aviso de rotação: só durante a partida, em celulares na vertical */
+/* Aviso de rotação: em celulares na vertical ele substitui o jogo inteiro, desde a tela inicial */
 #girar {
   position: fixed; inset: 0; z-index: 20; display: none; place-items: center;
   padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
@@ -326,7 +326,11 @@ html, body { overscroll-behavior: none; }
 .girar-caixa span { font: 400 16px var(--fonte-texto); color: #d6c8a6; line-height: 1.4; }
 .girar-caixa .celular { transform-origin: 32px 30px; animation: inclinar 2.4s ease-in-out infinite; }
 @keyframes inclinar { 0%, 25% { transform: rotate(0deg); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
-@media (orientation: portrait) and (max-width: 600px) { body.em-partida #girar { display: grid; } }
+@media (orientation: portrait) and (max-width: 600px) {
+  #girar { display: grid; }
+  #jogo, #paineis, #avisos { visibility: hidden; }
+}
+.girar-caixa .marca { font: 900 15px var(--fonte-titulo); color: #d9b260; letter-spacing: 0.12em; margin-bottom: 4px; }
 @media (prefers-reduced-motion: reduce) { .girar-caixa .celular { animation: none; transform: rotate(-90deg); } }
 
 /* Menu em telas baixas (celular na horizontal) */

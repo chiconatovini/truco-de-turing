@@ -755,7 +755,13 @@ Camada de truco: a partida vale tentos e cada mão pode ser trucada. TRUCO! (3) 
 
 ## `src/principal.js`
 
-Ponto de entrada do jogo: prepara o texto nítido, carrega as opções e cria o Phaser.Game com as três cenas (Carregamento → Menu → Mesa). O Phaser vem do CDN como variável global `Phaser` (ver index.html).
+Ponto de entrada do jogo: prepara o texto nítido, carrega as opções e cria o Phaser.Game com as três cenas (Carregamento → Menu → Mesa). Num celular na vertical, o jogo só é criado depois que o aparelho é girado; até lá aparece o aviso #girar (index.html). O Phaser vem do CDN como variável global `Phaser` (ver index.html).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `celularEmPe` | constante | Celular na vertical (o aviso para girar aparece no lugar do jogo; ver #girar em estilo.css). |
+| `criarJogo()` | função | Cria o Phaser.Game com as três cenas. |
+| `iniciarJogo()` | função | Cria o jogo agora ou, num celular em pé, assim que ele for girado para a horizontal. |
 
 ## `src/recursos/retratoProfessor.js`
 
