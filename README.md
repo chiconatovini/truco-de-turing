@@ -1,7 +1,7 @@
 # Truco de Turing
 
 Jogo de cartas para navegador, feito em **Phaser 3**, para ensinar redes neurais e deep learning jogando.
-Implementa a proposta do prof. Peng Yaohao (FPO 2026/2, PPCA/UnB, trabalho tema 4), com inspiração no [TensorFlow Playground](https://playground.tensorflow.org/),
+Implementa a proposta do prof. Peng Yaohao (FPO 2026/2, PPCA/UnB, trabalho tema 4),
 em card games de fantasia (moldura, tipo, caixa de regras, texto de ambientação, "poder") e no truco
 (naipes espanhóis, manilhas, pedidos de TRUCO/SEIS/NOVE/DOZE e partida até 12 tentos).
 
@@ -78,7 +78,7 @@ Pontos em que o enunciado deixa margem e a leitura adotada:
 | Fim da mão | Todas as redes finalizadas, ou todos passam em sequência. Redes travadas contam a soma parcial. |
 | Terrenos | Valem até a rede ser finalizada; a soma congela no early stop, stack overflow ou chegada à saída. |
 
-## O que torna o jogo divertido
+## Proposta geral de mecânicas para gerar engajamento
 
 - **Truco** por cima da mecânica: cada mão vale 1 tento; peça TRUCO (3), SEIS, NOVE, DOZE; correr entrega o valor atual; partida até 12; mão de onze.
 - **Tensão de corrida**: chegar à saída torna a rede imune; tunar aumenta a soma, mas deixa o neurônio a uma carta do early stop.
@@ -88,7 +88,7 @@ Pontos em que o enunciado deixa margem e a leitura adotada:
   - *Mestre Monte Carlo* (difícil): sorteia as cartas ocultas, simula centenas de partidas e escolhe o lance que mais venceu; mostra a própria chance de vitória e truca com base nas simulações.
 - **5 baralhos e 4 terrenos** da seção de extensões (Truco com manilhas, Fraternidade, Yin-yang, Power BI; Montanha, Pântano, Oceano).
 - **27 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…).
-- **Feedback visual**: conexões com espessura proporcional ao valor (como no Playground), curva de treino, explosões, banners e sons.
+- **Feedback visual**: conexões com espessura proporcional ao valor (como no Playground), curva de treino, explosões, banners, músicas e sons.
 
 ## Conteúdo educativo
 
@@ -106,6 +106,8 @@ modo online (o estado é serializável), tutorial guiado e um laboratório de si
 
 Distribuído sob a [GPL-3.0](https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file). Código-fonte: https://github.com/welyngton/truco-de-turing
 
-Autores: Welyngton José Vinicius Dal Prá
+Autores:
+Welyngton Jose Vinicius Dal Pra
+...
 
 Regras originais: Peng Yaohao - FPO-UNB - 2026-2
