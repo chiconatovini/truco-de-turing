@@ -54,7 +54,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.sessionSeen = this.app.sessionSeen;
 
       TT.setupCamera(this);
-      TT.addFelt(this);
+      TT.addFelt(this, this.opts.terrain);
       this.drawStatic();
       this.connG = this.add.graphics().setDepth(2);
       this.emptyG = this.add.graphics().setDepth(1);
@@ -149,14 +149,14 @@ var TT = (globalThis.TT = globalThis.TT || {});
       h.preview = this.add.image(cx, 250, 'terrain-' + this.opts.terrain).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH).setDepth(7);
       h.previewNote = tx(cx, 394, '', { fontStyle: 'italic', fontSize: '12px', color: '#d6c8a6', align: 'center', wordWrap: { width: LP.w - 30 }, lineSpacing: 0 }).setOrigin(0.5, 0);
       /* pilhas */
-      h.limbo = this.add.image(LP.x + 70, 474, 'back-mini').setDisplaySize(42, 59).setDepth(7).setInteractive();
+      h.limbo = this.add.image(LP.x + 70, 474, this.bk('mini')).setDisplaySize(42, 59).setDepth(7).setInteractive();
       h.limboTxt = tx(LP.x + 70, 509, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '10.5px', color: '#e8d6a8', letterSpacing: 1 }).setOrigin(0.5, 0);
-      h.grave = this.add.image(LP.x + LP.w - 70, 474, 'back-mini').setDisplaySize(42, 59).setDepth(7).setInteractive();
+      h.grave = this.add.image(LP.x + LP.w - 70, 474, this.bk('mini')).setDisplaySize(42, 59).setDepth(7).setInteractive();
       h.graveTxt = tx(LP.x + LP.w - 70, 509, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '10.5px', color: '#e8d6a8', letterSpacing: 1 }).setOrigin(0.5, 0);
-      h.limbo.on('pointerover', function () { self.showPreview('back-full', 'Limbo: cartas queimadas no início (ruído). Só voltam por transfer learning.'); });
+      h.limbo.on('pointerover', function () { self.showPreview(self.bk('full'), 'Limbo: cartas queimadas no início (ruído). Só voltam por transfer learning.'); });
       h.grave.on('pointerover', function () {
         var top = self.st && self.st.graveyard[self.st.graveyard.length - 1];
-        self.showPreview(top ? TT.texPreview(self, top, self.st.cfg.deck) : 'back-full', 'Cemitério: ' + (self.st ? self.st.graveyard.length : 0) + ' carta(s) fora de jogo. Mostrando a última.');
+        self.showPreview(top ? TT.texPreview(self, top, self.st.cfg.deck) : self.bk('full'), 'Cemitério: ' + (self.st ? self.st.graveyard.length : 0) + ' carta(s) fora de jogo. Mostrando a última.');
       });
       h.terrainTxt = tx(cx, 528, '', { fontSize: '12px', align: 'center', color: '#d6c8a6', wordWrap: { width: LP.w - 30 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
       h.terrainTxt.on('pointerover', function () { self.showPreview('terrain-' + self.opts.terrain, TT.TERRAINS[self.opts.terrain].name + ': ' + TT.TERRAINS[self.opts.terrain].short); });
@@ -198,6 +198,8 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.refreshSoundBtn();
     }
 
+    bk(kind) { return TT.backKey(this, kind, this.opts.deck); }
+
     refreshSoundBtn() { this.hud.btnSound.setLabel(TT.Sfx.isMuted() ? 'Som: não' : 'Som: sim'); }
     setHint(text) { fitBox(this.hud.hint, text, 13.5, LP.w - 28, 712 - 616 - 8, 10.5); }
 
@@ -224,7 +226,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.slotSprites = {};
       this.st.layers.forEach(function (layer) {
         layer.forEach(function (slot) {
-          var sp = self.add.image(colX(slot.layer), rowY(slot.layer, slot.idx), 'back-mini').setDepth(3).setInteractive({ useHandCursor: true });
+          var sp = self.add.image(colX(slot.layer), rowY(slot.layer, slot.idx), self.bk('mini')).setDepth(3).setInteractive({ useHandCursor: true });
           fitBoard(sp);
           sp.slotId = slot.id;
           sp.on('pointerdown', function () { self.onSlotClick(slot.id); });
@@ -287,7 +289,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
             o.sp.setTexture(TT.texMini(self, slot.cards[0], deck)); fitBoard(o.sp);
             o.mem.setVisible(false);
           } else {
-            o.sp.setTexture('back-mini'); fitBoard(o.sp);
+            o.sp.setTexture(self.bk('mini')); fitBoard(o.sp);
             o.mem.setVisible(slot.known).setText(slot.known ? 'lembra: ' + TT.cardLabel(slot.cards[0]) : '');
           }
           o.badge.setVisible(slot.cards.length > 1).setText('×' + slot.cards.length);
@@ -311,7 +313,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
         var x = 610 + (i - (n - 1) / 2) * spacing;
         var selected = self.sel.indexOf(card.id) >= 0;
         var y = selected ? 632 : 652;
-        var sp = self.add.image(x, y, showHand ? TT.texFull(self, card, deck) : 'back-hand').setDisplaySize(TT.SIZE.handW, TT.SIZE.handH).setDepth(10 + i);
+        var sp = self.add.image(x, y, showHand ? TT.texFull(self, card, deck) : self.bk('hand')).setDisplaySize(TT.SIZE.handW, TT.SIZE.handH).setDepth(10 + i);
         sp.baseY = y;
         if (showHand) {
           sp.setInteractive({ useHandCursor: true });
@@ -325,7 +327,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tp = this.topPlayer();
       var on = st.players[tp].hand.length;
       for (var i = 0; i < on; i++) {
-        var o = this.add.image(560 + (i - (on - 1) / 2) * 34, 40, 'back-mini').setDisplaySize(41, 57).setDepth(7).setAngle((i - (on - 1) / 2) * 4);
+        var o = this.add.image(560 + (i - (on - 1) / 2) * 34, 40, this.bk('mini')).setDisplaySize(41, 57).setDepth(7).setAngle((i - (on - 1) / 2) * 4);
         this.oppSprites.push(o);
       }
       /* destaque das cartas selecionadas */
@@ -384,7 +386,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       fitLine(h.limboTxt, 'LIMBO · ' + st.limbo.length, 10.5, 100, 8);
       fitLine(h.graveTxt, 'CEMITÉRIO · ' + st.graveyard.length, 10.5, 110, 8);
       var top = st.graveyard[st.graveyard.length - 1];
-      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : 'back-mini').setDisplaySize(42, 59).setAlpha(top ? 1 : 0.25);
+      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : this.bk('mini')).setDisplaySize(42, 59).setAlpha(top ? 1 : 0.25);
       var tline = TT.TERRAINS[st.cfg.terrain].name + ' · baralho ' + TT.DECKS[st.cfg.deck].name;
       var extra = [];
       if (st.cfg.terrain !== 'neutro') extra.push('Rodada ' + st.round);
@@ -557,7 +559,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       } else if (slot.known) {
         this.showPreview(TT.texPreview(this, slot.cards[0], deck), 'Neurônio desvirado por dropout. Todos lembram que é ' + TT.cardLabel(slot.cards[0]) + '.');
       } else {
-        this.showPreview('back-full', TT.layerName(slot.layer) + ': neurônio desconhecido.');
+        this.showPreview(this.bk('full'), TT.layerName(slot.layer) + ': neurônio desconhecido.');
       }
       var tg = this.targets[id];
       if (tg) {

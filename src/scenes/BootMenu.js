@@ -53,8 +53,30 @@ TT.setupCamera = function (scene) {
   scene.scale.on('resize', fit);
   scene.events.once('shutdown', function () { scene.scale.off('resize', fit); });
 };
-TT.addFelt = function (scene) {
-  return scene.add.image(TT.W / 2, TT.H / 2, 'felt').setDisplaySize(TT.W * 2, TT.H * 2).setDepth(-10);
+/* Fundo da mesa conforme o terreno (gerado na primeira vez; mantém só o neutro e o atual) */
+TT.tableKey = function (scene, terrain) {
+  terrain = terrain || 'neutro';
+  var key = 'table@' + terrain;
+  if (!scene.textures.exists(key)) {
+    scene.textures.getTextureKeys().forEach(function (k) {
+      if (k.indexOf('table@') === 0 && k !== 'table@neutro') scene.textures.remove(k);
+    });
+    scene.textures.addCanvas(key, TT.drawTable(terrain, TT.W * 2, TT.H * 2, Math.min(TT.RES, 2) * 0.6));
+  }
+  return key;
+};
+TT.addFelt = function (scene, terrain) {
+  return scene.add.image(TT.W / 2, TT.H / 2, TT.tableKey(scene, terrain)).setDisplaySize(TT.W * 2, TT.H * 2).setDepth(-10);
+};
+/* Versos conforme o baralho: kind = full | hand | mini */
+TT.backKey = function (scene, kind, deck) {
+  deck = deck || 'classico';
+  var key = 'back-' + kind + '@' + deck;
+  if (!scene.textures.exists(key)) {
+    var q = kind === 'full' ? TT.Q.big : kind === 'hand' ? TT.Q.hand : TT.Q.mini;
+    scene.textures.addCanvas(key, TT.drawCardBack(kind === 'mini' ? 'mini' : 'full', q, deck));
+  }
+  return key;
 };
 
 class BootScene extends Phaser.Scene {
@@ -69,10 +91,8 @@ class BootScene extends Phaser.Scene {
     Promise.race([loads, timeout]).then(function () {
       t.destroy();
       var add = function (key, canvas) { if (self.textures.exists(key)) self.textures.remove(key); self.textures.addCanvas(key, canvas); };
-      add('felt', TT.drawFelt(TT.W * 2, TT.H * 2, Math.min(TT.RES, 2) * 0.6));
-      add('back-full', TT.drawCardBack('full', TT.Q.big));
-      add('back-hand', TT.drawCardBack('full', TT.Q.hand));
-      add('back-mini', TT.drawCardBack('mini', TT.Q.mini));
+      TT.tableKey(self, 'neutro');
+      ['full', 'hand', 'mini'].forEach(function (k) { TT.backKey(self, k, 'classico'); });
       Object.keys(TT.TERRAINS).forEach(function (k) { add('terrain-' + k, TT.drawTerrainCard(k, TT.Q.big)); });
       [['gradiente', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
         add('avatar-' + a[0], TT.drawAvatar(a[0], a[1], TT.Q.avatar));

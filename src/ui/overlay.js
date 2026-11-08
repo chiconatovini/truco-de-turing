@@ -37,6 +37,17 @@ TT.UI = (function () {
     t.addEventListener('click', function () { if (t.parentNode) t.parentNode.removeChild(t); });
   }
 
+  /* miniaturas do verso do baralho e da mesa do terreno, guardadas em memória */
+  var thumbs = {};
+  function showThumb(slot, key, make) {
+    if (!slot) return;
+    if (!thumbs[key]) { try { thumbs[key] = make(); } catch (e) { return; } }
+    var c = thumbs[key];
+    var img = slot.querySelector('img') || slot.appendChild(document.createElement('img'));
+    img.alt = '';
+    img.src = c.toDataURL();
+  }
+
   /* ---------- Menu principal ---------- */
   function menu(app) {
     var o = app.opts;
@@ -69,8 +80,8 @@ TT.UI = (function () {
       '<section class="sheet menu-panel">' +
       '<h3 style="margin-top:0">Configurar a mesa</h3>' +
       '<div class="field"><label for="m-opp">Oponente</label><select id="m-opp">' + options(opp, o.bot) + '</select><div class="hint" id="m-opp-h"></div></div>' +
-      '<div class="field"><label for="m-deck">Baralho</label><select id="m-deck">' + options(TT.DECKS, o.deck) + '</select><div class="hint" id="m-deck-h"></div></div>' +
-      '<div class="field"><label for="m-terrain">Terreno</label><select id="m-terrain">' + options(TT.TERRAINS, o.terrain) + '</select><div class="hint" id="m-terrain-h"></div></div>' +
+      '<div class="field"><label for="m-deck">Baralho</label><select id="m-deck">' + options(TT.DECKS, o.deck) + '</select><div class="hint-row"><span class="thumb back" id="m-deck-t"></span><div class="hint" id="m-deck-h"></div></div></div>' +
+      '<div class="field"><label for="m-terrain">Terreno</label><select id="m-terrain">' + options(TT.TERRAINS, o.terrain) + '</select><div class="hint-row"><span class="thumb table" id="m-terrain-t"></span><div class="hint" id="m-terrain-h"></div></div></div>' +
       '<div class="field"><label for="m-start">Quem começa</label><select id="m-start">' + options(starters, o.starter) + '</select></div>' +
       '<div class="field" style="margin-bottom:0"><label for="m-mode">Partida</label><select id="m-mode">' + options(modes, String(o.target)) + '</select></div>' +
       '</section></div>';
@@ -79,8 +90,11 @@ TT.UI = (function () {
     function sync() {
       var bot = el.querySelector('#m-opp').value;
       el.querySelector('#m-opp-h').textContent = bot === 'hotseat' ? 'Dois jogadores se revezam no mesmo aparelho. A mão de quem não joga fica escondida.' : 'Nível ' + TT.BOTS[bot].level.toLowerCase() + ', ' + TT.BOTS[bot].method + '. ' + TT.BOTS[bot].style;
-      el.querySelector('#m-deck-h').textContent = TT.DECKS[el.querySelector('#m-deck').value].short;
-      el.querySelector('#m-terrain-h').textContent = TT.TERRAINS[el.querySelector('#m-terrain').value].short;
+      var dk = el.querySelector('#m-deck').value, tr = el.querySelector('#m-terrain').value;
+      el.querySelector('#m-deck-h').textContent = TT.DECKS[dk].short;
+      el.querySelector('#m-terrain-h').textContent = TT.TERRAINS[tr].short;
+      showThumb(el.querySelector('#m-deck-t'), 'b:' + dk, function () { return TT.drawCardBack('mini', 1.2, dk); });
+      showThumb(el.querySelector('#m-terrain-t'), 't:' + tr, function () { return TT.drawTable(tr, TT.W * 2, TT.H * 2, 0.07); });
     }
     el.querySelectorAll('select').forEach(function (s) { s.addEventListener('change', sync); });
     sync();
