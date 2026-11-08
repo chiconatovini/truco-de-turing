@@ -178,7 +178,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
     if (label != null) {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       var fs = r * (String(label).length > 1 ? 1.05 : 1.25);
-      ctx.font = (opts.weight || '900') + ' ' + fs + 'px ' + (opts.family || '"Alegreya Sans", Arial, sans-serif');
+      ctx.font = (opts.weight || '800') + ' ' + fs + 'px ' + (opts.family || 'Spectral, Georgia, serif');
       ctx.lineWidth = r * 0.28; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.strokeText(label, cx, cy + r * 0.06);
       ctx.fillStyle = opts.color || '#ffffff'; ctx.fillText(label, cx, cy + r * 0.06);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -743,26 +743,26 @@ var TT = (globalThis.TT = globalThis.TT || {});
     ctx.globalAlpha = 0.1; emblem(ctx, si.emblem, tx + tw / 2, ty + th / 2, 86, 0, { shadow: false }); ctx.globalAlpha = 1;
     ctx.restore();
     ctx.strokeStyle = shade(P.mid, -0.4); ctx.lineWidth = 1.2; ctx.strokeRect(tx, ty, tw, th);
-    ctx.fillStyle = INK; ctx.font = '500 12px Alegreya, Georgia, serif'; ctx.textBaseline = 'top';
-    var used = wrap(ctx, meta.rules, tx + 8, ty + 6, tw - 16, 14);
-    var sepY = ty + 10 + used * 14;
+    ctx.fillStyle = INK; ctx.font = '500 11px Spectral, Georgia, serif'; ctx.textBaseline = 'top';
+    var used = wrap(ctx, meta.rules, tx + 8, ty + 6, tw - 16, 13.5);
+    var sepY = ty + 10 + used * 13.5;
     ctx.strokeStyle = 'rgba(60,40,20,.35)'; ctx.lineWidth = 0.7;
     ctx.beginPath(); ctx.moveTo(tx + 30, sepY); ctx.lineTo(tx + tw - 30, sepY); ctx.stroke();
-    ctx.font = 'italic 11px Alegreya, Georgia, serif'; ctx.fillStyle = '#4b3a26';
-    wrap(ctx, meta.flavor, tx + 8, sepY + 4, tw - 70, 12.5);
+    ctx.font = 'italic 400 10.5px Spectral, Georgia, serif'; ctx.fillStyle = '#4b3a26';
+    wrap(ctx, meta.flavor, tx + 8, sepY + 4, tw - 66, 12.5);
 
     /* caixa de poder */
     plate(ctx, 168, 292, 56, 26, P, { r: 6 });
-    ctx.fillStyle = INK; ctx.font = '900 16px "Alegreya Sans", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = INK; ctx.font = '800 15px Spectral, Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(meta.fig ? '0' : String(meta.v), 186, 305.5);
     ctx.font = '700 14px ' + SYMBOL_FONT; ctx.fillStyle = si.red ? '#a8232f' : INK;
     ctx.fillText(si.sym, 209, 305.5);
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     /* linha de colecionador */
     var idx = TT.SUITS.indexOf(card.s) * 13 + TT.RANKS.indexOf(card.r) + 1;
-    ctx.font = '700 7.5px "Alegreya Sans", Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.82)';
+    ctx.font = '700 7px Spectral, Georgia, serif'; ctx.fillStyle = 'rgba(255,255,255,.82)';
     ctx.fillText(String(idx).padStart(3, '0') + '/052 · ' + meta.rarity.charAt(0).toUpperCase() + ' · TdT · PT-BR', 17, 316);
-    ctx.font = '500 7.5px "Alegreya Sans", Arial, sans-serif';
+    ctx.font = '500 7px Spectral, Georgia, serif';
     ctx.fillText('Ilus. arte procedural · FPO 2026/2', 17, 325);
     return o.c;
   };
@@ -996,7 +996,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
     ctx.fillStyle = lin(ctx, 0, ty, 0, ty + th, [[0, '#f7efdb'], [1, '#e6d6b0']]);
     ctx.fillRect(tx, ty, tw, th);
     ctx.strokeStyle = shade(P.mid, -0.4); ctx.lineWidth = 1.2; ctx.strokeRect(tx, ty, tw, th);
-    ctx.fillStyle = INK; ctx.font = '500 12px Alegreya, Georgia, serif'; ctx.textBaseline = 'top';
+    ctx.fillStyle = INK; ctx.font = '500 11.5px Spectral, Georgia, serif'; ctx.textBaseline = 'top';
     wrap(ctx, t.short, tx + 8, ty + 7, tw - 16, 14.5);
     return o.c;
   };
@@ -1088,7 +1088,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       ctx.fillStyle = lin(ctx, 0, 20, 0, 110, [[0, shade(colorHex, 0.3)], [1, shade(colorHex, -0.35)]]);
       ctx.beginPath(); ctx.arc(56, 44, 18, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.moveTo(18, 110); ctx.quadraticCurveTo(20, 66, 56, 66); ctx.quadraticCurveTo(92, 66, 94, 110); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '900 18px Cinzel, Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '900 18px Cinzel, Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(kind === 'p2' ? 'II' : 'I', 56, 45);
     }
     ctx.restore();
@@ -1100,7 +1100,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
   TT.drawFelt = function (W, H, S) {
     var o = mk(W, H, S || 1), ctx = o.ctx;
     var rnd = prng(4242);
-    ctx.fillStyle = rad(ctx, W * 0.47, H * 0.46, 40, W * 0.5, H * 0.5, W * 0.72, [[0, '#17573f'], [0.55, '#0f3d2b'], [1, '#05150d']]);
+    ctx.fillStyle = rad(ctx, W * 0.49, H * 0.48, 40, W * 0.5, H * 0.5, W * 0.6, [[0, '#17573f'], [0.4, '#103f2d'], [0.75, '#0a2a1d'], [1, '#04120b']]);
     ctx.fillRect(0, 0, W, H);
     /* fibras do feltro */
     ctx.lineWidth = 0.5;
@@ -1111,17 +1111,48 @@ var TT = (globalThis.TT = globalThis.TT || {});
     }
     /* marca d'água: naipes e rede */
     ctx.globalAlpha = 0.045;
-    emblem(ctx, 'espada', W * 0.47, H * 0.47, 260, 0.2, { shadow: false });
+    emblem(ctx, 'espada', W * 0.485, H * 0.485, H * 0.36, 0.2, { shadow: false });
     ctx.globalAlpha = 1;
-    ctx.fillStyle = rad(ctx, W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.75, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.55)']]);
+    ctx.fillStyle = rad(ctx, W / 2, H / 2, H * 0.32, W / 2, H / 2, W * 0.62, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.6)']]);
     ctx.fillRect(0, 0, W, H);
     return o.c;
   };
 
-  TT.drawSpark = function (S) {
+  TT.drawSpark = function (S, col) {
     var o = mk(32, 32, S || 1), ctx = o.ctx;
-    glowDisc(ctx, 16, 16, 16, '#ffffff', 1);
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(16, 16, 4, 0, Math.PI * 2); ctx.fill();
+    glowDisc(ctx, 16, 16, 16, col || '#ffffff', 1);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(16, 16, 3.5, 0, Math.PI * 2); ctx.fill();
+    return o.c;
+  };
+
+  /* Botões como texturas (funcionam igual nos renderizadores WebGL e Canvas).
+   * variant: gold | wine | stone; state: normal | hover | off. Margem de 5px para a sombra. */
+  TT.BTN_PAD = 5;
+  TT.drawButton = function (w, h, S, variant, state) {
+    var pad = TT.BTN_PAD, o = mk(w + pad * 2, h + pad * 2, S || 1), ctx = o.ctx;
+    var x = pad, y = pad - 1, r = Math.min(10, h / 3.2);
+    var V = {
+      gold: ['#fff1bf', '#e2bb5c', '#a3741f', '#5c3d0a'],
+      wine: ['#f08a8a', '#c0303e', '#7a1424', '#3a0810'],
+      stone: ['#cbbd9a', '#8a7a5a', '#5a4c32', '#2a2214'],
+    }[variant] || [];
+    if (state === 'off') V = variant === 'wine' ? ['#5a2a30', '#3e1a1f', '#2c1015', '#160709'] : ['#4a4232', '#342e22', '#262118', '#120f0a'];
+    if (state === 'hover') V = V.map(function (c) { return shade(c, 0.18); });
+    softShadow(ctx, 5, 2.5, state === 'off' ? 0.35 : 0.6);
+    ctx.fillStyle = '#0b0907'; rr(ctx, x, y + 1.5, w, h, r); ctx.fill();
+    noShadow(ctx);
+    ctx.fillStyle = lin(ctx, 0, y, 0, y + h, [[0, V[0]], [0.12, V[1]], [0.75, V[2]], [1, V[3]]]);
+    rr(ctx, x, y, w, h, r); ctx.fill();
+    ctx.save(); rr(ctx, x, y, w, h, r); ctx.clip();
+    if (state !== 'off') {
+      ctx.fillStyle = 'rgba(255,255,255,.18)';
+      ctx.beginPath(); ctx.ellipse(x + w / 2, y - h * 0.15, w * 0.62, h * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    grain(ctx, x, y, w, h, prng(hash(variant + w + h)), 0.06, 0.08);
+    ctx.restore();
+    ctx.lineWidth = 1.4; ctx.strokeStyle = '#0b0907'; rr(ctx, x, y, w, h, r); ctx.stroke();
+    ctx.lineWidth = 1; ctx.strokeStyle = state === 'off' ? 'rgba(217,178,96,.22)' : 'rgba(255,255,255,.45)';
+    rr(ctx, x + 1.6, y + 1.6, w - 3.2, h - 3.2, r - 1.5); ctx.stroke();
     return o.c;
   };
 

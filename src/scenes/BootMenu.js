@@ -30,15 +30,31 @@ TT.Q = {
 };
 TT.SIZE = { boardW: 62, boardH: 87, handW: 96, handH: 134, prevW: 197, prevH: 276 };
 
-/* Todo texto do Phaser nasce na resolução interna, para não borrar com o zoom da câmera */
+/* Todo texto do Phaser nasce na resolução interna, para não borrar com o zoom da câmera.
+ * A resolução precisa ir no estilo, na criação: o renderizador Canvas lê a resolução da textura
+ * só nesse momento (mudá-la depois deixa o texto maior que o resto da tela). */
 (function () {
   var F = Phaser.GameObjects.GameObjectFactory.prototype;
   var orig = F.text;
-  F.text = function (x, y, t, s) { var o = orig.call(this, x, y, t, s); o.setResolution(TT.RES); return o; };
+  F.text = function (x, y, t, s) {
+    var style = Object.assign({}, s || {}, { resolution: TT.RES });
+    var o = orig.call(this, x, y, t, style);
+    o.frame.source.resolution = TT.RES;
+    return o;
+  };
 })();
 
+/* A mesa (1280x720) fica sempre inteira e centralizada; telas mais altas (tablet) ou mais largas
+ * (celular) ganham feltro extra em volta, em vez de faixas pretas. */
 TT.setupCamera = function (scene) {
-  scene.cameras.main.setZoom(TT.RES).centerOn(TT.W / 2, TT.H / 2);
+  var cam = scene.cameras.main;
+  var fit = function () { cam.setZoom(TT.RES).centerOn(TT.W / 2, TT.H / 2); };
+  fit();
+  scene.scale.on('resize', fit);
+  scene.events.once('shutdown', function () { scene.scale.off('resize', fit); });
+};
+TT.addFelt = function (scene) {
+  return scene.add.image(TT.W / 2, TT.H / 2, 'felt').setDisplaySize(TT.W * 2, TT.H * 2).setDepth(-10);
 };
 
 class BootScene extends Phaser.Scene {
@@ -47,13 +63,13 @@ class BootScene extends Phaser.Scene {
     TT.setupCamera(this);
     var self = this;
     var t = this.add.text(TT.W / 2, TT.H / 2, 'Embaralhando neurônios…', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#d9b260' }).setOrigin(0.5);
-    var fonts = ['900 30px Cinzel', '700 15px Cinzel', '500 12px Alegreya', 'italic 11px Alegreya', '700 13px "Alegreya Sans"', '900 17px "Alegreya Sans"'];
+    var fonts = ['900 30px Cinzel', '700 15px Cinzel', '600 15px Cinzel', '400 13px Spectral', '500 12px Spectral', '600 12px Spectral', '700 13px Spectral', '800 15px Spectral', 'italic 400 12px Spectral', 'italic 500 12px Spectral'];
     var loads = document.fonts ? Promise.all(fonts.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
     var timeout = new Promise(function (r) { setTimeout(r, 3000); });
     Promise.race([loads, timeout]).then(function () {
       t.destroy();
       var add = function (key, canvas) { if (self.textures.exists(key)) self.textures.remove(key); self.textures.addCanvas(key, canvas); };
-      add('felt', TT.drawFelt(TT.W, TT.H, Math.min(TT.RES, 2)));
+      add('felt', TT.drawFelt(TT.W * 2, TT.H * 2, Math.min(TT.RES, 2) * 0.6));
       add('back-full', TT.drawCardBack('full', TT.Q.big));
       add('back-hand', TT.drawCardBack('full', TT.Q.hand));
       add('back-mini', TT.drawCardBack('mini', TT.Q.mini));
@@ -61,7 +77,7 @@ class BootScene extends Phaser.Scene {
       [['gradiente', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
         add('avatar-' + a[0], TT.drawAvatar(a[0], a[1], TT.Q.avatar));
       });
-      add('spark', TT.drawSpark(Math.min(TT.RES, 2)));
+      add('spark', TT.drawSpark(Math.min(TT.RES, 2), '#ffffff'));
       var c = document.createElement('canvas');
       c.width = Math.round(TT.CARD_SIZES.FULL_W * TT.Q.big); c.height = Math.round(TT.CARD_SIZES.FULL_H * TT.Q.big);
       self.textures.addCanvas('preview', c);
@@ -74,7 +90,7 @@ class MenuScene extends Phaser.Scene {
   constructor() { super('Menu'); }
   create() {
     TT.setupCamera(this);
-    this.add.image(0, 0, 'felt').setOrigin(0).setDisplaySize(TT.W, TT.H).setAlpha(0.95);
+    TT.addFelt(this);
     var g = this.add.graphics();
     var cols = [3, 5, 5, 5, 4];
     this.pts = cols.map(function (n, c) {

@@ -30,7 +30,7 @@ TT.UI = (function () {
     t.className = 'toast' + (kind ? ' ' + kind : '');
     t.innerHTML = '<b>' + esc(title) + '</b>' + esc(body || '');
     var box = $('#toasts');
-    while (box.children.length >= 2) box.removeChild(box.firstChild);
+    while (box.children.length >= 1) box.removeChild(box.firstChild);
     box.appendChild(t);
     setTimeout(function () { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; }, (ms || 5200) - 400);
     setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, ms || 5200);

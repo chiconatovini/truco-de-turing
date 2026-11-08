@@ -8,7 +8,7 @@
 <meta name="description" content="Jogo de cartas para aprender redes neurais e deep learning, com alma de truco. FPO 2026/2, trabalho tema 4.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700;900&family=Cinzel:wght@600;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap">
 <style>
 /* Mesa de truco à noite: feltro verde, latão, pergaminho e as cores azul/laranja do TensorFlow Playground. */
 :root {
@@ -25,8 +25,8 @@
   --orange: #f59322;
   --wine: #7a1626;
   --display: 'Cinzel', 'Trajan Pro', Georgia, serif;
-  --body: 'Alegreya', Georgia, 'Times New Roman', serif;
-  --ui: 'Alegreya Sans', 'Segoe UI', Arial, sans-serif;
+  --body: 'Spectral', Georgia, 'Times New Roman', serif;
+  --ui: 'Spectral', Georgia, 'Times New Roman', serif;
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -37,6 +37,7 @@ body {
   background-color: var(--felt-deep);
   color: var(--parchment);
   font-family: var(--ui);
+  font-variant-numeric: lining-nums;
   overflow: hidden;
 }
 #game {
@@ -153,7 +154,7 @@ body {
   font: 600 16px var(--ui); color: var(--ink);
   background: #fbf4e2; border: 2px solid #2b1608; border-radius: 8px; padding: 8px 10px; width: 100%;
 }
-.field .hint { font-size: 14px; color: #5a4630; line-height: 1.35; min-height: 2.7em; }
+.field .hint { font-size: 14px; color: #5a4630; line-height: 1.35; }
 .credits { font-size: 13px; color: #a8987a; line-height: 1.4; }
 .credits a { color: var(--brass); }
 
@@ -213,12 +214,12 @@ body {
 /* ---------- Toasts ---------- */
 #toasts {
   position: fixed; top: max(10px, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
-  display: grid; gap: 6px; z-index: 9; pointer-events: none; width: min(460px, calc(100% - 32px));
+  display: grid; gap: 6px; z-index: 9; pointer-events: none; width: min(440px, calc(100% - 32px));
 }
 .toast {
   pointer-events: auto;
   background: var(--parchment); color: var(--ink); border: 2px solid #0d0a08; border-radius: 10px;
-  padding: 10px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); font-family: var(--body); font-size: 15px; line-height: 1.35;
+  padding: 8px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); font-family: var(--body); font-size: 14px; line-height: 1.35;
   animation: rise 0.25s ease-out;
 }
 .toast b { font-family: var(--display); font-size: 14px; display: block; color: #6b1a22; letter-spacing: 0.04em; }
@@ -1614,7 +1615,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
     if (label != null) {
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       var fs = r * (String(label).length > 1 ? 1.05 : 1.25);
-      ctx.font = (opts.weight || '900') + ' ' + fs + 'px ' + (opts.family || '"Alegreya Sans", Arial, sans-serif');
+      ctx.font = (opts.weight || '800') + ' ' + fs + 'px ' + (opts.family || 'Spectral, Georgia, serif');
       ctx.lineWidth = r * 0.28; ctx.strokeStyle = 'rgba(0,0,0,.55)'; ctx.strokeText(label, cx, cy + r * 0.06);
       ctx.fillStyle = opts.color || '#ffffff'; ctx.fillText(label, cx, cy + r * 0.06);
       ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -2179,26 +2180,26 @@ var TT = (globalThis.TT = globalThis.TT || {});
     ctx.globalAlpha = 0.1; emblem(ctx, si.emblem, tx + tw / 2, ty + th / 2, 86, 0, { shadow: false }); ctx.globalAlpha = 1;
     ctx.restore();
     ctx.strokeStyle = shade(P.mid, -0.4); ctx.lineWidth = 1.2; ctx.strokeRect(tx, ty, tw, th);
-    ctx.fillStyle = INK; ctx.font = '500 12px Alegreya, Georgia, serif'; ctx.textBaseline = 'top';
-    var used = wrap(ctx, meta.rules, tx + 8, ty + 6, tw - 16, 14);
-    var sepY = ty + 10 + used * 14;
+    ctx.fillStyle = INK; ctx.font = '500 11px Spectral, Georgia, serif'; ctx.textBaseline = 'top';
+    var used = wrap(ctx, meta.rules, tx + 8, ty + 6, tw - 16, 13.5);
+    var sepY = ty + 10 + used * 13.5;
     ctx.strokeStyle = 'rgba(60,40,20,.35)'; ctx.lineWidth = 0.7;
     ctx.beginPath(); ctx.moveTo(tx + 30, sepY); ctx.lineTo(tx + tw - 30, sepY); ctx.stroke();
-    ctx.font = 'italic 11px Alegreya, Georgia, serif'; ctx.fillStyle = '#4b3a26';
-    wrap(ctx, meta.flavor, tx + 8, sepY + 4, tw - 70, 12.5);
+    ctx.font = 'italic 400 10.5px Spectral, Georgia, serif'; ctx.fillStyle = '#4b3a26';
+    wrap(ctx, meta.flavor, tx + 8, sepY + 4, tw - 66, 12.5);
 
     /* caixa de poder */
     plate(ctx, 168, 292, 56, 26, P, { r: 6 });
-    ctx.fillStyle = INK; ctx.font = '900 16px "Alegreya Sans", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = INK; ctx.font = '800 15px Spectral, Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(meta.fig ? '0' : String(meta.v), 186, 305.5);
     ctx.font = '700 14px ' + SYMBOL_FONT; ctx.fillStyle = si.red ? '#a8232f' : INK;
     ctx.fillText(si.sym, 209, 305.5);
     ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
     /* linha de colecionador */
     var idx = TT.SUITS.indexOf(card.s) * 13 + TT.RANKS.indexOf(card.r) + 1;
-    ctx.font = '700 7.5px "Alegreya Sans", Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.82)';
+    ctx.font = '700 7px Spectral, Georgia, serif'; ctx.fillStyle = 'rgba(255,255,255,.82)';
     ctx.fillText(String(idx).padStart(3, '0') + '/052 · ' + meta.rarity.charAt(0).toUpperCase() + ' · TdT · PT-BR', 17, 316);
-    ctx.font = '500 7.5px "Alegreya Sans", Arial, sans-serif';
+    ctx.font = '500 7px Spectral, Georgia, serif';
     ctx.fillText('Ilus. arte procedural · FPO 2026/2', 17, 325);
     return o.c;
   };
@@ -2432,7 +2433,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
     ctx.fillStyle = lin(ctx, 0, ty, 0, ty + th, [[0, '#f7efdb'], [1, '#e6d6b0']]);
     ctx.fillRect(tx, ty, tw, th);
     ctx.strokeStyle = shade(P.mid, -0.4); ctx.lineWidth = 1.2; ctx.strokeRect(tx, ty, tw, th);
-    ctx.fillStyle = INK; ctx.font = '500 12px Alegreya, Georgia, serif'; ctx.textBaseline = 'top';
+    ctx.fillStyle = INK; ctx.font = '500 11.5px Spectral, Georgia, serif'; ctx.textBaseline = 'top';
     wrap(ctx, t.short, tx + 8, ty + 7, tw - 16, 14.5);
     return o.c;
   };
@@ -2524,7 +2525,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       ctx.fillStyle = lin(ctx, 0, 20, 0, 110, [[0, shade(colorHex, 0.3)], [1, shade(colorHex, -0.35)]]);
       ctx.beginPath(); ctx.arc(56, 44, 18, 0, Math.PI * 2); ctx.fill();
       ctx.beginPath(); ctx.moveTo(18, 110); ctx.quadraticCurveTo(20, 66, 56, 66); ctx.quadraticCurveTo(92, 66, 94, 110); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '900 18px Cinzel, Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.font = '900 18px Cinzel, Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.fillText(kind === 'p2' ? 'II' : 'I', 56, 45);
     }
     ctx.restore();
@@ -2536,7 +2537,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
   TT.drawFelt = function (W, H, S) {
     var o = mk(W, H, S || 1), ctx = o.ctx;
     var rnd = prng(4242);
-    ctx.fillStyle = rad(ctx, W * 0.47, H * 0.46, 40, W * 0.5, H * 0.5, W * 0.72, [[0, '#17573f'], [0.55, '#0f3d2b'], [1, '#05150d']]);
+    ctx.fillStyle = rad(ctx, W * 0.49, H * 0.48, 40, W * 0.5, H * 0.5, W * 0.6, [[0, '#17573f'], [0.4, '#103f2d'], [0.75, '#0a2a1d'], [1, '#04120b']]);
     ctx.fillRect(0, 0, W, H);
     /* fibras do feltro */
     ctx.lineWidth = 0.5;
@@ -2547,17 +2548,48 @@ var TT = (globalThis.TT = globalThis.TT || {});
     }
     /* marca d'água: naipes e rede */
     ctx.globalAlpha = 0.045;
-    emblem(ctx, 'espada', W * 0.47, H * 0.47, 260, 0.2, { shadow: false });
+    emblem(ctx, 'espada', W * 0.485, H * 0.485, H * 0.36, 0.2, { shadow: false });
     ctx.globalAlpha = 1;
-    ctx.fillStyle = rad(ctx, W / 2, H / 2, H * 0.3, W / 2, H / 2, W * 0.75, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.55)']]);
+    ctx.fillStyle = rad(ctx, W / 2, H / 2, H * 0.32, W / 2, H / 2, W * 0.62, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.6)']]);
     ctx.fillRect(0, 0, W, H);
     return o.c;
   };
 
-  TT.drawSpark = function (S) {
+  TT.drawSpark = function (S, col) {
     var o = mk(32, 32, S || 1), ctx = o.ctx;
-    glowDisc(ctx, 16, 16, 16, '#ffffff', 1);
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(16, 16, 4, 0, Math.PI * 2); ctx.fill();
+    glowDisc(ctx, 16, 16, 16, col || '#ffffff', 1);
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(16, 16, 3.5, 0, Math.PI * 2); ctx.fill();
+    return o.c;
+  };
+
+  /* Botões como texturas (funcionam igual nos renderizadores WebGL e Canvas).
+   * variant: gold | wine | stone; state: normal | hover | off. Margem de 5px para a sombra. */
+  TT.BTN_PAD = 5;
+  TT.drawButton = function (w, h, S, variant, state) {
+    var pad = TT.BTN_PAD, o = mk(w + pad * 2, h + pad * 2, S || 1), ctx = o.ctx;
+    var x = pad, y = pad - 1, r = Math.min(10, h / 3.2);
+    var V = {
+      gold: ['#fff1bf', '#e2bb5c', '#a3741f', '#5c3d0a'],
+      wine: ['#f08a8a', '#c0303e', '#7a1424', '#3a0810'],
+      stone: ['#cbbd9a', '#8a7a5a', '#5a4c32', '#2a2214'],
+    }[variant] || [];
+    if (state === 'off') V = variant === 'wine' ? ['#5a2a30', '#3e1a1f', '#2c1015', '#160709'] : ['#4a4232', '#342e22', '#262118', '#120f0a'];
+    if (state === 'hover') V = V.map(function (c) { return shade(c, 0.18); });
+    softShadow(ctx, 5, 2.5, state === 'off' ? 0.35 : 0.6);
+    ctx.fillStyle = '#0b0907'; rr(ctx, x, y + 1.5, w, h, r); ctx.fill();
+    noShadow(ctx);
+    ctx.fillStyle = lin(ctx, 0, y, 0, y + h, [[0, V[0]], [0.12, V[1]], [0.75, V[2]], [1, V[3]]]);
+    rr(ctx, x, y, w, h, r); ctx.fill();
+    ctx.save(); rr(ctx, x, y, w, h, r); ctx.clip();
+    if (state !== 'off') {
+      ctx.fillStyle = 'rgba(255,255,255,.18)';
+      ctx.beginPath(); ctx.ellipse(x + w / 2, y - h * 0.15, w * 0.62, h * 0.5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    grain(ctx, x, y, w, h, prng(hash(variant + w + h)), 0.06, 0.08);
+    ctx.restore();
+    ctx.lineWidth = 1.4; ctx.strokeStyle = '#0b0907'; rr(ctx, x, y, w, h, r); ctx.stroke();
+    ctx.lineWidth = 1; ctx.strokeStyle = state === 'off' ? 'rgba(217,178,96,.22)' : 'rgba(255,255,255,.45)';
+    rr(ctx, x + 1.6, y + 1.6, w - 3.2, h - 3.2, r - 1.5); ctx.stroke();
     return o.c;
   };
 
@@ -2658,7 +2690,7 @@ TT.UI = (function () {
     t.className = 'toast' + (kind ? ' ' + kind : '');
     t.innerHTML = '<b>' + esc(title) + '</b>' + esc(body || '');
     var box = $('#toasts');
-    while (box.children.length >= 2) box.removeChild(box.firstChild);
+    while (box.children.length >= 1) box.removeChild(box.firstChild);
     box.appendChild(t);
     setTimeout(function () { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; }, (ms || 5200) - 400);
     setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, ms || 5200);
@@ -2846,15 +2878,31 @@ TT.Q = {
 };
 TT.SIZE = { boardW: 62, boardH: 87, handW: 96, handH: 134, prevW: 197, prevH: 276 };
 
-/* Todo texto do Phaser nasce na resolução interna, para não borrar com o zoom da câmera */
+/* Todo texto do Phaser nasce na resolução interna, para não borrar com o zoom da câmera.
+ * A resolução precisa ir no estilo, na criação: o renderizador Canvas lê a resolução da textura
+ * só nesse momento (mudá-la depois deixa o texto maior que o resto da tela). */
 (function () {
   var F = Phaser.GameObjects.GameObjectFactory.prototype;
   var orig = F.text;
-  F.text = function (x, y, t, s) { var o = orig.call(this, x, y, t, s); o.setResolution(TT.RES); return o; };
+  F.text = function (x, y, t, s) {
+    var style = Object.assign({}, s || {}, { resolution: TT.RES });
+    var o = orig.call(this, x, y, t, style);
+    o.frame.source.resolution = TT.RES;
+    return o;
+  };
 })();
 
+/* A mesa (1280x720) fica sempre inteira e centralizada; telas mais altas (tablet) ou mais largas
+ * (celular) ganham feltro extra em volta, em vez de faixas pretas. */
 TT.setupCamera = function (scene) {
-  scene.cameras.main.setZoom(TT.RES).centerOn(TT.W / 2, TT.H / 2);
+  var cam = scene.cameras.main;
+  var fit = function () { cam.setZoom(TT.RES).centerOn(TT.W / 2, TT.H / 2); };
+  fit();
+  scene.scale.on('resize', fit);
+  scene.events.once('shutdown', function () { scene.scale.off('resize', fit); });
+};
+TT.addFelt = function (scene) {
+  return scene.add.image(TT.W / 2, TT.H / 2, 'felt').setDisplaySize(TT.W * 2, TT.H * 2).setDepth(-10);
 };
 
 class BootScene extends Phaser.Scene {
@@ -2863,13 +2911,13 @@ class BootScene extends Phaser.Scene {
     TT.setupCamera(this);
     var self = this;
     var t = this.add.text(TT.W / 2, TT.H / 2, 'Embaralhando neurônios…', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#d9b260' }).setOrigin(0.5);
-    var fonts = ['900 30px Cinzel', '700 15px Cinzel', '500 12px Alegreya', 'italic 11px Alegreya', '700 13px "Alegreya Sans"', '900 17px "Alegreya Sans"'];
+    var fonts = ['900 30px Cinzel', '700 15px Cinzel', '600 15px Cinzel', '400 13px Spectral', '500 12px Spectral', '600 12px Spectral', '700 13px Spectral', '800 15px Spectral', 'italic 400 12px Spectral', 'italic 500 12px Spectral'];
     var loads = document.fonts ? Promise.all(fonts.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
     var timeout = new Promise(function (r) { setTimeout(r, 3000); });
     Promise.race([loads, timeout]).then(function () {
       t.destroy();
       var add = function (key, canvas) { if (self.textures.exists(key)) self.textures.remove(key); self.textures.addCanvas(key, canvas); };
-      add('felt', TT.drawFelt(TT.W, TT.H, Math.min(TT.RES, 2)));
+      add('felt', TT.drawFelt(TT.W * 2, TT.H * 2, Math.min(TT.RES, 2) * 0.6));
       add('back-full', TT.drawCardBack('full', TT.Q.big));
       add('back-hand', TT.drawCardBack('full', TT.Q.hand));
       add('back-mini', TT.drawCardBack('mini', TT.Q.mini));
@@ -2877,7 +2925,7 @@ class BootScene extends Phaser.Scene {
       [['gradiente', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
         add('avatar-' + a[0], TT.drawAvatar(a[0], a[1], TT.Q.avatar));
       });
-      add('spark', TT.drawSpark(Math.min(TT.RES, 2)));
+      add('spark', TT.drawSpark(Math.min(TT.RES, 2), '#ffffff'));
       var c = document.createElement('canvas');
       c.width = Math.round(TT.CARD_SIZES.FULL_W * TT.Q.big); c.height = Math.round(TT.CARD_SIZES.FULL_H * TT.Q.big);
       self.textures.addCanvas('preview', c);
@@ -2890,7 +2938,7 @@ class MenuScene extends Phaser.Scene {
   constructor() { super('Menu'); }
   create() {
     TT.setupCamera(this);
-    this.add.image(0, 0, 'felt').setOrigin(0).setDisplaySize(TT.W, TT.H).setAlpha(0.95);
+    TT.addFelt(this);
     var g = this.add.graphics();
     var cols = [3, 5, 5, 5, 4];
     this.pts = cols.map(function (n, c) {
@@ -2981,7 +3029,37 @@ var TT = (globalThis.TT = globalThis.TT || {});
   var PCSS = [TT.CSS.p0, TT.CSS.p1];
   var KIND_COLOR = { reveal: 0xf6dc8f, tunagem: 0x7fe08a, overfit: 0xffa24a, earlystop: 0xff4d5e, stackoverflow: 0xff4dd2, dropout: 0x6fe7ff };
   var STATUS = { building: 'em construção', done: 'chegou à saída', earlystop: 'early stop', overflow: 'stack overflow' };
-  var F_DISPLAY = 'Cinzel, Georgia, serif', F_UI = '"Alegreya Sans", Arial, sans-serif', F_BODY = 'Alegreya, Georgia, serif';
+  var F_DISPLAY = 'Cinzel, Georgia, serif', F_BODY = 'Spectral, Georgia, serif', F_UI = F_BODY;
+  /* geometria dos painéis laterais */
+  var LP = { x: 8, y: 80, w: 244, h: 632 };
+  var RP = { x: 962, y: 8, w: 310, h: 704 };
+  /* texto de uma linha que encolhe até caber; corta com reticências se ainda assim não couber */
+  function fitLine(t, text, base, maxW, min) {
+    var key = text + '|' + base + '|' + maxW;
+    if (t._fit === key) return t;
+    t._fit = key;
+    t.setText(text);
+    var s = base;
+    t.setFontSize(s);
+    while (t.width > maxW && s > min) { s -= 0.5; t.setFontSize(s); }
+    if (t.width > maxW) {
+      var cut = text;
+      while (cut.length > 1 && t.width > maxW) { cut = cut.slice(0, -1); t.setText(cut.trimEnd() + '\u2026'); }
+    }
+    return t;
+  }
+  /* bloco de texto com quebra de linha que encolhe até caber na altura */
+  function fitBox(t, text, base, maxW, maxH, min) {
+    var key = text + '|' + base + '|' + maxW + '|' + maxH;
+    if (t._fit === key) return t;
+    t._fit = key;
+    var s = base;
+    t.setWordWrapWidth(maxW);
+    t.setFontSize(s);
+    t.setText(text);
+    while (t.height > maxH && s > min) { s -= 0.5; t.setFontSize(s); }
+    return t;
+  }
 
   class GameScene extends Phaser.Scene {
     constructor() { super('Game'); }
@@ -2994,7 +3072,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.sessionSeen = this.app.sessionSeen;
 
       TT.setupCamera(this);
-      this.add.image(0, 0, 'felt').setOrigin(0).setDisplaySize(TT.W, TT.H);
+      TT.addFelt(this);
       this.drawStatic();
       this.connG = this.add.graphics().setDepth(2);
       this.emptyG = this.add.graphics().setDepth(1);
@@ -3013,9 +3091,15 @@ var TT = (globalThis.TT = globalThis.TT || {});
     drawStatic() {
       var g = this.add.graphics().setDepth(0);
       /* painéis laterais */
-      g.fillStyle(0x07150e, 0.72); g.fillRoundedRect(8, 80, 244, 632, 12);
-      g.fillStyle(0x07150e, 0.72); g.fillRoundedRect(962, 8, 310, 704, 12);
-      g.lineStyle(1.5, TT.COLORS.gold, 0.45); g.strokeRoundedRect(8, 80, 244, 632, 12); g.strokeRoundedRect(962, 8, 310, 704, 12);
+      [[LP.x, LP.y, LP.w, LP.h], [RP.x, RP.y, RP.w, RP.h]].forEach(function (p) {
+        g.fillStyle(0x000000, 0.35); g.fillRoundedRect(p[0] + 2, p[1] + 4, p[2], p[3], 12);
+        g.fillStyle(0x07150e, 0.82); g.fillRoundedRect(p[0], p[1], p[2], p[3], 12);
+        g.lineStyle(1.5, TT.COLORS.gold, 0.55); g.strokeRoundedRect(p[0], p[1], p[2], p[3], 12);
+        g.lineStyle(1, TT.COLORS.gold, 0.18); g.strokeRoundedRect(p[0] + 4, p[1] + 4, p[2] - 8, p[3] - 8, 9);
+      });
+      /* divisórias do painel esquerdo */
+      g.lineStyle(1, TT.COLORS.gold, 0.25);
+      [440, 568].forEach(function (y) { g.lineBetween(LP.x + 18, y, LP.x + LP.w - 18, y); });
       /* colunas das camadas */
       for (var l = 0; l < TT.N_LAYERS; l++) {
         var imm = l === 0 || l === TT.OUTPUT;
@@ -3023,100 +3107,117 @@ var TT = (globalThis.TT = globalThis.TT || {});
         var top = rowY(l, 0) - 52, bot = rowY(l, n - 1) + 52;
         g.fillStyle(imm ? 0x2a1a08 : 0x000000, imm ? 0.35 : 0.18);
         g.fillRoundedRect(colX(l) - 42, top, 84, bot - top, 10);
-        if (imm) { g.lineStyle(1.5, 0xe8a7b8, 0.55); g.strokeRoundedRect(colX(l) - 42, top, 84, bot - top, 10); }
-        this.add.text(colX(l), 84, TT.layerName(l).toUpperCase(), { fontFamily: F_UI, fontStyle: '700', fontSize: '12px', color: imm ? '#f0b7c4' : '#d9c79a', letterSpacing: 1.5 }).setOrigin(0.5).setDepth(1);
-        if (imm) this.add.text(colX(l), top - 10, 'imune a ações', { fontFamily: F_UI, fontSize: '11px', color: '#f0b7c4' }).setOrigin(0.5).setDepth(1);
+        if (imm) { g.lineStyle(1.5, 0xe8a7b8, 0.5); g.strokeRoundedRect(colX(l) - 42, top, 84, bot - top, 10); }
+        var lbl = this.add.text(colX(l), 86, TT.layerName(l).toUpperCase(), { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '13px', color: imm ? '#f3c3cf' : '#e8d6a8', letterSpacing: 1 }).setOrigin(0.5).setDepth(1);
+        fitLine(lbl, lbl.text, 13, 90, 10);
+        if (imm) this.add.text(colX(l), top - 11, 'imune a ações', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '11.5px', color: '#f3c3cf' }).setOrigin(0.5).setDepth(1);
       }
-      this.add.text(130, 96, 'INSPEÇÃO', { fontFamily: F_UI, fontStyle: '700', fontSize: '12px', color: '#d9c79a', letterSpacing: 2 }).setOrigin(0.5);
+      this.add.text(LP.x + LP.w / 2, 98, 'INSPEÇÃO', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '12px', color: '#e8d6a8', letterSpacing: 2 }).setOrigin(0.5).setDepth(7);
     }
 
+    /* Botão com textura própria (nítido e igual em WebGL e Canvas) e rótulo que se ajusta à largura */
     makeButton(x, y, w, h, label, cb, opt) {
       opt = opt || {};
-      var c = this.add.container(x, y).setDepth(8);
-      var bg = this.add.graphics();
-      var fill = opt.fill || 0xd9b260, fill2 = opt.fill2 || 0xa47a28, txtCol = opt.color || '#24140a';
-      var draw = function (hover) {
-        bg.clear();
-        bg.fillStyle(0x0d0a08, 1); bg.fillRoundedRect(-w / 2, -h / 2 + 3, w, h, 9);
-        bg.fillGradientStyle(hover ? 0xfff0bc : fill, hover ? 0xfff0bc : fill, fill2, fill2, 1);
-        bg.fillRoundedRect(-w / 2, -h / 2, w, h, 9);
-        bg.lineStyle(2, 0x0d0a08, 1); bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 9);
+      var scene = this, variant = opt.variant || 'gold';
+      var key = function (state) {
+        var k = 'btn:' + variant + ':' + w + 'x' + h + ':' + state;
+        if (!scene.textures.exists(k)) scene.textures.addCanvas(k, TT.drawButton(w, h, Math.min(TT.RES, 2.5), variant, state));
+        return k;
       };
-      draw(false);
-      var t = this.add.text(0, 0, label, { fontFamily: opt.font || F_DISPLAY, fontStyle: '700', fontSize: (opt.size || 14) + 'px', color: txtCol, align: 'center' }).setOrigin(0.5);
+      var colors = { gold: '#2a1606', wine: '#fff0e0', stone: '#f6ecd6' };
+      var c = this.add.container(x, y).setDepth(8);
+      var bg = this.add.image(0, 0, key('normal')).setDisplaySize(w + TT.BTN_PAD * 2, h + TT.BTN_PAD * 2);
+      var base = opt.size || 14;
+      var t = this.add.text(0, -0.5, label, { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: base + 'px', color: colors[variant], align: 'center' }).setOrigin(0.5);
       c.add([bg, t]);
       c.setSize(w, h);
       c.setInteractive({ useHandCursor: true });
-      c.on('pointerover', function () { if (c.enabled) draw(true); });
-      c.on('pointerout', function () { draw(false); });
-      c.on('pointerdown', function () { if (c.enabled) { TT.Sfx.select(); cb(); } });
       c.enabled = true;
+      var paint = function (state) { bg.setTexture(key(state)).setDisplaySize(w + TT.BTN_PAD * 2, h + TT.BTN_PAD * 2); };
+      c.on('pointerover', function () { if (c.enabled) paint('hover'); });
+      c.on('pointerout', function () { paint(c.enabled ? 'normal' : 'off'); });
+      c.on('pointerdown', function () { if (c.enabled) { TT.Sfx.select(); cb(); } });
       c.label = t;
-      c.setEnabled = function (on) { c.enabled = on; c.setAlpha(on ? 1 : 0.38); if (!on) draw(false); };
+      c.setLabel = function (s) { fitLine(t, s, base, w - 18, 9); return c; };
+      c.setEnabled = function (on) {
+        if (c.enabled === on) return c;
+        c.enabled = on;
+        paint(on ? 'normal' : 'off');
+        t.setColor(on ? colors[variant] : variant === 'wine' ? '#a77a7a' : '#8c7f63');
+        return c;
+      };
+      c.setLabel(label);
       return c;
     }
 
     createHud() {
       var self = this;
-      var tx = function (x, y, s, style) { return self.add.text(x, y, s, Object.assign({ fontFamily: F_UI, fontSize: '14px', color: '#efe3c6' }, style || {})).setDepth(7); };
+      var tx = function (x, y, s, style) { return self.add.text(x, y, s, Object.assign({ fontFamily: F_BODY, fontSize: '13px', color: '#efe3c6' }, style || {})).setDepth(7); };
       var h = (this.hud = {});
       /* adversário (topo esquerdo) */
       h.oppAvatar = this.add.image(44, 40, 'avatar-gradiente').setDisplaySize(64, 64).setDepth(7);
-      h.oppName = tx(84, 16, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '18px', color: '#f6dc8f' });
-      h.oppSub = tx(84, 42, '', { fontSize: '13px', color: '#c9b993' });
+      h.oppName = tx(84, 23, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '18px', color: '#f6dc8f' }).setOrigin(0, 0.5);
+      h.oppSub = tx(84, 50, '', { fontStyle: 'italic', fontSize: '13px', color: '#cdbf9e' }).setOrigin(0, 0.5);
       h.bubble = this.add.container(700, 40).setDepth(30).setVisible(false);
       h.bubbleBg = this.add.graphics();
-      h.bubbleText = this.add.text(0, 0, '', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '17px', color: '#24170c', wordWrap: { width: 230 } }).setOrigin(0.5);
+      h.bubbleText = this.add.text(0, 0, '', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '15px', color: '#24170c', wordWrap: { width: 230 }, align: 'center' }).setOrigin(0.5);
       h.bubble.add([h.bubbleBg, h.bubbleText]);
       /* inspeção */
-      h.preview = this.add.image(130, 250, 'terrain-' + this.opts.terrain).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH).setDepth(7);
-      h.previewNote = tx(130, 396, '', { fontSize: '12px', color: '#c9b993', align: 'center', wordWrap: { width: 230 } }).setOrigin(0.5, 0);
+      var cx = LP.x + LP.w / 2;
+      h.preview = this.add.image(cx, 250, 'terrain-' + this.opts.terrain).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH).setDepth(7);
+      h.previewNote = tx(cx, 394, '', { fontStyle: 'italic', fontSize: '12px', color: '#d6c8a6', align: 'center', wordWrap: { width: LP.w - 30 }, lineSpacing: 0 }).setOrigin(0.5, 0);
       /* pilhas */
-      h.limbo = this.add.image(72, 462, 'back-mini').setDisplaySize(50, 71).setDepth(7).setInteractive();
-      h.limboTxt = tx(72, 504, '', { fontSize: '13px', align: 'center' }).setOrigin(0.5, 0);
-      h.grave = this.add.image(188, 462, 'back-mini').setDisplaySize(50, 71).setDepth(7).setInteractive();
-      h.graveTxt = tx(188, 504, '', { fontSize: '13px', align: 'center' }).setOrigin(0.5, 0);
+      h.limbo = this.add.image(LP.x + 70, 474, 'back-mini').setDisplaySize(42, 59).setDepth(7).setInteractive();
+      h.limboTxt = tx(LP.x + 70, 509, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '10.5px', color: '#e8d6a8', letterSpacing: 1 }).setOrigin(0.5, 0);
+      h.grave = this.add.image(LP.x + LP.w - 70, 474, 'back-mini').setDisplaySize(42, 59).setDepth(7).setInteractive();
+      h.graveTxt = tx(LP.x + LP.w - 70, 509, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '10.5px', color: '#e8d6a8', letterSpacing: 1 }).setOrigin(0.5, 0);
       h.limbo.on('pointerover', function () { self.showPreview('back-full', 'Limbo: cartas queimadas no início (ruído). Só voltam por transfer learning.'); });
       h.grave.on('pointerover', function () {
         var top = self.st && self.st.graveyard[self.st.graveyard.length - 1];
         self.showPreview(top ? TT.texPreview(self, top, self.st.cfg.deck) : 'back-full', 'Cemitério: ' + (self.st ? self.st.graveyard.length : 0) + ' carta(s) fora de jogo. Mostrando a última.');
       });
-      h.terrainTxt = tx(130, 534, '', { fontSize: '13px', align: 'center', color: '#d9c79a', wordWrap: { width: 230 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
-      h.terrainTxt.on('pointerover', function () { self.showPreview('terrain-' + self.opts.terrain, TT.TERRAINS[self.opts.terrain].name); });
+      h.terrainTxt = tx(cx, 528, '', { fontSize: '12px', align: 'center', color: '#d6c8a6', wordWrap: { width: LP.w - 30 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+      h.terrainTxt.on('pointerover', function () { self.showPreview('terrain-' + self.opts.terrain, TT.TERRAINS[self.opts.terrain].name + ': ' + TT.TERRAINS[self.opts.terrain].short); });
       /* eu (rodapé esquerdo) */
-      h.meAvatar = this.add.image(36, 604, 'avatar-p1').setDisplaySize(48, 48).setDepth(7);
-      h.meName = tx(66, 592, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '16px', color: '#bfe2fa' });
-      h.hint = tx(18, 628, '', { fontFamily: F_BODY, fontSize: '14.5px', color: '#efe3c6', wordWrap: { width: 226 }, lineSpacing: 1 });
+      h.meAvatar = this.add.image(LP.x + 26, 592, 'avatar-p1').setDisplaySize(36, 36).setDepth(7);
+      h.meName = tx(LP.x + 52, 592, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '15px', color: '#bfe2fa' }).setOrigin(0, 0.5);
+      h.hint = tx(LP.x + 14, 616, '', { fontSize: '13.5px', color: '#efe3c6', wordWrap: { width: LP.w - 28 }, lineSpacing: 1 });
 
-      /* painel direito */
-      h.handTitle = tx(1117, 20, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '15px', color: '#f6dc8f' }).setOrigin(0.5, 0);
-      h.tentos = tx(1117, 42, '', { fontSize: '14px', color: '#d9c79a' }).setOrigin(0.5, 0);
+      /* painel direito: placar */
+      var rx = RP.x + 12, rw = RP.w - 24, rc = RP.x + RP.w / 2;
+      h.handTitle = tx(rc, 28, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '16px', color: '#f6dc8f', letterSpacing: 1 }).setOrigin(0.5);
+      h.subTitle = tx(rc, 50, '', { fontStyle: 'italic', fontSize: '12.5px', color: '#cdbf9e' }).setOrigin(0.5);
       h.blocks = [0, 1].map(function (i) {
-        var y = 70 + i * 82;
-        var b = { y: y };
+        var y = 66 + i * 86;
+        var b = { y: y, x: rx, w: rw, h: 80 };
         b.g = self.add.graphics().setDepth(6);
-        b.name = tx(988, y + 8, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '15px' });
-        b.status = tx(988, y + 30, '', { fontSize: '11px', color: '#d9c79a', letterSpacing: 1.2 });
-        b.detail = tx(988, y + 50, '', { fontSize: '13px', color: '#c9b993' });
-        b.score = tx(1256, y + 38, '0', { fontFamily: F_DISPLAY, fontStyle: '900', fontSize: '38px' }).setOrigin(1, 0.5);
+        b.name = tx(rx + 16, y + 15, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '15px' }).setOrigin(0, 0.5);
+        b.status = tx(rx + 16, y + 34, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '9.5px', color: '#e0cc9a', letterSpacing: 0.8 }).setOrigin(0, 0.5);
+        b.detail = tx(rx + 16, y + 51, '', { fontSize: '12px', color: '#cdbf9e' }).setOrigin(0, 0.5);
+        b.tentos = tx(rx + 16 + 12 * 10 + 4, y + 67, '', { fontSize: '11px', color: '#cdbf9e' }).setOrigin(0, 0.5);
+        b.scoreLbl = tx(rx + rw - 12, y + 14, 'SOMA DA REDE', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '8.5px', color: '#9a8c6c', letterSpacing: 1 }).setOrigin(1, 0.5);
+        b.score = tx(rx + rw - 12, y + 47, '0', { fontFamily: F_DISPLAY, fontStyle: '900', fontSize: '36px' }).setOrigin(1, 0.5);
         return b;
       });
-      h.truco = this.makeButton(1117, 258, 286, 42, 'TRUCO!', function () { self.humanTruco(); }, { fill: 0xc0303e, fill2: 0x6e1420, color: '#ffe9d6', size: 20 });
-      h.chartLabel = tx(978, 288, 'CURVA DE TREINO · soma da rede por turno', { fontSize: '11px', color: '#d9c79a', letterSpacing: 1 });
-      h.chartMax = tx(978, 304, '', { fontSize: '10px', color: '#8f8166' });
-      h.log = tx(978, 398, '', { fontSize: '13px', color: '#d9cfb6', wordWrap: { width: 284 }, lineSpacing: 2 });
-      h.btnDrop = this.makeButton(1043, 574, 140, 38, 'Dropout', function () { self.toggleDropout(); }, { size: 14 });
-      h.btnTransfer = this.makeButton(1191, 574, 140, 38, 'Transfer', function () { self.humanTransfer(); }, { size: 14 });
-      h.btnPass = this.makeButton(1043, 618, 140, 38, 'Passar a vez', function () { self.humanPass(); }, { size: 13 });
-      h.btnRules = this.makeButton(1191, 618, 140, 38, 'Regras', function () { TT.UI.rules(null); }, { size: 14 });
-      h.btnCodex = this.makeButton(1018, 666, 90, 34, 'Grimório', function () { TT.UI.codex(self.app); }, { size: 12, fill: 0x8a7a5a, fill2: 0x4a3f2c, color: '#f5ecd6' });
-      h.btnSound = this.makeButton(1117, 666, 90, 34, '', function () { self.app.toggleSound(); self.refreshSoundBtn(); }, { size: 12, fill: 0x8a7a5a, fill2: 0x4a3f2c, color: '#f5ecd6' });
-      h.btnMenu = this.makeButton(1216, 666, 90, 34, 'Menu', function () { self.askMenu(); }, { size: 12, fill: 0x8a7a5a, fill2: 0x4a3f2c, color: '#f5ecd6' });
+      h.truco = this.makeButton(rc, 262, rw, 44, 'TRUCO!', function () { self.humanTruco(); }, { variant: 'wine', size: 20 });
+      h.chartLabel = tx(rx, 298, 'CURVA DE TREINO', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '10px', color: '#e0cc9a', letterSpacing: 1 }).setOrigin(0, 0.5);
+      h.chartSub = tx(rx + rw, 298, 'soma da rede por turno', { fontStyle: 'italic', fontSize: '11px', color: '#9a8c6c' }).setOrigin(1, 0.5);
+      h.chartMax = tx(rx + 6, 316, '', { fontSize: '10px', color: '#9a8c6c' }).setOrigin(0, 0.5);
+      h.log = tx(rx, 396, '', { fontSize: '12px', color: '#dccfb2', wordWrap: { width: rw }, lineSpacing: 2 });
+      var bw = (rw - 8) / 2, c1 = rx + bw / 2, c2 = rx + rw - bw / 2;
+      h.btnDrop = this.makeButton(c1, 590, bw, 38, 'Dropout', function () { self.toggleDropout(); }, { size: 14 });
+      h.btnTransfer = this.makeButton(c2, 590, bw, 38, 'Transfer', function () { self.humanTransfer(); }, { size: 14 });
+      h.btnPass = this.makeButton(c1, 634, bw, 38, 'Passar a vez', function () { self.humanPass(); }, { size: 14 });
+      h.btnRules = this.makeButton(c2, 634, bw, 38, 'Regras', function () { TT.UI.rules(null); }, { size: 14 });
+      var sw = (rw - 12) / 3;
+      h.btnCodex = this.makeButton(rx + sw / 2, 677, sw, 32, 'Grimório', function () { TT.UI.codex(self.app); }, { size: 12, variant: 'stone' });
+      h.btnSound = this.makeButton(rc, 677, sw, 32, 'Som', function () { self.app.toggleSound(); self.refreshSoundBtn(); }, { size: 12, variant: 'stone' });
+      h.btnMenu = this.makeButton(rx + rw - sw / 2, 677, sw, 32, 'Menu', function () { self.askMenu(); }, { size: 12, variant: 'stone' });
       this.refreshSoundBtn();
-      h.thinking = tx(610, 560, '', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '15px', color: '#f6dc8f' }).setOrigin(0.5).setDepth(12);
     }
 
-    refreshSoundBtn() { this.hud.btnSound.label.setText(TT.Sfx.isMuted() ? 'Som: não' : 'Som: sim'); }
+    refreshSoundBtn() { this.hud.btnSound.setLabel(TT.Sfx.isMuted() ? 'Som: não' : 'Som: sim'); }
+    setHint(text) { fitBox(this.hud.hint, text, 13.5, LP.w - 28, 712 - 616 - 8, 10.5); }
 
     /* ------------------------------------------------------------------ mão nova */
     startHand() {
@@ -3147,8 +3248,8 @@ var TT = (globalThis.TT = globalThis.TT || {});
           sp.on('pointerdown', function () { self.onSlotClick(slot.id); });
           sp.on('pointerover', function () { self.onSlotHover(slot.id, true); });
           sp.on('pointerout', function () { self.onSlotHover(slot.id, false); });
-          var badge = self.add.text(sp.x + 26, sp.y - 40, '', { fontFamily: F_UI, fontStyle: '900', fontSize: '13px', color: '#24170c', backgroundColor: '#f6dc8f', padding: { x: 4, y: 1 } }).setOrigin(0.5).setDepth(4);
-          var mem = self.add.text(sp.x, sp.y + 32, '', { fontFamily: F_UI, fontStyle: '700', fontSize: '12px', color: '#f6dc8f', backgroundColor: 'rgba(0,0,0,.65)', padding: { x: 3, y: 1 } }).setOrigin(0.5).setDepth(4);
+          var badge = self.add.text(sp.x - 18, sp.y + 33, '', { fontFamily: F_BODY, fontStyle: '800', fontSize: '12px', color: '#24170c', backgroundColor: '#f6dc8f', padding: { x: 4, y: 1 } }).setOrigin(0.5).setDepth(4);
+          var mem = self.add.text(sp.x, sp.y + 32, '', { fontFamily: F_BODY, fontStyle: '700', fontSize: '11px', color: '#f6dc8f', backgroundColor: 'rgba(0,0,0,.65)', padding: { x: 3, y: 1 } }).setOrigin(0.5).setDepth(4);
           self.slotSprites[slot.id] = { sp: sp, badge: badge, mem: mem };
           self.boardObjs.push(sp, badge, mem);
           /* animação de distribuição */
@@ -3159,7 +3260,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       this.handSprites = [];
       this.oppSprites = [];
       this.hud.preview.setTexture('terrain-' + this.opts.terrain);
-      this.hud.previewNote.setText(TT.TERRAINS[this.opts.terrain].name + ' · baralho ' + TT.DECKS[this.opts.deck].name);
+      fitBox(this.hud.previewNote, 'Passe o cursor ou toque numa carta para inspecioná-la.', 12, LP.w - 30, 40, 9.5);
       this.st.events.splice(0);
       this.renderAll();
       if (this.opts.terrain !== 'neutro') this.codexToast('terrenos');
@@ -3181,7 +3282,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       return p === 0 ? 'avatar-p1' : 'avatar-p2';
     }
 
-    showPreview(key, note) { this.hud.preview.setTexture(key).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH); this.hud.previewNote.setText(note || ''); }
+    showPreview(key, note) { this.hud.preview.setTexture(key).setDisplaySize(TT.SIZE.prevW, TT.SIZE.prevH); fitBox(this.hud.previewNote, note || '', 12, LP.w - 30, 40, 9.5); }
 
     /* ------------------------------------------------------------------ render */
     renderAll() {
@@ -3266,77 +3367,90 @@ var TT = (globalThis.TT = globalThis.TT || {});
     renderHud() {
       var st = this.st, h = this.hud, m = this.match, self = this;
       var tp = this.topPlayer(), bp = this.bottomPlayer();
-      h.oppAvatar.setTexture(this.avatarKey(tp));
-      h.oppName.setText(st.players[tp].name).setColor(PCSS[tp]);
-      if (!this.thinkingNow) h.oppSub.setText(st.players[tp].kind === 'bot' ? 'Nível ' + TT.BOTS[st.players[tp].bot].level.toLowerCase() + ' \u00b7 ' + TT.BOTS[st.players[tp].bot].method : 'Aguardando a vez');
-      h.meAvatar.setTexture(this.avatarKey(bp));
-      h.meName.setText(st.players[bp].name).setColor(PCSS[bp]);
-      h.handTitle.setText('MÃO ' + (m.hand + 1) + ' · vale ' + m.value + (m.value === 1 ? ' tento' : ' tentos'));
-      h.tentos.setText(m.target > 1
-        ? st.players[0].name + ' ' + m.tentos[0] + ' × ' + m.tentos[1] + ' ' + st.players[1].name + '  ·  até ' + m.target + (TT.maoDeOnze(m) ? '  ·  MÃO DE ONZE' : '')
-        : 'Mão única · sem truco');
+      h.oppAvatar.setTexture(this.avatarKey(tp)).setDisplaySize(64, 64);
+      fitLine(h.oppName.setColor(PCSS[tp]), st.players[tp].name, 18, 300, 12);
+      if (!this.thinkingNow) fitLine(h.oppSub, st.players[tp].kind === 'bot' ? 'Nível ' + TT.BOTS[st.players[tp].bot].level.toLowerCase() + ' · ' + TT.BOTS[st.players[tp].bot].method : 'Aguardando a vez', 13, 300, 10);
+      h.meAvatar.setTexture(this.avatarKey(bp)).setDisplaySize(36, 36);
+      fitLine(h.meName.setColor(PCSS[bp]), st.players[bp].name, 15, LP.w - 66, 11);
+      fitLine(h.handTitle, 'MÃO ' + (m.hand + 1) + ' · VALE ' + m.value + (m.value === 1 ? ' TENTO' : ' TENTOS'), 16, RP.w - 28, 11);
+      fitLine(h.subTitle, m.target <= 1 ? 'Mão única, sem truco' : TT.maoDeOnze(m) ? 'Mão de onze: ninguém pode trucar' : 'Partida até ' + m.target + ' tentos', 12.5, RP.w - 28, 10);
       [tp, bp].forEach(function (p, i) {
         var b = h.blocks[i], pl = st.players[p];
-        b.g.clear();
         var active = st.phase === 'play' && st.current === p;
-        b.g.fillStyle(0x000000, active ? 0.45 : 0.25); b.g.fillRoundedRect(974, b.y, 288, 74, 8);
-        b.g.fillStyle(PCOL[p], 1); b.g.fillRoundedRect(974, b.y, 6, 74, 3);
-        if (active) { b.g.lineStyle(1.5, PCOL[p], 0.9); b.g.strokeRoundedRect(974, b.y, 288, 74, 8); }
-        b.name.setText(pl.name + (active ? '  ◀ vez' : '')).setColor(PCSS[p]);
+        b.g.clear();
+        b.g.fillStyle(active ? 0x12261b : 0x000000, active ? 0.95 : 0.3); b.g.fillRoundedRect(b.x, b.y, b.w, b.h, 8);
+        b.g.fillStyle(PCOL[p], 1); b.g.fillRoundedRect(b.x, b.y, active ? 7 : 5, b.h, { tl: 8, bl: 8, tr: 0, br: 0 });
+        b.g.lineStyle(active ? 2 : 1, active ? PCOL[p] : 0xd9b260, active ? 1 : 0.22); b.g.strokeRoundedRect(b.x, b.y, b.w, b.h, 8);
+        fitLine(b.name.setColor(PCSS[p]), pl.name, 15, b.w - 110, 10);
         var stuck = pl.status === 'building' && st.phase === 'play' && TT.revealTargets(st, p).length === 0;
-        b.status.setText((stuck ? 'TRAVADA' : STATUS[pl.status]).toUpperCase() + ' · camada ' + Math.max(0, pl.path.length - 1) + '/6');
-        b.detail.setText('mão ' + pl.hand.length + ' · dropouts ' + pl.dropouts + (pl.transferUsed ? ' · TL usado' : ''));
+        fitLine(b.status, ((stuck ? 'travada' : STATUS[pl.status]) + ' · camada ' + Math.max(0, pl.path.length - 1) + '/6').toUpperCase(), 9.5, b.w - 110, 7.5);
+        fitLine(b.detail, 'Mão ' + pl.hand.length + ' · Dropouts ' + pl.dropouts + (pl.transferUsed ? ' · TL usado' : '') + (active ? ' · na vez' : ''), 12, b.w - 110, 9);
+        /* tentos como grãos de feijão do truco */
+        if (m.target > 1) {
+          var n = Math.min(12, m.target);
+          for (var k = 0; k < n; k++) {
+            var px = b.x + 20 + k * 10, py = b.y + 67;
+            if (k < m.tentos[p]) { b.g.fillStyle(PCOL[p], 1); b.g.fillCircle(px, py, 3.4); b.g.lineStyle(1, 0xffffff, 0.5); b.g.strokeCircle(px, py, 3.4); }
+            else { b.g.lineStyle(1, 0xd9b260, 0.45); b.g.strokeCircle(px, py, 3); }
+          }
+          b.tentos.setVisible(true);
+          fitLine(b.tentos, m.tentos[p] + (m.tentos[p] === 1 ? ' tento' : ' tentos'), 11, b.w - 150, 8.5);
+        } else b.tentos.setVisible(false);
         var sc = self.scores[p];
-        b.score.setText(String(sc.total)).setColor(sc.vanishing ? '#ff6b7a' : '#f5ecd6');
+        fitLine(b.score.setColor(sc.vanishing ? '#ff7b88' : '#f6ecd6'), String(sc.total), 36, 92, 20);
       });
-      h.limboTxt.setText('Limbo ' + st.limbo.length);
-      h.graveTxt.setText('Cemitério ' + st.graveyard.length);
+      fitLine(h.limboTxt, 'LIMBO · ' + st.limbo.length, 10.5, 100, 8);
+      fitLine(h.graveTxt, 'CEMITÉRIO · ' + st.graveyard.length, 10.5, 110, 8);
       var top = st.graveyard[st.graveyard.length - 1];
-      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : 'back-mini').setDisplaySize(50, 71).setAlpha(top ? 1 : 0.25);
-      var tline = 'Terreno: ' + TT.TERRAINS[st.cfg.terrain].name + ' · Baralho: ' + TT.DECKS[st.cfg.deck].name;
-      if (st.cfg.terrain === 'oceano' && st.wind) tline += '\nVento: ' + TT.SUIT_INFO[st.wind].sym + ' ' + TT.SUIT_INFO[st.wind].name + ' vale dobro';
-      if (st.cfg.terrain !== 'neutro') tline += '\nRodada ' + st.round;
-      h.terrainTxt.setText(tline);
+      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : 'back-mini').setDisplaySize(42, 59).setAlpha(top ? 1 : 0.25);
+      var tline = TT.TERRAINS[st.cfg.terrain].name + ' · baralho ' + TT.DECKS[st.cfg.deck].name;
+      var extra = [];
+      if (st.cfg.terrain !== 'neutro') extra.push('Rodada ' + st.round);
+      if (st.cfg.terrain === 'oceano' && st.wind) extra.push('vento: ' + TT.SUIT_INFO[st.wind].name + ' vale dobro');
+      fitBox(h.terrainTxt, tline + (extra.length ? '\n' + extra.join(' · ') : ''), 12, LP.w - 30, 34, 9);
       /* botões */
       var my = this.isHumanTurn();
       var me = this.viewer;
       h.btnDrop.setEnabled(my && TT.trailingHidden(st, me) > 0 && st.players[me].hand.length > 0);
-      h.btnDrop.label.setText(this.mode === 'dropout' || this.mode === 'dropout-pay' ? 'Cancelar' : 'Dropout');
+      h.btnDrop.setLabel(this.mode === 'dropout' || this.mode === 'dropout-pay' ? 'Cancelar' : 'Dropout');
       h.btnTransfer.setEnabled(my && !!TT.transferRank(st, me));
       h.btnPass.setEnabled(my && TT.canPass(st, me));
-      var canT = my && TT.canTruco(m, me);
-      h.truco.setEnabled(canT);
+      h.truco.setEnabled(my && TT.canTruco(m, me));
       var nxt = TT.nextStake(m.value);
-      h.truco.label.setText(m.target <= 1 ? 'SEM TRUCO' : TT.maoDeOnze(m) ? 'MÃO DE ONZE' : nxt ? TT.TRUCO_SHOUT[nxt] : 'VALE TUDO');
-      /* log */
-      var lines = st.log.slice(-8);
+      h.truco.setLabel(m.target <= 1 ? 'SEM TRUCO' : TT.maoDeOnze(m) ? 'MÃO DE ONZE' : nxt ? TT.TRUCO_SHOUT[nxt] : 'VALE TUDO');
+      /* registro: as linhas mais recentes que couberem */
+      var lines = st.log.slice(-10);
+      h.log.setFontSize(12).setWordWrapWidth(RP.w - 24);
       h.log.setText(lines.join('\n'));
+      while (lines.length > 1 && h.log.height > 172) { lines.shift(); h.log.setText(lines.join('\n')); }
       this.renderChart();
-      h.hint.setText(this.hoverHint || this.hintText());
+      this.setHint(this.hoverHint || this.hintText());
     }
 
     renderChart() {
       var g = this.chartG, hist = this.st.history;
       g.clear();
-      var x0 = 978, y0 = 386, w = 280, hgt = 66;
-      g.fillStyle(0x000000, 0.25); g.fillRoundedRect(x0 - 4, y0 - hgt - 6, w + 8, hgt + 12, 6);
+      var x0 = RP.x + 12, w = RP.w - 24, top = 308, hgt = 72, y0 = top + hgt;
+      g.fillStyle(0x000000, 0.3); g.fillRoundedRect(x0, top, w, hgt, 6);
+      g.lineStyle(1, 0xd9b260, 0.2); g.strokeRoundedRect(x0, top, w, hgt, 6);
       var max = 40;
       hist.forEach(function (r) { r.forEach(function (v) { max = Math.max(max, v); }); });
       max = Math.ceil(max / 20) * 20;
       this.hud.chartMax.setText(max + ' pts');
-      g.lineStyle(1, 0xd9b260, 0.18);
-      [0.5, 1].forEach(function (f) { g.lineBetween(x0, y0 - hgt * f, x0 + w, y0 - hgt * f); });
+      var ix = x0 + 8, iw = w - 16, ib = y0 - 8, ih = hgt - 20;
+      g.lineStyle(1, 0xd9b260, 0.15);
+      [0.5, 1].forEach(function (f) { g.lineBetween(ix, ib - ih * f, ix + iw, ib - ih * f); });
       var nPts = Math.max(2, hist.length);
       [0, 1].forEach(function (p) {
         g.lineStyle(2.5, PCOL[p], 1);
         g.beginPath();
         hist.forEach(function (r, i) {
-          var x = x0 + (i / (nPts - 1)) * w, y = y0 - (r[p] / max) * hgt;
+          var x = ix + (i / (nPts - 1)) * iw, y = ib - (r[p] / max) * ih;
           if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
         });
         g.strokePath();
         var last = hist[hist.length - 1];
-        if (last) { g.fillStyle(PCOL[p], 1); g.fillCircle(x0 + ((hist.length - 1) / (nPts - 1)) * w, y0 - (last[p] / max) * hgt, 3.5); }
+        if (last) { g.fillStyle(PCOL[p], 1); g.fillCircle(ix + ((hist.length - 1) / (nPts - 1)) * iw, ib - (last[p] / max) * ih, 3.5); }
       });
     }
 
@@ -3452,7 +3566,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
     /* ------------------------------------------------------------------ entrada */
     onSlotHover(id, over) {
       var st = this.st, slot = st.slotIndex[id], deck = st.cfg.deck;
-      if (!over) { this.hoverHint = null; this.hud.hint.setText(this.hintText()); return; }
+      if (!over) { this.hoverHint = null; this.setHint(this.hintText()); return; }
       if (slot.removed) return;
       if (slot.faceUp) {
         var owner = slot.owner >= 0 ? st.players[slot.owner].name : '';
@@ -3476,7 +3590,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
           dropout: 'Dropout de ' + tg.n + ' camada(s), custando ' + tg.n + ' carta(s) da mão.',
         }[tg.kind];
         this.hoverHint = txt;
-        this.hud.hint.setText(txt);
+        this.setHint(txt);
       }
     }
 
@@ -3604,7 +3718,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       if (onlyPass && (TT.trailingHidden(st, cur) === 0 || pl.hand.length === 0)) {
         this.busy = true;
         this.renderAll();
-        this.hud.hint.setText('Nenhuma jogada possível: passando a vez.');
+        this.setHint('Nenhuma jogada possível: passando a vez.');
         this.time.delayedCall(900, function () { self.doMove({ t: 'pass', p: cur }); });
         return;
       }
@@ -3823,7 +3937,10 @@ var TT = (globalThis.TT = globalThis.TT || {});
     }
 
     burst(x, y, color, n) {
-      var em = this.add.particles(x, y, 'spark', { speed: { min: 80, max: 260 }, lifespan: 650, scale: { start: 13 / (32 * Math.min(TT.RES, 2)), end: 0 }, tint: color, blendMode: 'ADD', emitting: false }).setDepth(18);
+      /* faísca colorida própria: tint não existe no renderizador Canvas */
+      var hex = '#' + color.toString(16).padStart(6, '0'), key = 'spark-' + hex;
+      if (!this.textures.exists(key)) this.textures.addCanvas(key, TT.drawSpark(Math.min(TT.RES, 2), hex));
+      var em = this.add.particles(x, y, key, { speed: { min: 80, max: 260 }, lifespan: 650, scale: { start: 13 / (32 * Math.min(TT.RES, 2)), end: 0 }, blendMode: 'ADD', emitting: false }).setDepth(18);
       em.explode(n);
       this.time.delayedCall(900, function () { em.destroy(); });
     }
@@ -4000,12 +4117,12 @@ TT.App = {
 TT.boot = function () {
   TT.App.init();
   TT.App.game = new Phaser.Game({
-    type: Phaser.AUTO,
+    type: /[?&]renderer=canvas/.test(location.search) ? Phaser.CANVAS : Phaser.AUTO,
     parent: 'game',
     width: Math.round(TT.W * TT.RES),
     height: Math.round(TT.H * TT.RES),
     backgroundColor: '#06180f',
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    scale: { mode: Phaser.Scale.EXPAND, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { antialias: true, roundPixels: false },
     input: { windowEvents: false }, /* cliques nos painéis HTML não vazam para o canvas */
     scene: [TT.BootScene, TT.MenuScene, TT.GameScene],

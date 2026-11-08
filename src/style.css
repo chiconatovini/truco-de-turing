@@ -13,8 +13,8 @@
   --orange: #f59322;
   --wine: #7a1626;
   --display: 'Cinzel', 'Trajan Pro', Georgia, serif;
-  --body: 'Alegreya', Georgia, 'Times New Roman', serif;
-  --ui: 'Alegreya Sans', 'Segoe UI', Arial, sans-serif;
+  --body: 'Spectral', Georgia, 'Times New Roman', serif;
+  --ui: 'Spectral', Georgia, 'Times New Roman', serif;
   color-scheme: dark;
 }
 *, *::before, *::after { box-sizing: border-box; }
@@ -25,6 +25,7 @@ body {
   background-color: var(--felt-deep);
   color: var(--parchment);
   font-family: var(--ui);
+  font-variant-numeric: lining-nums;
   overflow: hidden;
 }
 #game {
@@ -141,7 +142,7 @@ body {
   font: 600 16px var(--ui); color: var(--ink);
   background: #fbf4e2; border: 2px solid #2b1608; border-radius: 8px; padding: 8px 10px; width: 100%;
 }
-.field .hint { font-size: 14px; color: #5a4630; line-height: 1.35; min-height: 2.7em; }
+.field .hint { font-size: 14px; color: #5a4630; line-height: 1.35; }
 .credits { font-size: 13px; color: #a8987a; line-height: 1.4; }
 .credits a { color: var(--brass); }
 
@@ -201,12 +202,12 @@ body {
 /* ---------- Toasts ---------- */
 #toasts {
   position: fixed; top: max(10px, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
-  display: grid; gap: 6px; z-index: 9; pointer-events: none; width: min(460px, calc(100% - 32px));
+  display: grid; gap: 6px; z-index: 9; pointer-events: none; width: min(440px, calc(100% - 32px));
 }
 .toast {
   pointer-events: auto;
   background: var(--parchment); color: var(--ink); border: 2px solid #0d0a08; border-radius: 10px;
-  padding: 10px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); font-family: var(--body); font-size: 15px; line-height: 1.35;
+  padding: 8px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); font-family: var(--body); font-size: 14px; line-height: 1.35;
   animation: rise 0.25s ease-out;
 }
 .toast b { font-family: var(--display); font-size: 14px; display: block; color: #6b1a22; letter-spacing: 0.04em; }
