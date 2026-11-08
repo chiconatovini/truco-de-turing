@@ -58,7 +58,7 @@ class BootScene extends Phaser.Scene {
       add('back-hand', TT.drawCardBack('full', TT.Q.hand));
       add('back-mini', TT.drawCardBack('mini', TT.Q.mini));
       Object.keys(TT.TERRAINS).forEach(function (k) { add('terrain-' + k, TT.drawTerrainCard(k, TT.Q.big)); });
-      [['gato', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
+      [['gradiente', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
         add('avatar-' + a[0], TT.drawAvatar(a[0], a[1], TT.Q.avatar));
       });
       add('spark', TT.drawSpark(Math.min(TT.RES, 2)));

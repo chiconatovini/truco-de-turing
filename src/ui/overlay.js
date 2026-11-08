@@ -44,8 +44,8 @@ TT.UI = (function () {
       return Object.keys(obj).map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + esc(obj[k].name || obj[k]) + '</option>'; }).join('');
     }
     var opp = {
-      montecarlo: { name: 'Monte Carlo (difícil)' }, guloso: { name: 'GatoNet (médio)' },
-      aleatorio: { name: 'Ruído Branco (fácil)' }, hotseat: { name: '2 humanos no mesmo aparelho' },
+      montecarlo: { name: 'Mestre Monte Carlo · difícil' }, guloso: { name: 'Gradiente Guloso · médio' },
+      aleatorio: { name: 'Zé do Ruído · fácil' }, hotseat: { name: '2 humanos no mesmo aparelho' },
     };
     var starters = { 'revela-volta': { name: 'Revela carta da mão (volta para a mão)' }, 'revela-descarta': { name: 'Revela carta da mão (vai para o cemitério)' }, sorteio: { name: 'Par ou ímpar (sorteio)' } };
     var modes = { '12': { name: 'Partida até 12 tentos, com truco' }, '1': { name: 'Mão única, sem truco' } };
@@ -75,7 +75,7 @@ TT.UI = (function () {
     var el = m.el;
     function sync() {
       var bot = el.querySelector('#m-opp').value;
-      el.querySelector('#m-opp-h').textContent = bot === 'hotseat' ? 'Dois jogadores se revezam no mesmo aparelho. A mão de quem não joga fica escondida.' : TT.BOTS[bot].blurb;
+      el.querySelector('#m-opp-h').textContent = bot === 'hotseat' ? 'Dois jogadores se revezam no mesmo aparelho. A mão de quem não joga fica escondida.' : 'Nível ' + TT.BOTS[bot].level.toLowerCase() + ', ' + TT.BOTS[bot].method + '. ' + TT.BOTS[bot].style;
       el.querySelector('#m-deck-h').textContent = TT.DECKS[el.querySelector('#m-deck').value].short;
       el.querySelector('#m-terrain-h').textContent = TT.TERRAINS[el.querySelector('#m-terrain').value].short;
     }

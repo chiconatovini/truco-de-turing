@@ -1012,23 +1012,36 @@ var TT = (globalThis.TT = globalThis.TT || {});
     ctx.save(); ctx.beginPath(); ctx.arc(c, c, c - 9, 0, Math.PI * 2); ctx.clip();
     ctx.fillStyle = rad(ctx, c, c * 0.7, 4, c, c, c, [[0, '#3a2a1c'], [1, '#0e0905']]);
     ctx.fillRect(0, 0, D, D);
-    if (kind === 'gato') {
-      glowDisc(ctx, c, c + 4, 50, '#4ad7ff', 0.25);
-      ctx.fillStyle = lin(ctx, 0, 14, 0, 100, [[0, '#53637a'], [1, '#1d2633']]);
-      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(26, 48); ctx.lineTo(30, 14); ctx.lineTo(50, 34); ctx.lineTo(62, 34); ctx.lineTo(82, 14); ctx.lineTo(86, 48);
-      ctx.quadraticCurveTo(96, 92, 56, 98); ctx.quadraticCurveTo(16, 92, 26, 48); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.moveTo(33, 22); ctx.lineTo(44, 34); ctx.lineTo(34, 40); ctx.fill(); ctx.beginPath(); ctx.moveTo(79, 22); ctx.lineTo(68, 34); ctx.lineTo(78, 40); ctx.fill();
-      /* visor */
-      ctx.fillStyle = 'rgba(10,20,30,.85)'; rr(ctx, 30, 48, 52, 18, 9); ctx.fill();
-      ctx.strokeStyle = '#4ad7ff'; ctx.lineWidth = 1; ctx.stroke();
-      glowDisc(ctx, 43, 57, 10, '#4ad7ff', 0.9); glowDisc(ctx, 69, 57, 10, '#4ad7ff', 0.9);
-      ctx.fillStyle = '#d8f8ff'; ctx.beginPath(); ctx.ellipse(43, 57, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.ellipse(69, 57, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.moveTo(52, 72); ctx.lineTo(60, 72); ctx.lineTo(56, 77); ctx.fill();
-      ctx.strokeStyle = '#cfd8e2'; ctx.lineWidth = 1;
-      [[-1, 74], [-1, 80], [1, 74], [1, 80]].forEach(function (w) { ctx.beginPath(); ctx.moveTo(56 + w[0] * 9, w[1]); ctx.lineTo(56 + w[0] * 32, w[1] - 3 + (w[1] - 74)); ctx.stroke(); });
-      ctx.strokeStyle = '#f59322'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(56, 34); ctx.lineTo(56, 44); ctx.stroke();
-      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.arc(56, 32, 2.5, 0, Math.PI * 2); ctx.fill();
+    if (kind === 'gradiente') {
+      /* uma bolinha descendo a curva de perda */
+      ctx.strokeStyle = 'rgba(245,147,34,.16)'; ctx.lineWidth = 0.6;
+      for (var gl = 12; gl < D; gl += 12) { ctx.beginPath(); ctx.moveTo(gl, 0); ctx.lineTo(gl, D); ctx.moveTo(0, gl); ctx.lineTo(D, gl); ctx.stroke(); }
+      var curve = function (x) { return 30 + Math.pow((x - 66) / 44, 2) * 52; };
+      ctx.fillStyle = lin(ctx, 0, 30, 0, D, [[0, 'rgba(245,147,34,.35)'], [1, 'rgba(245,147,34,0)']]);
+      ctx.beginPath(); ctx.moveTo(8, D);
+      for (var cx2 = 8; cx2 <= 104; cx2 += 2) ctx.lineTo(cx2, D - curve(cx2) + 4);
+      ctx.lineTo(104, D); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#f59322'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (var cx3 = 8; cx3 <= 104; cx3 += 2) { var yy3 = D - curve(cx3) + 4; if (cx3 === 8) ctx.moveTo(cx3, yy3); else ctx.lineTo(cx3, yy3); }
+      ctx.stroke();
+      /* passos do gradiente */
+      [[24, 0.5], [36, 0.7], [46, 0.9]].forEach(function (pp) { glowDisc(ctx, pp[0], D - curve(pp[0]) - 2, 6, '#ffd08a', pp[1] * 0.6); ctx.fillStyle = 'rgba(255,220,160,' + pp[1] * 0.6 + ')'; ctx.beginPath(); ctx.arc(pp[0], D - curve(pp[0]) - 2, 2.2, 0, Math.PI * 2); ctx.fill(); });
+      ctx.strokeStyle = '#ffe7a0'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(60, 30); ctx.lineTo(76, 46); ctx.stroke();
+      ctx.fillStyle = '#ffe7a0'; ctx.beginPath(); ctx.moveTo(80, 50); ctx.lineTo(70, 47); ctx.lineTo(77, 40); ctx.closePath(); ctx.fill();
+      /* a bolinha com rosto */
+      var bx = 58, by = D - curve(58) - 12;
+      softShadow(ctx, 6, 3, 0.6);
+      ctx.fillStyle = rad(ctx, bx - 4, by - 5, 1, bx, by, 13, [[0, '#9fd6ff'], [0.6, '#4aa3df'], [1, '#1d5a86']]);
+      ctx.beginPath(); ctx.arc(bx, by, 12, 0, Math.PI * 2); ctx.fill(); noShadow(ctx);
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(bx - 4, by - 2, 3, 3.6, 0, 0, Math.PI * 2); ctx.ellipse(bx + 4.5, by - 2, 3, 3.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0b0907'; ctx.beginPath(); ctx.arc(bx - 3, by - 1, 1.5, 0, Math.PI * 2); ctx.arc(bx + 5.5, by - 1, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(bx + 1, by + 3, 4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(bx - 5, by - 7, 3.5, 1.8, -0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.font = '900 13px Cinzel, Georgia, serif'; ctx.fillStyle = '#ffe7a0'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('\u2207', 30, 24);
     } else if (kind === 'mc') {
       stars(ctx, 0, 0, D, D * 0.6, rnd, 25);
       ctx.fillStyle = lin(ctx, 30, 0, 82, 0, [[0, '#2e1846'], [0.5, '#5a3290'], [1, '#2e1846']]);
@@ -1046,13 +1059,30 @@ var TT = (globalThis.TT = globalThis.TT || {});
         ctx.restore();
       });
     } else if (kind === 'ruido') {
-      for (var y = 0; y < D; y += 2) for (var x = 0; x < D; x += 2) {
+      /* TV antiga fora de sintonia, de chapéu de palha */
+      ctx.strokeStyle = '#2a1a0e'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(50, 44); ctx.lineTo(38, 30); ctx.moveTo(62, 44); ctx.lineTo(76, 28); ctx.stroke();
+      softShadow(ctx, 6, 3, 0.6);
+      ctx.fillStyle = lin(ctx, 0, 44, 0, 96, [[0, '#a8682e'], [1, '#5a3010']]);
+      rr(ctx, 20, 44, 72, 52, 9); ctx.fill(); noShadow(ctx);
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.save(); rr(ctx, 26, 50, 48, 40, 7); ctx.clip();
+      for (var y = 50; y < 90; y += 2) for (var x = 26; x < 74; x += 2) {
         var v = Math.floor(rnd() * 255);
         ctx.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; ctx.fillRect(x, y, 2, 2);
       }
-      ctx.fillStyle = 'rgba(0,0,0,.25)'; for (var sl = 0; sl < D; sl += 4) ctx.fillRect(0, sl, D, 1.5);
-      ctx.fillStyle = 'rgba(0,0,0,.65)'; rr(ctx, 14, 46, 84, 20, 4); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = '900 12px "Alegreya Sans", Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SEM SINAL', 56, 56.5);
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; for (var sl = 50; sl < 90; sl += 4) ctx.fillRect(26, sl, 48, 1.4);
+      ctx.restore();
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.2; rr(ctx, 26, 50, 48, 40, 7); ctx.stroke();
+      ctx.fillStyle = '#e8c878'; ctx.beginPath(); ctx.arc(83, 60, 3.5, 0, Math.PI * 2); ctx.arc(83, 72, 3.5, 0, Math.PI * 2); ctx.fill();
+      /* chapéu de palha */
+      ctx.fillStyle = lin(ctx, 0, 18, 0, 46, [[0, '#f6dc8f'], [1, '#c99a3a']]);
+      ctx.strokeStyle = '#5a3a10'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(56, 42, 34, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(38, 41); ctx.quadraticCurveTo(38, 20, 56, 20); ctx.quadraticCurveTo(74, 20, 74, 41); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#a3222e'; ctx.fillRect(38.5, 34, 35, 5);
+      ctx.strokeStyle = 'rgba(90,58,16,.45)'; ctx.lineWidth = 0.7;
+      for (var st = 0; st < 6; st++) { ctx.beginPath(); ctx.moveTo(42 + st * 5.5, 24); ctx.lineTo(41 + st * 6, 34); ctx.stroke(); }
     } else {
       glowDisc(ctx, c, c, 50, colorHex, 0.35);
       ctx.fillStyle = lin(ctx, 0, 20, 0, 110, [[0, shade(colorHex, 0.3)], [1, shade(colorHex, -0.35)]]);

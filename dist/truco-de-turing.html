@@ -952,16 +952,26 @@ function finishGame(state) {
 </script>
 <script>
 /* Oponentes artificiais.
- *  - aleatorio: "Ruído Branco", joga qualquer coisa legal.
- *  - guloso:    "GatoNet", olha um passo à frente com uma função de avaliação (valor esperado).
- *  - montecarlo:"Monte Carlo, o Truqueiro", determiniza a informação oculta e simula partidas até o fim.
+ *  - aleatorio:  "Zé do Ruído" (fácil), sorteia qualquer jogada válida.
+ *  - guloso:     "Gradiente Guloso" (médio), olha um passo à frente pelo valor esperado.
+ *  - montecarlo: "Mestre Monte Carlo" (difícil), determiniza a informação oculta e simula partidas até o fim.
+ * (GatoNet não é oponente: é o nome que a especificação dá à ação de dropout.)
  */
 var TT = (globalThis.TT = globalThis.TT || {});
 
 TT.BOTS = {
-  aleatorio: { name: 'Ruído Branco', avatar: 'ruido', blurb: 'Joga qualquer jogada legal. Ótimo para aprender as regras.' },
-  guloso: { name: 'GatoNet', avatar: 'gato', blurb: 'Guloso: avalia cada jogada um passo à frente pelo valor esperado.' },
-  montecarlo: { name: 'Monte Carlo', avatar: 'mc', blurb: 'Simula centenas de partidas antes de cada jogada. Pede truco com convicção.' },
+  aleatorio: {
+    name: 'Zé do Ruído', level: 'Fácil', method: 'aleatório', avatar: 'ruido',
+    style: 'Sorteia qualquer jogada válida, sem olhar o placar. Ativa neurônios às cegas, ataca por acaso e responde ao truco no cara ou coroa. Bom para aprender as regras.',
+  },
+  guloso: {
+    name: 'Gradiente Guloso', level: 'Médio', method: 'busca gulosa', avatar: 'gradiente',
+    style: 'Como a descida de gradiente, sempre dá o passo que mais melhora o placar agora: testa cada jogada um turno à frente pelo valor esperado. Tuna neurônios fortes e aplica overfit nos fortes do adversário, mas não planeja além do próximo lance. Pede truco quando se vê bem à frente.',
+  },
+  montecarlo: {
+    name: 'Mestre Monte Carlo', level: 'Difícil', method: 'simulação de Monte Carlo', avatar: 'mc',
+    style: 'Sorteia as cartas que não vê, joga centenas de partidas simuladas até o fim e escolhe o lance que mais venceu. Guarda ataques para a hora certa, mostra a própria chance de vitória e truca (às vezes blefando) com base nas simulações.',
+  },
 };
 
 var HAND_VALUE = 2.5;
@@ -1069,7 +1079,7 @@ TT.botGreedy = function (state, p) {
       total += TT.evaluate(c, p, ev);
     }
     var score = total / samples + Math.random() * 0.3;
-    if (m.t === 'dropout') score -= 1.5; /* GatoNet tem preguiça de pagar cartas */
+    if (m.t === 'dropout') score -= 1.5; /* evita gastar cartas da mão em dropouts marginais */
     if (score > bestScore) { bestScore = score; best = m; }
   });
   return pickAlt(best);
@@ -1318,7 +1328,7 @@ TT.CODEX = [
     game: 'As 10 cartas que sobram vão para o limbo sem serem vistas. Elas tiram a certeza de qualquer contagem de cartas e só voltam via transfer learning.' },
   { id: 'montecarlo', title: 'Simulação de Monte Carlo', tag: 'Métodos',
     concept: 'Monte Carlo estima uma quantidade gerando muitas realizações aleatórias de um processo e agregando os resultados. Busca em árvore de Monte Carlo (MCTS) usa isso para escolher jogadas.',
-    game: 'O bot Monte Carlo sorteia o que não vê (sua mão, as cartas viradas, o limbo), joga centenas de partidas até o fim e escolhe a jogada que mais venceu.' },
+    game: 'O Mestre Monte Carlo, oponente de nível difícil, sorteia o que não vê (sua mão, as cartas viradas, o limbo), joga centenas de partidas até o fim e escolhe a jogada que mais venceu.' },
   { id: 'terrenos', title: 'Mudança de distribuição', tag: 'Dados',
     concept: 'Modelos sofrem quando os dados de uso diferem dos de treino (dataset shift) ou mudam com o tempo (concept drift). Regularizações como weight decay encolhem pesos a cada passo.',
     game: 'Montanha cobra pela profundidade. Pântano é weight decay: neurônios não tunados perdem 1 ponto por rodada. Oceano é concept drift: o vento muda o naipe que vale dobro.' },
@@ -1360,7 +1370,7 @@ TT.ACHIEVEMENTS = [
   { id: 'doze', name: 'Vale a partida', desc: 'Vença uma mão valendo 12 tentos.', tier: 'platina', test: (c) => c.won && c.handValue >= 12 },
   { id: 'correu', name: 'Corre que é cilada', desc: 'Faça o bot correr do truco.', tier: 'prata', test: (c) => c.botRan },
   { id: 'campeao', name: 'Campeão da mesa', desc: 'Vença uma partida de 12 tentos.', tier: 'ouro', test: (c) => c.matchWon },
-  { id: 'maquina', name: 'Venceu a máquina', desc: 'Vença o Monte Carlo numa partida de 12 tentos.', tier: 'adamantium', test: (c) => c.matchWon && c.opts.bot === 'montecarlo' },
+  { id: 'maquina', name: 'Venceu a máquina', desc: 'Vença o Mestre Monte Carlo numa partida de 12 tentos.', tier: 'adamantium', test: (c) => c.matchWon && c.opts.bot === 'montecarlo' },
   { id: 'cartografo', name: 'Cartógrafo', desc: 'Vença mãos em todos os terrenos.', tier: 'platina', test: (c) => Object.keys(TT.TERRAINS).every((t) => c.stats.terrains[t]) },
   { id: 'colecionador', name: 'Colecionador', desc: 'Vença mãos com todos os baralhos.', tier: 'platina', test: (c) => Object.keys(TT.DECKS).every((d) => c.stats.decks[d]) },
   { id: 'zap', name: 'Zap na saída', desc: 'Vença com o Zap (4♣) na rede, no baralho de truco.', tier: 'ouro', test: (c) => c.won && c.st.cfg.deck === 'truco' && c.st.players[c.me].path.some((id) => { var s = c.st.slotIndex[id]; return s.cards[0].r === '4' && s.cards[0].s === 'C'; }) },
@@ -2438,23 +2448,36 @@ var TT = (globalThis.TT = globalThis.TT || {});
     ctx.save(); ctx.beginPath(); ctx.arc(c, c, c - 9, 0, Math.PI * 2); ctx.clip();
     ctx.fillStyle = rad(ctx, c, c * 0.7, 4, c, c, c, [[0, '#3a2a1c'], [1, '#0e0905']]);
     ctx.fillRect(0, 0, D, D);
-    if (kind === 'gato') {
-      glowDisc(ctx, c, c + 4, 50, '#4ad7ff', 0.25);
-      ctx.fillStyle = lin(ctx, 0, 14, 0, 100, [[0, '#53637a'], [1, '#1d2633']]);
-      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(26, 48); ctx.lineTo(30, 14); ctx.lineTo(50, 34); ctx.lineTo(62, 34); ctx.lineTo(82, 14); ctx.lineTo(86, 48);
-      ctx.quadraticCurveTo(96, 92, 56, 98); ctx.quadraticCurveTo(16, 92, 26, 48); ctx.fill(); ctx.stroke();
-      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.moveTo(33, 22); ctx.lineTo(44, 34); ctx.lineTo(34, 40); ctx.fill(); ctx.beginPath(); ctx.moveTo(79, 22); ctx.lineTo(68, 34); ctx.lineTo(78, 40); ctx.fill();
-      /* visor */
-      ctx.fillStyle = 'rgba(10,20,30,.85)'; rr(ctx, 30, 48, 52, 18, 9); ctx.fill();
-      ctx.strokeStyle = '#4ad7ff'; ctx.lineWidth = 1; ctx.stroke();
-      glowDisc(ctx, 43, 57, 10, '#4ad7ff', 0.9); glowDisc(ctx, 69, 57, 10, '#4ad7ff', 0.9);
-      ctx.fillStyle = '#d8f8ff'; ctx.beginPath(); ctx.ellipse(43, 57, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.ellipse(69, 57, 4.5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.moveTo(52, 72); ctx.lineTo(60, 72); ctx.lineTo(56, 77); ctx.fill();
-      ctx.strokeStyle = '#cfd8e2'; ctx.lineWidth = 1;
-      [[-1, 74], [-1, 80], [1, 74], [1, 80]].forEach(function (w) { ctx.beginPath(); ctx.moveTo(56 + w[0] * 9, w[1]); ctx.lineTo(56 + w[0] * 32, w[1] - 3 + (w[1] - 74)); ctx.stroke(); });
-      ctx.strokeStyle = '#f59322'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(56, 34); ctx.lineTo(56, 44); ctx.stroke();
-      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.arc(56, 32, 2.5, 0, Math.PI * 2); ctx.fill();
+    if (kind === 'gradiente') {
+      /* uma bolinha descendo a curva de perda */
+      ctx.strokeStyle = 'rgba(245,147,34,.16)'; ctx.lineWidth = 0.6;
+      for (var gl = 12; gl < D; gl += 12) { ctx.beginPath(); ctx.moveTo(gl, 0); ctx.lineTo(gl, D); ctx.moveTo(0, gl); ctx.lineTo(D, gl); ctx.stroke(); }
+      var curve = function (x) { return 30 + Math.pow((x - 66) / 44, 2) * 52; };
+      ctx.fillStyle = lin(ctx, 0, 30, 0, D, [[0, 'rgba(245,147,34,.35)'], [1, 'rgba(245,147,34,0)']]);
+      ctx.beginPath(); ctx.moveTo(8, D);
+      for (var cx2 = 8; cx2 <= 104; cx2 += 2) ctx.lineTo(cx2, D - curve(cx2) + 4);
+      ctx.lineTo(104, D); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = '#f59322'; ctx.lineWidth = 3;
+      ctx.beginPath();
+      for (var cx3 = 8; cx3 <= 104; cx3 += 2) { var yy3 = D - curve(cx3) + 4; if (cx3 === 8) ctx.moveTo(cx3, yy3); else ctx.lineTo(cx3, yy3); }
+      ctx.stroke();
+      /* passos do gradiente */
+      [[24, 0.5], [36, 0.7], [46, 0.9]].forEach(function (pp) { glowDisc(ctx, pp[0], D - curve(pp[0]) - 2, 6, '#ffd08a', pp[1] * 0.6); ctx.fillStyle = 'rgba(255,220,160,' + pp[1] * 0.6 + ')'; ctx.beginPath(); ctx.arc(pp[0], D - curve(pp[0]) - 2, 2.2, 0, Math.PI * 2); ctx.fill(); });
+      ctx.strokeStyle = '#ffe7a0'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(60, 30); ctx.lineTo(76, 46); ctx.stroke();
+      ctx.fillStyle = '#ffe7a0'; ctx.beginPath(); ctx.moveTo(80, 50); ctx.lineTo(70, 47); ctx.lineTo(77, 40); ctx.closePath(); ctx.fill();
+      /* a bolinha com rosto */
+      var bx = 58, by = D - curve(58) - 12;
+      softShadow(ctx, 6, 3, 0.6);
+      ctx.fillStyle = rad(ctx, bx - 4, by - 5, 1, bx, by, 13, [[0, '#9fd6ff'], [0.6, '#4aa3df'], [1, '#1d5a86']]);
+      ctx.beginPath(); ctx.arc(bx, by, 12, 0, Math.PI * 2); ctx.fill(); noShadow(ctx);
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.ellipse(bx - 4, by - 2, 3, 3.6, 0, 0, Math.PI * 2); ctx.ellipse(bx + 4.5, by - 2, 3, 3.6, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#0b0907'; ctx.beginPath(); ctx.arc(bx - 3, by - 1, 1.5, 0, Math.PI * 2); ctx.arc(bx + 5.5, by - 1, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.arc(bx + 1, by + 3, 4, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+      ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(bx - 5, by - 7, 3.5, 1.8, -0.5, 0, Math.PI * 2); ctx.fill();
+      ctx.font = '900 13px Cinzel, Georgia, serif'; ctx.fillStyle = '#ffe7a0'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('\u2207', 30, 24);
     } else if (kind === 'mc') {
       stars(ctx, 0, 0, D, D * 0.6, rnd, 25);
       ctx.fillStyle = lin(ctx, 30, 0, 82, 0, [[0, '#2e1846'], [0.5, '#5a3290'], [1, '#2e1846']]);
@@ -2472,13 +2495,30 @@ var TT = (globalThis.TT = globalThis.TT || {});
         ctx.restore();
       });
     } else if (kind === 'ruido') {
-      for (var y = 0; y < D; y += 2) for (var x = 0; x < D; x += 2) {
+      /* TV antiga fora de sintonia, de chapéu de palha */
+      ctx.strokeStyle = '#2a1a0e'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(50, 44); ctx.lineTo(38, 30); ctx.moveTo(62, 44); ctx.lineTo(76, 28); ctx.stroke();
+      softShadow(ctx, 6, 3, 0.6);
+      ctx.fillStyle = lin(ctx, 0, 44, 0, 96, [[0, '#a8682e'], [1, '#5a3010']]);
+      rr(ctx, 20, 44, 72, 52, 9); ctx.fill(); noShadow(ctx);
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.4; ctx.stroke();
+      ctx.save(); rr(ctx, 26, 50, 48, 40, 7); ctx.clip();
+      for (var y = 50; y < 90; y += 2) for (var x = 26; x < 74; x += 2) {
         var v = Math.floor(rnd() * 255);
         ctx.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; ctx.fillRect(x, y, 2, 2);
       }
-      ctx.fillStyle = 'rgba(0,0,0,.25)'; for (var sl = 0; sl < D; sl += 4) ctx.fillRect(0, sl, D, 1.5);
-      ctx.fillStyle = 'rgba(0,0,0,.65)'; rr(ctx, 14, 46, 84, 20, 4); ctx.fill();
-      ctx.fillStyle = '#fff'; ctx.font = '900 12px "Alegreya Sans", Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('SEM SINAL', 56, 56.5);
+      ctx.fillStyle = 'rgba(0,0,0,.22)'; for (var sl = 50; sl < 90; sl += 4) ctx.fillRect(26, sl, 48, 1.4);
+      ctx.restore();
+      ctx.strokeStyle = '#0b0907'; ctx.lineWidth = 1.2; rr(ctx, 26, 50, 48, 40, 7); ctx.stroke();
+      ctx.fillStyle = '#e8c878'; ctx.beginPath(); ctx.arc(83, 60, 3.5, 0, Math.PI * 2); ctx.arc(83, 72, 3.5, 0, Math.PI * 2); ctx.fill();
+      /* chapéu de palha */
+      ctx.fillStyle = lin(ctx, 0, 18, 0, 46, [[0, '#f6dc8f'], [1, '#c99a3a']]);
+      ctx.strokeStyle = '#5a3a10'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(56, 42, 34, 7, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(38, 41); ctx.quadraticCurveTo(38, 20, 56, 20); ctx.quadraticCurveTo(74, 20, 74, 41); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#a3222e'; ctx.fillRect(38.5, 34, 35, 5);
+      ctx.strokeStyle = 'rgba(90,58,16,.45)'; ctx.lineWidth = 0.7;
+      for (var st = 0; st < 6; st++) { ctx.beginPath(); ctx.moveTo(42 + st * 5.5, 24); ctx.lineTo(41 + st * 6, 34); ctx.stroke(); }
     } else {
       glowDisc(ctx, c, c, 50, colorHex, 0.35);
       ctx.fillStyle = lin(ctx, 0, 20, 0, 110, [[0, shade(colorHex, 0.3)], [1, shade(colorHex, -0.35)]]);
@@ -2632,8 +2672,8 @@ TT.UI = (function () {
       return Object.keys(obj).map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + esc(obj[k].name || obj[k]) + '</option>'; }).join('');
     }
     var opp = {
-      montecarlo: { name: 'Monte Carlo (difícil)' }, guloso: { name: 'GatoNet (médio)' },
-      aleatorio: { name: 'Ruído Branco (fácil)' }, hotseat: { name: '2 humanos no mesmo aparelho' },
+      montecarlo: { name: 'Mestre Monte Carlo · difícil' }, guloso: { name: 'Gradiente Guloso · médio' },
+      aleatorio: { name: 'Zé do Ruído · fácil' }, hotseat: { name: '2 humanos no mesmo aparelho' },
     };
     var starters = { 'revela-volta': { name: 'Revela carta da mão (volta para a mão)' }, 'revela-descarta': { name: 'Revela carta da mão (vai para o cemitério)' }, sorteio: { name: 'Par ou ímpar (sorteio)' } };
     var modes = { '12': { name: 'Partida até 12 tentos, com truco' }, '1': { name: 'Mão única, sem truco' } };
@@ -2663,7 +2703,7 @@ TT.UI = (function () {
     var el = m.el;
     function sync() {
       var bot = el.querySelector('#m-opp').value;
-      el.querySelector('#m-opp-h').textContent = bot === 'hotseat' ? 'Dois jogadores se revezam no mesmo aparelho. A mão de quem não joga fica escondida.' : TT.BOTS[bot].blurb;
+      el.querySelector('#m-opp-h').textContent = bot === 'hotseat' ? 'Dois jogadores se revezam no mesmo aparelho. A mão de quem não joga fica escondida.' : 'Nível ' + TT.BOTS[bot].level.toLowerCase() + ', ' + TT.BOTS[bot].method + '. ' + TT.BOTS[bot].style;
       el.querySelector('#m-deck-h').textContent = TT.DECKS[el.querySelector('#m-deck').value].short;
       el.querySelector('#m-terrain-h').textContent = TT.TERRAINS[el.querySelector('#m-terrain').value].short;
     }
@@ -2834,7 +2874,7 @@ class BootScene extends Phaser.Scene {
       add('back-hand', TT.drawCardBack('full', TT.Q.hand));
       add('back-mini', TT.drawCardBack('mini', TT.Q.mini));
       Object.keys(TT.TERRAINS).forEach(function (k) { add('terrain-' + k, TT.drawTerrainCard(k, TT.Q.big)); });
-      [['gato', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
+      [['gradiente', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
         add('avatar-' + a[0], TT.drawAvatar(a[0], a[1], TT.Q.avatar));
       });
       add('spark', TT.drawSpark(Math.min(TT.RES, 2)));
@@ -3021,7 +3061,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tx = function (x, y, s, style) { return self.add.text(x, y, s, Object.assign({ fontFamily: F_UI, fontSize: '14px', color: '#efe3c6' }, style || {})).setDepth(7); };
       var h = (this.hud = {});
       /* adversário (topo esquerdo) */
-      h.oppAvatar = this.add.image(44, 40, 'avatar-gato').setDisplaySize(64, 64).setDepth(7);
+      h.oppAvatar = this.add.image(44, 40, 'avatar-gradiente').setDisplaySize(64, 64).setDepth(7);
       h.oppName = tx(84, 16, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '18px', color: '#f6dc8f' });
       h.oppSub = tx(84, 42, '', { fontSize: '13px', color: '#c9b993' });
       h.bubble = this.add.container(700, 40).setDepth(30).setVisible(false);
@@ -3228,7 +3268,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tp = this.topPlayer(), bp = this.bottomPlayer();
       h.oppAvatar.setTexture(this.avatarKey(tp));
       h.oppName.setText(st.players[tp].name).setColor(PCSS[tp]);
-      if (!this.thinkingNow) h.oppSub.setText(st.players[tp].kind === 'bot' ? TT.BOTS[st.players[tp].bot].blurb.split(':')[0].split('.')[0] : 'Aguardando a vez');
+      if (!this.thinkingNow) h.oppSub.setText(st.players[tp].kind === 'bot' ? 'Nível ' + TT.BOTS[st.players[tp].bot].level.toLowerCase() + ' \u00b7 ' + TT.BOTS[st.players[tp].bot].method : 'Aguardando a vez');
       h.meAvatar.setTexture(this.avatarKey(bp));
       h.meName.setText(st.players[bp].name).setColor(PCSS[bp]);
       h.handTitle.setText('MÃO ' + (m.hand + 1) + ' · vale ' + m.value + (m.value === 1 ? ' tento' : ' tentos'));

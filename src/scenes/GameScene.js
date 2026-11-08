@@ -91,7 +91,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tx = function (x, y, s, style) { return self.add.text(x, y, s, Object.assign({ fontFamily: F_UI, fontSize: '14px', color: '#efe3c6' }, style || {})).setDepth(7); };
       var h = (this.hud = {});
       /* adversário (topo esquerdo) */
-      h.oppAvatar = this.add.image(44, 40, 'avatar-gato').setDisplaySize(64, 64).setDepth(7);
+      h.oppAvatar = this.add.image(44, 40, 'avatar-gradiente').setDisplaySize(64, 64).setDepth(7);
       h.oppName = tx(84, 16, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '18px', color: '#f6dc8f' });
       h.oppSub = tx(84, 42, '', { fontSize: '13px', color: '#c9b993' });
       h.bubble = this.add.container(700, 40).setDepth(30).setVisible(false);
@@ -298,7 +298,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       var tp = this.topPlayer(), bp = this.bottomPlayer();
       h.oppAvatar.setTexture(this.avatarKey(tp));
       h.oppName.setText(st.players[tp].name).setColor(PCSS[tp]);
-      if (!this.thinkingNow) h.oppSub.setText(st.players[tp].kind === 'bot' ? TT.BOTS[st.players[tp].bot].blurb.split(':')[0].split('.')[0] : 'Aguardando a vez');
+      if (!this.thinkingNow) h.oppSub.setText(st.players[tp].kind === 'bot' ? 'Nível ' + TT.BOTS[st.players[tp].bot].level.toLowerCase() + ' \u00b7 ' + TT.BOTS[st.players[tp].bot].method : 'Aguardando a vez');
       h.meAvatar.setTexture(this.avatarKey(bp));
       h.meName.setText(st.players[bp].name).setColor(PCSS[bp]);
       h.handTitle.setText('MÃO ' + (m.hand + 1) + ' · vale ' + m.value + (m.value === 1 ? ' tento' : ' tentos'));

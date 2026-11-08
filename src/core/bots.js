@@ -1,14 +1,24 @@
 /* Oponentes artificiais.
- *  - aleatorio: "Ruído Branco", joga qualquer coisa legal.
- *  - guloso:    "GatoNet", olha um passo à frente com uma função de avaliação (valor esperado).
- *  - montecarlo:"Monte Carlo, o Truqueiro", determiniza a informação oculta e simula partidas até o fim.
+ *  - aleatorio:  "Zé do Ruído" (fácil), sorteia qualquer jogada válida.
+ *  - guloso:     "Gradiente Guloso" (médio), olha um passo à frente pelo valor esperado.
+ *  - montecarlo: "Mestre Monte Carlo" (difícil), determiniza a informação oculta e simula partidas até o fim.
+ * (GatoNet não é oponente: é o nome que a especificação dá à ação de dropout.)
  */
 var TT = (globalThis.TT = globalThis.TT || {});
 
 TT.BOTS = {
-  aleatorio: { name: 'Ruído Branco', avatar: 'ruido', blurb: 'Joga qualquer jogada legal. Ótimo para aprender as regras.' },
-  guloso: { name: 'GatoNet', avatar: 'gato', blurb: 'Guloso: avalia cada jogada um passo à frente pelo valor esperado.' },
-  montecarlo: { name: 'Monte Carlo', avatar: 'mc', blurb: 'Simula centenas de partidas antes de cada jogada. Pede truco com convicção.' },
+  aleatorio: {
+    name: 'Zé do Ruído', level: 'Fácil', method: 'aleatório', avatar: 'ruido',
+    style: 'Sorteia qualquer jogada válida, sem olhar o placar. Ativa neurônios às cegas, ataca por acaso e responde ao truco no cara ou coroa. Bom para aprender as regras.',
+  },
+  guloso: {
+    name: 'Gradiente Guloso', level: 'Médio', method: 'busca gulosa', avatar: 'gradiente',
+    style: 'Como a descida de gradiente, sempre dá o passo que mais melhora o placar agora: testa cada jogada um turno à frente pelo valor esperado. Tuna neurônios fortes e aplica overfit nos fortes do adversário, mas não planeja além do próximo lance. Pede truco quando se vê bem à frente.',
+  },
+  montecarlo: {
+    name: 'Mestre Monte Carlo', level: 'Difícil', method: 'simulação de Monte Carlo', avatar: 'mc',
+    style: 'Sorteia as cartas que não vê, joga centenas de partidas simuladas até o fim e escolhe o lance que mais venceu. Guarda ataques para a hora certa, mostra a própria chance de vitória e truca (às vezes blefando) com base nas simulações.',
+  },
 };
 
 var HAND_VALUE = 2.5;
@@ -116,7 +126,7 @@ TT.botGreedy = function (state, p) {
       total += TT.evaluate(c, p, ev);
     }
     var score = total / samples + Math.random() * 0.3;
-    if (m.t === 'dropout') score -= 1.5; /* GatoNet tem preguiça de pagar cartas */
+    if (m.t === 'dropout') score -= 1.5; /* evita gastar cartas da mão em dropouts marginais */
     if (score > bestScore) { bestScore = score; best = m; }
   });
   return pickAlt(best);

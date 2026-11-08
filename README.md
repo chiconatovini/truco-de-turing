@@ -34,7 +34,7 @@ src/style.css              mesa, painéis HTML (menu, regras, grimório, conquis
 src/core/rules.js          baralhos, terrenos, valores, RNG com semente
 src/core/scoring.js        soma da rede: combos de figuras, tunagem, terrenos, fraternidade
 src/core/game.js           estado, jogadas legais, aplicação de jogadas, desempates
-src/core/bots.js           Ruído Branco (aleatório), GatoNet (guloso), Monte Carlo (determinização + rollouts)
+src/core/bots.js           Zé do Ruído (aleatório), Gradiente Guloso (guloso), Mestre Monte Carlo (determinização + rollouts)
 src/core/truco.js          tentos, TRUCO/SEIS/NOVE/DOZE, mão de onze
 src/core/content.js        Grimório (conceitos), conquistas, textos das cartas, provocações dos bots
 src/ui/cardArt.js          arte procedural das cartas em canvas (nenhuma imagem externa)
@@ -72,7 +72,10 @@ Pontos em que o enunciado deixa margem e a leitura adotada:
 
 - **Truco** por cima da mecânica: cada mão vale 1 tento; peça TRUCO (3), SEIS, NOVE, DOZE; correr entrega o valor atual; partida até 12; mão de onze.
 - **Tensão de corrida**: chegar à saída torna a rede imune; tunar aumenta a soma, mas deixa o neurônio a uma carta do early stop.
-- **Bots com personalidade**: GatoNet provoca, Monte Carlo simula centenas de partidas e mostra a chance de vitória.
+- **Três oponentes, um por nível**:
+  - *Zé do Ruído* (fácil): sorteia qualquer jogada válida; bom para aprender as regras.
+  - *Gradiente Guloso* (médio): como a descida de gradiente, escolhe o lance que mais melhora o placar agora, olhando um turno à frente pelo valor esperado.
+  - *Mestre Monte Carlo* (difícil): sorteia as cartas ocultas, simula centenas de partidas e escolhe o lance que mais venceu; mostra a própria chance de vitória e truca com base nas simulações.
 - **5 baralhos e 4 terrenos** da seção de extensões (Truco com manilhas, Fraternidade, Yin-yang, Power BI; Montanha, Pântano, Oceano).
 - **27 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…).
 - **Feedback visual**: conexões com espessura proporcional ao valor (como no Playground), curva de treino, explosões, banners e sons.
