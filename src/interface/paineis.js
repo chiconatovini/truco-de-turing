@@ -72,6 +72,23 @@ export function mostrarAviso(titulo, texto, tipo, duracaoMs = 5200) {
 }
 
 /**
+ * Dica de jogo do modo "dicas", no estilo do Grimório: título, conselho e o conceito de redes
+ * neurais relacionado. Usa a mesma área dos avisos e fica 9 segundos (um toque fecha).
+ */
+export function mostrarDicaDeJogo(titulo, texto, tituloDoConceito, conceito) {
+  const aviso = document.createElement('div');
+  aviso.className = 'aviso dica-de-jogo';
+  aviso.innerHTML = '<b>Dica \u00b7 ' + escaparHtml(titulo) + '</b>' + escaparHtml(texto) +
+    (conceito ? '<span class="conceito"><i>Redes neurais \u00b7 ' + escaparHtml(tituloDoConceito) + ':</i> ' + escaparHtml(conceito) + '</span>' : '');
+  const caixa = $('#avisos');
+  caixa.innerHTML = '';
+  caixa.appendChild(aviso);
+  setTimeout(() => { aviso.style.transition = 'opacity .4s'; aviso.style.opacity = '0'; }, 8600);
+  setTimeout(() => aviso.remove(), 9000);
+  aviso.addEventListener('click', () => aviso.remove());
+}
+
+/**
  * Caixa de confirmação com botões.
  * @param {string} titulo
  * @param {string} texto HTML do corpo (já escapado por quem chama).

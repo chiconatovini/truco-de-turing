@@ -88,9 +88,9 @@ Pontos em que o enunciado deixa margem e a leitura adotada:
   - *Mestre Monte Carlo* (difícil): sorteia as cartas ocultas, simula centenas de partidas e escolhe o lance que mais venceu; mostra a própria chance de vitória e truca com base nas simulações.
 - **5 baralhos e 4 terrenos** da seção de extensões (Truco com manilhas, Fraternidade, Yin-yang, Power BI; Montanha, Pântano, Oceano).
 - **27 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…).
-- **Modo dicas**: sugestão de jogada e explicações nos botões (mouse ou segurar no celular); mãos com dicas não valem conquistas.
+- **Modo dicas**: dicas de estratégia a cada vez, sempre com o conceito de redes neurais por trás, e explicações nos botões (mouse ou segurar no celular); só usam o que está à vista e nunca dizem qual carta virada escolher. Mãos com dicas não valem conquistas.
 - **Revisão da mão**: curva de treino passo a passo, momentos-chave e linha do tempo comentada com os conceitos do Grimório.
-- **Música por terreno**: blues na mesa neutra, valsa no oceano, épica na montanha e gótica no pântano; fanfarra e confete na vitória.
+- **Música por terreno** (ligada por padrão): blues na mesa neutra, valsa no oceano, épica na montanha e gótica no pântano; fanfarra e confete na vitória.
 - **Feedback visual**: conexões com espessura proporcional ao valor (como no Playground), curva de treino, explosões, banners, músicas e sons.
 
 ## Conteúdo educativo

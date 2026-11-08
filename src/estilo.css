@@ -253,6 +253,8 @@ html, body { overscroll-behavior: none; }
 .aviso b { font-family: var(--fonte-titulo); font-size: 14px; display: block; color: #6b1a22; letter-spacing: 0.04em; }
 .aviso.medalha-aviso { border-color: var(--latao); background: #2b1608; color: #f6dc8f; }
 .aviso.medalha-aviso b { color: var(--latao); }
+.aviso.dica-de-jogo { border-color: var(--latao); }
+.aviso.dica-de-jogo .conceito { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(60, 40, 20, 0.35); font-size: 13px; color: #4b3a26; }
 
 /* ---------- Vitória: tela de resultado em festa ---------- */
 .folha.vitoria {

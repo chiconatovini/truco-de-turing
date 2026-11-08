@@ -247,7 +247,7 @@ Parte da CenaMesa: desenhar o estado da mão na tela. Neurônios, mãos, placar,
 | `desenharMaos()` | método | Desenha a mão do jogador de baixo (aberta) e a do de cima (versos). |
 | `notaDaCartaDaMao(carta)` | método | Nota da inspeção para uma carta da mão: onde ela pode ser usada agora. |
 | `atualizarPaineis()` | método | Atualiza os textos e botões dos painéis. |
-| `textoComSugestao()` | método | Dica do turno e, com as dicas ligadas, a sugestão de jogada. |
+| `textoComDicaDeJogo()` | método | Dica do turno e, com as dicas ligadas, o título da dica de jogo atual. |
 | `atualizarPilha(pilha, nome, quantidade, texturaDoTopo)` | método | Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas empilhadas por baixo quando há mais de uma, o contador e o rótulo. |
 | `atualizarBlocoDoJogador(b, j)` | método | Bloco de placar de um jogador: avatar, nome, nível, situação, detalhes, tentos e soma. |
 | `estaNaVez(j)` | método | O jogador `j` está na vez (e a mão está em andamento)? |
@@ -262,16 +262,16 @@ Parte da CenaMesa: desenhar o estado da mão na tela. Neurônios, mãos, placar,
 
 ## `src/cenas/mesa/dicas.js`
 
-Parte da CenaMesa: o modo "dicas". Com as dicas ligadas, o jogador recebe: - uma **sugestão de jogada** a cada vez (calculada pela mesma busca gulosa do Gradiente Guloso), marcada com uma estrela no neurônio e nas cartas da mão e escrita na dica do turno; - **dicas flutuantes** no estilo do Grimório nos botões de ação (Dropout, Transfer, Passar e TRUCO): ao passar o mouse ou, no celular, ao segurar o botão. Elas explicam a ação, o conceito de ML por trás e o que vale fazer agora (no truco, a chance estimada de vencer a mão); - a chance de vitória também na caixa de resposta ao truco. Em troca, a mão jogada com dicas (ligadas em algum momento) não vale conquistas nem conta nas estatísticas. O aviso aparece ao ligar.
+Parte da CenaMesa: o modo "dicas". Com as dicas ligadas, o jogador recebe: - a cada vez, uma **dica de jogo** (conteudo/dicasDeJogo.js) no estilo do Grimório: uma oportunidade, um risco ou uma estratégia geral, sempre com o conceito de redes neurais por trás. As dicas usam só informação pública e nunca apontam qual neurônio oculto ativar; - **dicas flutuantes** nos botões de ação (Dropout, Transfer, Passar e TRUCO): ao passar o mouse ou, no celular, ao segurar o botão. Explicam a ação, o que vale fazer agora (no truco, a chance estimada por simulação) e o conceito do Grimório; - a chance estimada de vitória também na caixa de resposta ao truco. Em troca, a mão jogada com dicas (ligadas em algum momento) não vale conquistas nem conta nas estatísticas. O aviso aparece ao ligar.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `SIMULACOES_DA_DICA` | constante | Simulações usadas para estimar a chance de vitória mostrada nas dicas. |
+| `MEMORIA_DE_DICAS` | constante | Quantas dicas recentes evitar repetir. |
 | `conceitoCurto(id)` | função | Primeira frase do conceito de um verbete (para a linha "conceito" das dicas). |
 | `alternarDicas()` | método | Botão "Ativar dicas": avisa sobre as conquistas antes de ligar; desliga direto. |
-| `calcularSugestao()` | método | Calcula a sugestão para o humano da vez (guardada em `this.sugestao`). |
-| `textoDaSugestao()` | método | Frase da sugestão para a dica do turno. |
-| `desenharSugestao(g, tempo)` | método | Estrela pulsante no neurônio e nas cartas sugeridas (desenhada a cada quadro). |
+| `darDicaDoTurno()` | método | Mostra a dica de jogo da vez do humano (só com as dicas ligadas e só se mudou). |
+| `textoDaDicaDeJogo()` | método | Linha curta da dica atual, para o rodapé do painel esquerdo. |
 | `mostrarDicaDoBotao(chave, x, y, l, a)` | método | Mostra a dica do botão `chave` ao lado do retângulo (x, y, l, a) do mundo do jogo. |
 | `esconderDicaDoBotao()` | método | Esconde a dica flutuante. |
 | `conteudoDaDica(chave)` | método | Texto da dica de cada botão: o que faz, o que vale fazer agora e o conceito de ML. |
@@ -432,6 +432,16 @@ Conquistas e suas graduações (bronze a antimatéria, como sugere a especifica�
 | `meu` | constante | Atalho: dados do jogador humano na mão encerrada. |
 | `VALEM_SEM_MAO_COMPLETA` | constante (exportada) | Conquistas que podem ser ganhas mesmo quando a mão termina porque alguém correu do truco. |
 
+## `src/conteudo/dicasDeJogo.js`
+
+Dicas de jogo do modo "dicas": como jogar bem e o conceito de redes neurais por trás. Regra de ouro: as dicas usam **só informação pública** — as cartas da mão de quem pede a dica, os neurônios já revelados na mesa, as somas e o placar. Nunca apontam qual neurônio oculto ativar nem dizem o que há embaixo de uma carta virada; isso seria trapaça, não dica. `escolherDicaDeJogo` olha a situação e devolve a dica mais útil agora (oportunidades e riscos primeiro), ou uma dica geral de estratégia ligada a um verbete do Grimório. Não depende do Phaser: roda também no Node (testes).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `DICAS_GERAIS` | constante (exportada) | Dicas gerais de estratégia, usadas quando nenhuma situação especial aparece. Cada uma liga uma boa prática do jogo a um conceito do Grimório (`verbete`). |
+| `contarValores(mao)` | função | Contagem de cartas da mão por valor. |
+| `escolherDicaDeJogo(mao, j, partida, recentes = [])` | função (exportada) | Escolhe a dica de jogo para o jogador `j` agora. |
+
 ## `src/conteudo/grimorio.js`
 
 Grimório: cada mecânica do jogo explicada como conceito de aprendizado de máquina. Cada verbete tem `id`, `titulo`, `categoria`, `conceito` (o que é em ML) e `noJogo` (como aparece na mesa). A mesa mostra o verbete como aviso na primeira vez que a mecânica acontece.
@@ -502,6 +512,7 @@ Base dos painéis HTML sobrepostos ao canvas: abrir e fechar telas, avisos rápi
 | `abrirPainel(html, opcoes = {})` | função (exportada) | Abre uma tela sobre o jogo. |
 | `fecharTodos()` | função (exportada) | Fecha todas as telas abertas. |
 | `mostrarAviso(titulo, texto, tipo, duracaoMs = 5200)` | função (exportada) | Mostra um aviso rápido no topo da tela (só um por vez). |
+| `mostrarDicaDeJogo(titulo, texto, tituloDoConceito, conceito)` | função (exportada) | Dica de jogo do modo "dicas", no estilo do Grimório: título, conselho e o conceito de redes neurais relacionado. Usa a mesma área dos avisos e fica 9 segundos (um toque fecha). |
 | `confirmar(titulo, texto, botoes, opcoes = {})` | função (exportada) | Caixa de confirmação com botões. |
 | `mostrarDicaFlutuante(titulo, html, alvo)` | função (exportada) | Mostra uma dica no estilo do Grimório ao lado de um elemento da mesa (botão, carta). Fica à esquerda do retângulo quando há espaço; senão, acima ou abaixo. |
 | `esconderDicaFlutuante()` | função (exportada) | Esconde a dica flutuante, se houver. |

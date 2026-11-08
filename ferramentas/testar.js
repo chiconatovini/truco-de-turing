@@ -5,6 +5,9 @@ import assert from 'node:assert/strict';
 import { novaMao, aplicarJogada, jogadasLegais, efeitoDoEmpilhamento } from '../src/nucleo/partida.js';
 import { pontuarRede } from '../src/nucleo/pontuacao.js';
 import { pontosDaCarta } from '../src/nucleo/baralhos.js';
+import { escolherDicaDeJogo } from '../src/conteudo/dicasDeJogo.js';
+import { determinizar } from '../src/nucleo/oponentes/comum.js';
+import { jogadaAleatoria } from '../src/nucleo/oponentes/estrategias.js';
 import { novaPartida, pedirTruco, responderTruco, marcarTentos, podeTrucar, ehMaoDeOnze } from '../src/nucleo/truco.js';
 
 let aprovados = 0;
@@ -81,6 +84,24 @@ teste('truco: pedir, aumentar, correr e mão de onze', () => {
   marcarTentos(partida, 1, 11);
   assert.ok(ehMaoDeOnze(partida));
   assert.equal(podeTrucar(partida, 0), false);
+});
+
+teste('dicas usam só informação pública: o que está virado não muda a dica', () => {
+  let verificadas = 0;
+  for (let semente = 1; semente <= 60; semente++) {
+    const mao = novaMao({ semente, terreno: ['neutro', 'montanha', 'pantano', 'oceano'][semente % 4], inicio: 'sorteio', jogadores: [{ nome: 'A' }, { nome: 'B' }] });
+    const partida = novaPartida(12);
+    for (let passo = 0; passo < 30 && mao.fase === 'jogo'; passo++) {
+      const j = mao.vez;
+      const dica = escolherDicaDeJogo(mao, j, partida);
+      assert.ok(dica.titulo && dica.texto && dica.verbete);
+      /* sorteia de novo tudo o que j não vê (cartas viradas, mão do outro, limbo): a dica deve ser igual */
+      for (let k = 0; k < 3; k++) assert.deepEqual(escolherDicaDeJogo(determinizar(mao, j), j, partida), dica);
+      verificadas++;
+      aplicarJogada(mao, jogadaAleatoria(mao, j));
+    }
+  }
+  assert.ok(verificadas > 500);
 });
 
 console.log(`\n${aprovados} testes aprovados.`);

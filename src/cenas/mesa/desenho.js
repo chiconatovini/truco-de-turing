@@ -128,13 +128,13 @@ export const metodosDeDesenho = {
     this.atualizarBotoes();
     this.atualizarRegistro();
     this.desenharCurva();
-    this.mostrarDica(this.dicaDoCursor || this.textoComSugestao());
+    this.mostrarDica(this.dicaDoCursor || this.textoComDicaDeJogo());
   },
 
-  /** Dica do turno e, com as dicas ligadas, a sugestão de jogada. */
-  textoComSugestao() {
-    const sugestao = this.textoDaSugestao();
-    return this.textoDaDica() + (sugestao ? '\n\u2605 Sugestão: ' + sugestao : '');
+  /** Dica do turno e, com as dicas ligadas, o título da dica de jogo atual. */
+  textoComDicaDeJogo() {
+    const dica = this.textoDaDicaDeJogo();
+    return this.textoDaDica() + (dica ? '\n' + dica : '');
   },
 
   /**

@@ -28,6 +28,8 @@ export const Aplicacao = {
 
   /** Carrega opções e preferência de som. */
   iniciar() {
+    /* a música começa ligada até a pessoa escolher (progressos antigos guardavam "desligada" sem escolha) */
+    if (!this.progresso.musicaEscolhida) this.progresso.musica = true;
     this.opcoes = { ...OPCOES_PADRAO, ...(this.progresso.opcoes || {}) };
     Som.definirMudo(!!this.progresso.mudo);
   },
@@ -51,6 +53,7 @@ export const Aplicacao = {
    */
   alternarMusica(terreno) {
     this.progresso.musica = !this.progresso.musica;
+    this.progresso.musicaEscolhida = true;
     this.salvar();
     if (this.progresso.musica && terreno) Musica.tocar(terreno); else Musica.parar();
   },

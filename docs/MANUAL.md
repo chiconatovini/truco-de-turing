@@ -65,6 +65,7 @@ src/
       index.js                  perfis dos oponentes e decisões de truco
   conteudo/
     grimorio.js               verbetes (conceito de ML + como aparece no jogo)
+    dicasDeJogo.js            dicas de estratégia do modo dicas (só informação pública)
     conquistas.js             graduações e conquistas com seus testes
     textos.js                 ambientação das cartas e provocações dos oponentes
     progresso.js              carregar/salvar progresso no localStorage (com migração da v1)
@@ -226,18 +227,22 @@ cliques durante animações) e `this.encerrada`.
 
 ### 5.1 Dicas, revisão e música
 
-- **Dicas** (`dicas.js`): a chave "Ativar dicas" fica em `Aplicacao.dicasLigadas` (só na sessão).
-  Ligada, calcula a cada vez do humano uma sugestão com `jogadaGulosa` e mostra dicas flutuantes nos
-  botões que recebem `opcoes.dica` em `criarBotao` (mouse: ao passar; toque: segurar 0,45 s, e soltar
-  depois de segurar não executa a ação). A mão fica marcada em `this.dicasNaMao` e, no fim, não é
-  registrada em `Aplicacao.registrarMao` (sem conquistas nem estatísticas).
+- **Dicas** (`dicas.js` e `conteudo/dicasDeJogo.js`): a chave "Ativar dicas" fica em
+  `Aplicacao.dicasLigadas` (só na sessão). Ligada, a cada vez do humano `escolherDicaDeJogo` escolhe
+  uma dica de jogo (oportunidade de ataque ou tunagem, risco, terreno, placar ou estratégia geral) e a
+  mostra com o conceito do Grimório ligado a ela. As dicas usam **só informação pública** e nunca
+  apontam qual neurônio oculto ativar; um teste em `ferramentas/testar.js` sorteia de novo tudo o que
+  está escondido e confere que a dica não muda. Os botões que recebem `opcoes.dica` em `criarBotao`
+  ganham dicas flutuantes (mouse: ao passar; toque: segurar 0,45 s, e soltar depois de segurar não
+  executa a ação). A mão fica marcada em `this.dicasNaMao` e, no fim, não é registrada em
+  `Aplicacao.registrarMao` (sem conquistas nem estatísticas).
 - **Revisão** (`interface/telas/revisao.js`): cada jogada e cada lance de truco viram um passo em
   `this.linhaDoTempo` (`anotarNaLinhaDoTempo`, em `turnos.js`), com as somas depois do passo. A revisão
   desenha a curva em SVG, aponta maior salto, golpe mais duro e virada, e liga cada tipo de passo ao
   verbete do Grimório. `this.historicoDaPartida` guarda o placar mão a mão.
 - **Música** (`interface/musica.js`): cada terreno tem uma música definida por andamento, acordes por
   compasso e uma função `tocar` chamada a cada passo. Um agendador marca as notas 0,4 s à frente no
-  relógio do WebAudio. Para uma música nova, acrescente uma entrada em `MUSICAS` com a chave do terreno.
+  relógio do WebAudio. A música começa ligada até a pessoa escolher (`progresso.musicaEscolhida`). Para uma música nova, acrescente uma entrada em `MUSICAS` com a chave do terreno.
 
 ## 6. Arte e nitidez
 

@@ -265,6 +265,8 @@ html, body { overscroll-behavior: none; }
 .aviso b { font-family: var(--fonte-titulo); font-size: 14px; display: block; color: #6b1a22; letter-spacing: 0.04em; }
 .aviso.medalha-aviso { border-color: var(--latao); background: #2b1608; color: #f6dc8f; }
 .aviso.medalha-aviso b { color: var(--latao); }
+.aviso.dica-de-jogo { border-color: var(--latao); }
+.aviso.dica-de-jogo .conceito { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(60, 40, 20, 0.35); font-size: 13px; color: #4b3a26; }
 
 /* ---------- Vitória: tela de resultado em festa ---------- */
 .folha.vitoria {
@@ -438,7 +440,8 @@ html, body { overscroll-behavior: none; }
       baralhos: {},
       desbloqueadas: {},
       mudo: false,
-      musica: false,
+      musica: true,
+      musicaEscolhida: false,
       tutorialVisto: false,
       opcoes: null
     };
@@ -1264,6 +1267,20 @@ html, body { overscroll-behavior: none; }
     setTimeout(() => aviso.remove(), duracaoMs);
     aviso.addEventListener("click", () => aviso.remove());
   }
+  function mostrarDicaDeJogo(titulo, texto, tituloDoConceito, conceito) {
+    const aviso = document.createElement("div");
+    aviso.className = "aviso dica-de-jogo";
+    aviso.innerHTML = "<b>Dica \xB7 " + escaparHtml(titulo) + "</b>" + escaparHtml(texto) + (conceito ? '<span class="conceito"><i>Redes neurais \xB7 ' + escaparHtml(tituloDoConceito) + ":</i> " + escaparHtml(conceito) + "</span>" : "");
+    const caixa = $("#avisos");
+    caixa.innerHTML = "";
+    caixa.appendChild(aviso);
+    setTimeout(() => {
+      aviso.style.transition = "opacity .4s";
+      aviso.style.opacity = "0";
+    }, 8600);
+    setTimeout(() => aviso.remove(), 9e3);
+    aviso.addEventListener("click", () => aviso.remove());
+  }
   function confirmar(titulo, texto, botoes, opcoes = {}) {
     const html = '<div class="folha estreita' + (opcoes.grito ? " grito-truco" : "") + '">' + (opcoes.topo || "") + "<h2>" + escaparHtml(titulo) + "</h2>" + (texto ? "<p>" + texto + "</p>" : "") + '<div class="linha fim" style="margin-top:16px">' + botoes.map((b, i) => '<button class="botao ' + (b.classe || "") + '" data-indice="' + i + '">' + escaparHtml(b.rotulo) + "</button>").join("") + "</div></div>";
     const painel = abrirPainel(html);
@@ -1321,6 +1338,7 @@ html, body { overscroll-behavior: none; }
     dicasLigadas: false,
     /** Carrega opções e preferência de som. */
     iniciar() {
+      if (!this.progresso.musicaEscolhida) this.progresso.musica = true;
       this.opcoes = { ...OPCOES_PADRAO, ...this.progresso.opcoes || {} };
       Som.definirMudo(!!this.progresso.mudo);
     },
@@ -1345,6 +1363,7 @@ html, body { overscroll-behavior: none; }
      */
     alternarMusica(terreno) {
       this.progresso.musica = !this.progresso.musica;
+      this.progresso.musicaEscolhida = true;
       this.salvar();
       if (this.progresso.musica && terreno) Musica.tocar(terreno);
       else Musica.parar();
@@ -4353,7 +4372,6 @@ html, body { overscroll-behavior: none; }
   }
 
   // src/nucleo/partida.js
-  var NOME_EFEITO = { tunagem: "Tunagem", overfit: "Overfit", earlystop: "Early stop", stackoverflow: "Stack overflow" };
   function novoJogador(dados, indice) {
     return {
       indice,
@@ -5941,12 +5959,12 @@ html, body { overscroll-behavior: none; }
       this.atualizarBotoes();
       this.atualizarRegistro();
       this.desenharCurva();
-      this.mostrarDica(this.dicaDoCursor || this.textoComSugestao());
+      this.mostrarDica(this.dicaDoCursor || this.textoComDicaDeJogo());
     },
-    /** Dica do turno e, com as dicas ligadas, a sugestão de jogada. */
-    textoComSugestao() {
-      const sugestao = this.textoDaSugestao();
-      return this.textoDaDica() + (sugestao ? "\n\u2605 Sugest\xE3o: " + sugestao : "");
+    /** Dica do turno e, com as dicas ligadas, o título da dica de jogo atual. */
+    textoComDicaDeJogo() {
+      const dica = this.textoDaDicaDeJogo();
+      return this.textoDaDica() + (dica ? "\n" + dica : "");
     },
     /**
      * Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas
@@ -6210,7 +6228,7 @@ html, body { overscroll-behavior: none; }
       const mao = this.mao, n = mao.neuronios[id], baralho = mao.config.baralho;
       if (!entrando) {
         this.dicaDoCursor = null;
-        this.mostrarDica(this.textoComSugestao());
+        this.mostrarDica(this.textoComDicaDeJogo());
         return;
       }
       if (n.removido) return;
@@ -6361,7 +6379,7 @@ html, body { overscroll-behavior: none; }
       this.vanishingAvisado = [false, false];
       this.trucoConsideradoNoTurno = -1;
       this.oponenteCorreu = false;
-      this.sugestao = null;
+      this.dicaAtual = null;
       this.dicasNaMao = this.app.dicasLigadas;
       this.linhaDoTempo = [];
       this.linhasRegistradas = 0;
@@ -6415,7 +6433,6 @@ html, body { overscroll-behavior: none; }
         return;
       }
       this.selecao = [];
-      this.sugestao = null;
       if (this.modo !== "inicio") this.modo = "livre";
       const eventos = this.mao.eventos.splice(0);
       this.ocupada = true;
@@ -6449,7 +6466,7 @@ html, body { overscroll-behavior: none; }
         this.time.delayedCall(900, () => this.executarJogada({ tipo: "passar", jogador: vez }));
         return;
       }
-      this.calcularSugestao();
+      this.darDicaDoTurno();
       this.redesenhar();
     },
     /**
@@ -7040,7 +7057,7 @@ html, body { overscroll-behavior: none; }
       if (this.encerrada) return;
       this.encerrada = true;
       this.ocupada = true;
-      this.sugestao = null;
+      this.dicaAtual = null;
       const mao = this.mao, partida = this.partida;
       const completa = !corrida;
       const vencedor = completa ? mao.resultado.vencedor : corrida.vencedor;
@@ -7234,8 +7251,175 @@ html, body { overscroll-behavior: none; }
     }
   };
 
+  // src/conteudo/dicasDeJogo.js
+  var DICAS_GERAIS = [
+    {
+      id: "geral-mao",
+      verbete: "pesos",
+      titulo: "Sua m\xE3o \xE9 o seu or\xE7amento",
+      texto: "As cartas da m\xE3o n\xE3o s\xE3o repostas durante a m\xE3o. Cada tunagem, ataque ou dropout gasta recursos que voc\xEA n\xE3o recupera; escolha onde investir."
+    },
+    {
+      id: "geral-camadas",
+      verbete: "forward",
+      titulo: "Uma camada de cada vez",
+      texto: "Sua rede s\xF3 cresce para a camada seguinte, como o sinal no forward pass. Pense dois passos \xE0 frente: quais cartas da m\xE3o combinam com o que pode vir?"
+    },
+    {
+      id: "geral-figuras",
+      verbete: "vanishing",
+      titulo: "Figuras: alto risco, alta recompensa",
+      texto: "J, Q e K valem 0 sozinhos, mas iguais e vizinhos d\xE3o +10 (par) ou +20 (trio). Quatro seguidos zeram a rede inteira."
+    },
+    {
+      id: "geral-saida",
+      verbete: "camadas",
+      titulo: "Corrida at\xE9 a sa\xEDda",
+      texto: "Ao chegar \xE0 camada de sa\xEDda a rede fica protegida: ningu\xE9m mais ataca os seus neur\xF4nios. \xC0s vezes vale avan\xE7ar antes de tunar."
+    },
+    {
+      id: "geral-curva",
+      verbete: "perda",
+      titulo: "Olhe a curva de treino",
+      texto: "O gr\xE1fico no painel mostra a soma de cada rede a cada turno. Quedas bruscas indicam ataques sofridos; um advers\xE1rio que dispara merece aten\xE7\xE3o."
+    },
+    {
+      id: "geral-limbo",
+      verbete: "ruido",
+      titulo: "O limbo \xE9 ru\xEDdo",
+      texto: "Dez cartas ficam no limbo sem ningu\xE9m ver. Elas tornam a mesa imprevis\xEDvel, como o ru\xEDdo nos dados de treino: n\xE3o conte com nenhuma carta espec\xEDfica."
+    },
+    {
+      id: "geral-incerteza",
+      verbete: "montecarlo",
+      titulo: "Decida pelo valor esperado",
+      texto: "Neur\xF4nios virados podem ser bons ou ruins. Em m\xE9dia, uma carta do baralho cl\xE1ssico vale cerca de 5 pontos; compare isso com o que uma tunagem ou um ataque garantem agora."
+    },
+    {
+      id: "geral-tunar-protege",
+      verbete: "tunagem",
+      titulo: "Tunar tem custo de exposi\xE7\xE3o",
+      texto: "Uma tunagem deixa a pilha com 2 cartas: mais uma do mesmo valor nas m\xE3os do advers\xE1rio vira early stop na sua rede. Tune mais perto da sa\xEDda."
+    }
+  ];
+  function contarValores(mao) {
+    const conta = {};
+    for (const c of mao) conta[c.valor] = (conta[c.valor] || 0) + 1;
+    return conta;
+  }
+  function escolherDicaDeJogo(mao, j, partida, recentes = []) {
+    const eu = mao.jogadores[j], outro = mao.jogadores[1 - j];
+    const baralho = mao.config.baralho;
+    const conta = contarValores(eu.mao);
+    const minha = fronteira(mao, j), dele = fronteira(mao, 1 - j);
+    const somas = [pontuarRede(mao, j).total, pontuarRede(mao, 1 - j).total];
+    const candidatas = [];
+    const dica = (id, verbete, titulo, texto) => candidatas.push({ id, verbete, titulo, texto });
+    const atacavel = (n) => n && ehOculta(n.camada) && n.cartas.length < 4 && outro.situacao === "construindo";
+    if (atacavel(dele) && conta[dele.cartas[0].valor]) {
+      const valor = dele.cartas[0].valor, tenho = conta[valor], pilha = dele.cartas.length;
+      if (pilha + tenho >= 4) dica(
+        "ataque-overflow",
+        "stackoverflow",
+        "Stack overflow \xE0 vista",
+        "O \xFAltimo neur\xF4nio do advers\xE1rio tem " + pilha + " carta(s) " + valor + " e voc\xEA tem " + tenho + ". Completar a pilha de 4 derruba a rede dele e as cartas da m\xE3o dele."
+      );
+      else if (pilha + tenho >= 3 && somas[1] >= somas[0]) dica(
+        "ataque-earlystop",
+        "earlystop",
+        "Early stop no advers\xE1rio",
+        "Com " + (3 - pilha) + " carta(s) " + valor + " sobre o \xFAltimo neur\xF4nio dele, a rede advers\xE1ria \xE9 finalizada agora e perde esse neur\xF4nio. \xD3timo quando ele est\xE1 na frente."
+      );
+      else if (pilha === 1 && (pontosDaCarta(dele.cartas[0], baralho) >= 7 || ehFigura(dele.cartas[0]))) dica(
+        "ataque-overfit",
+        "overfit",
+        "Overfit vale a pena",
+        "O \xFAltimo neur\xF4nio do advers\xE1rio (" + valor + ") \xE9 forte e voc\xEA tem um " + valor + ". Um overfit tira esse neur\xF4nio e faz a rede dele recuar uma camada."
+      );
+    }
+    const reveladas = eu.caminho.map((id) => mao.neuronios[id].cartas[0]);
+    const ultimas = reveladas.slice(-2);
+    if (ultimas.length === 2 && ehFigura(ultimas[0]) && ultimas[0].valor === ultimas[1].valor) {
+      dica(
+        "risco-vanishing",
+        "vanishing",
+        "Cuidado com a quadra de " + PLURAL_FIGURA[ultimas[0].valor],
+        "Suas duas \xFAltimas camadas s\xE3o " + ultimas[0].valor + ". Um terceiro d\xE1 trio (+20), mas quatro seguidos (contando as empilhadas) zeram a rede: vanishing gradient."
+      );
+    }
+    if (minha && ehOculta(minha.camada) && minha.cartas.length >= 2 && eu.situacao === "construindo" && outro.mao.length) {
+      dica(
+        "risco-tunado",
+        "earlystop",
+        "Seu neur\xF4nio tunado est\xE1 exposto",
+        "O \xFAltimo neur\xF4nio da sua rede tem " + minha.cartas.length + " cartas. Mais uma do mesmo valor, vinda do advers\xE1rio, aplica early stop em voc\xEA. Avan\xE7ar a rede o protege."
+      );
+    }
+    if (minha && ehOculta(minha.camada) && minha.cartas.length === 1 && eu.situacao === "construindo" && conta[minha.cartas[0].valor]) {
+      const valor = minha.cartas[0].valor;
+      dica(
+        "tunagem",
+        "tunagem",
+        "Hora de tunar?",
+        "Voc\xEA tem outro " + valor + " na m\xE3o, igual ao seu \xFAltimo neur\xF4nio. Empilhar soma " + (ehFigura(minha.cartas[0]) ? "10" : pontosDaCarta(minha.cartas[0], baralho)) + " pontos, mas deixa a pilha a uma carta do early stop."
+      );
+    }
+    if (outro.situacao === "construindo" && outro.caminho.length >= CAMADA_SAIDA && somas[1] > somas[0]) {
+      dica(
+        "corrida",
+        "camadas",
+        "O advers\xE1rio est\xE1 perto da sa\xEDda",
+        "Na camada de sa\xEDda a rede dele fica imune. Se voc\xEA tem cartas para atac\xE1-lo, a hora \xE9 agora."
+      );
+    }
+    if (partida && partida.alvo > 1 && podeTrucar(partida, j) && somas[0] - somas[1] >= 12) {
+      dica(
+        "truco",
+        "truco",
+        "Voc\xEA est\xE1 bem \xE0 frente",
+        "Sua rede soma " + somas[0] + " contra " + somas[1] + ". Um truco agora pode multiplicar o que esta m\xE3o vale; segure o bot\xE3o TRUCO para ver a sua chance estimada."
+      );
+    }
+    const valorTransfer = valorParaTransfer(mao, j);
+    if (valorTransfer) dica(
+      "transfer",
+      "transfer",
+      "Quatro iguais na m\xE3o",
+      "Voc\xEA tem quatro " + valorTransfer + ". Se eles n\xE3o servem para tunar nem atacar, o transfer learning troca todos por cartas novas do limbo."
+    );
+    if (eu.mao.length > 0 && eu.mao.length <= 2 && eu.situacao === "construindo") dica(
+      "mao-curta",
+      "dropout",
+      "Poucas cartas na m\xE3o",
+      "Restam " + eu.mao.length + " carta(s). Guarde-as para pagar um dropout se a rede entrar num caminho ruim, ou para um ataque decisivo."
+    );
+    const terreno = mao.config.terreno;
+    if (terreno === "pantano") dica(
+      "terreno-pantano",
+      "terrenos",
+      "P\xE2ntano: o tempo corr\xF3i",
+      "Neur\xF4nios sem tunagem perdem 1 ponto por rodada at\xE9 a rede terminar, como o weight decay. Chegar r\xE1pido \xE0 sa\xEDda ou tunar estanca a perda."
+    );
+    if (terreno === "montanha") dica(
+      "terreno-montanha",
+      "terrenos",
+      "Montanha: camadas fundas valem menos",
+      "Cada neur\xF4nio vale 1 ponto a menos por camada. As primeiras camadas pesam mais; tunagens no fim da rede rendem menos."
+    );
+    if (terreno === "oceano" && mao.vento) dica(
+      "terreno-oceano",
+      "terrenos",
+      "Oceano: siga o vento",
+      "Neste momento " + NAIPE[mao.vento].nome + " vale dobro. O vento muda a cada rodada, como uma distribui\xE7\xE3o de dados que se desloca (concept drift)."
+    );
+    const nova = candidatas.find((d) => !recentes.includes(d.id));
+    if (nova) return nova;
+    return DICAS_GERAIS.find((d) => !recentes.includes(d.id)) || DICAS_GERAIS[0];
+  }
+
   // src/cenas/mesa/dicas.js
   var SIMULACOES_DA_DICA = 40;
+  var MEMORIA_DE_DICAS = 6;
   function conceitoCurto(id) {
     const verbete = VERBETES.find((v) => v.id === id);
     return verbete ? verbete.conceito.split(/(?<=\.)\s/)[0] : "";
@@ -7245,7 +7429,7 @@ html, body { overscroll-behavior: none; }
     alternarDicas() {
       if (this.app.dicasLigadas) {
         this.app.dicasLigadas = false;
-        this.sugestao = null;
+        this.dicaAtual = null;
         esconderDicaFlutuante();
         this.atualizarChaves();
         if (this.mao) this.redesenhar();
@@ -7253,77 +7437,37 @@ html, body { overscroll-behavior: none; }
       }
       confirmar(
         "Ativar dicas?",
-        "Com as dicas ligadas voc\xEA v\xEA uma <b>sugest\xE3o de jogada</b> a cada vez e explica\xE7\xF5es nos bot\xF5es de a\xE7\xE3o (passe o mouse ou, no celular, segure o bot\xE3o apertado).<br><br><b>Aten\xE7\xE3o:</b> as m\xE3os jogadas com dicas <b>n\xE3o valem conquistas</b> nem contam nas estat\xEDsticas. A m\xE3o atual j\xE1 fica marcada, mesmo que voc\xEA desligue as dicas depois.",
+        "Com as dicas ligadas, a cada vez sua aparece uma <b>dica de jogo</b> (estrat\xE9gia, oportunidades e riscos) junto com o <b>conceito de redes neurais</b> por tr\xE1s, e os bot\xF5es de a\xE7\xE3o ganham explica\xE7\xF5es (passe o mouse ou, no celular, segure o bot\xE3o). As dicas usam s\xF3 o que est\xE1 \xE0 vista: nunca dizem qual carta virada escolher.<br><br><b>Aten\xE7\xE3o:</b> as m\xE3os jogadas com dicas <b>n\xE3o valem conquistas</b> nem contam nas estat\xEDsticas. A m\xE3o atual j\xE1 fica marcada, mesmo que voc\xEA desligue as dicas depois.",
         [
           { rotulo: "Agora n\xE3o", classe: "discreto" },
           { rotulo: "Ativar dicas", classe: "vinho", acao: () => {
             this.app.dicasLigadas = true;
             this.dicasNaMao = true;
             this.atualizarChaves();
-            this.calcularSugestao();
-            if (this.mao) this.redesenhar();
-            mostrarAviso("Dicas ligadas", "Esta m\xE3o n\xE3o vale conquistas. Segure um bot\xE3o de a\xE7\xE3o (ou passe o mouse) para ver a dica dele.", null, 4500);
+            if (this.mao) {
+              this.darDicaDoTurno();
+              this.redesenhar();
+            } else mostrarAviso("Dicas ligadas", "Esta m\xE3o n\xE3o vale conquistas.", null, 4e3);
           } }
         ]
       );
     },
-    /* ------------------------------------------------------------------ sugestão de jogada */
-    /** Calcula a sugestão para o humano da vez (guardada em `this.sugestao`). */
-    calcularSugestao() {
-      this.sugestao = null;
+    /* ------------------------------------------------------------------ dica de jogo */
+    /** Mostra a dica de jogo da vez do humano (só com as dicas ligadas e só se mudou). */
+    darDicaDoTurno() {
       if (!this.app.dicasLigadas || !this.mao || !this.ehVezDoHumano()) return;
-      try {
-        const jogada = jogadaGulosa(this.mao, this.quemVe);
-        if (jogada.tipo === "dropout" && jogada.n > 1) jogada.n = 1;
-        this.sugestao = jogada;
-      } catch (e) {
-        this.sugestao = null;
-      }
+      this.dicasRecentes = this.dicasRecentes || [];
+      const dica = escolherDicaDeJogo(this.mao, this.quemVe, this.partida, this.dicasRecentes);
+      if (this.dicaAtual && this.dicaAtual.id === dica.id) return;
+      this.dicaAtual = dica;
+      this.dicasRecentes = [dica.id, ...this.dicasRecentes].slice(0, MEMORIA_DE_DICAS);
+      const verbete = VERBETES.find((v) => v.id === dica.verbete);
+      mostrarDicaDeJogo(dica.titulo, dica.texto, verbete ? verbete.titulo : "", conceitoCurto(dica.verbete));
     },
-    /** Frase da sugestão para a dica do turno. */
-    textoDaSugestao() {
-      const s = this.sugestao, mao = this.mao;
-      if (!s || !this.app.dicasLigadas || !this.ehVezDoHumano()) return "";
-      const n = s.neuronio ? mao.neuronios[s.neuronio] : null;
-      if (s.tipo === "ativar") {
-        return "ative o neur\xF4nio marcado com \u2605 na camada " + nomeCamada(n.camada) + (n.conhecido ? " (\xE9 um " + rotuloCarta(n.cartas[0]) + ")" : "") + ".";
-      }
-      if (s.tipo === "empilhar") {
-        const efeito = efeitoDoEmpilhamento(mao, this.quemVe, n, s.cartas.length);
-        const cartas = s.cartas.map((id) => rotuloCarta(mao.jogadores[this.quemVe].mao.find((c) => c.id === id))).join(" ");
-        return NOME_EFEITO[efeito.tipo] + ": coloque " + cartas + " sobre " + rotuloCarta(n.cartas[0]) + (efeito.proprio ? " da sua rede." : " do advers\xE1rio.");
-      }
-      if (s.tipo === "dropout") return "fa\xE7a dropout de 1 camada: a rede est\xE1 num caminho fraco.";
-      if (s.tipo === "transfer") return "fa\xE7a transfer learning e renove a m\xE3o.";
-      if (s.tipo === "passar") return "passe a vez.";
-      return "";
-    },
-    /** Estrela pulsante no neurônio e nas cartas sugeridas (desenhada a cada quadro). */
-    desenharSugestao(g, tempo) {
-      const s = this.sugestao;
-      if (!s || !this.app.dicasLigadas || !this.ehVezDoHumano()) return;
-      const brilho2 = 0.6 + 0.4 * Math.sin(tempo / 200);
-      const estrela = (x, y, r) => {
-        const pontos = [];
-        for (let i = 0; i < 10; i++) {
-          const ang = -Math.PI / 2 + i * Math.PI / 5, raio = i % 2 ? r * 0.45 : r;
-          pontos.push({ x: x + Math.cos(ang) * raio, y: y + Math.sin(ang) * raio });
-        }
-        g.fillStyle(16773544, brilho2);
-        g.fillPoints(pontos, true);
-        g.lineStyle(1.5, 5913096, 1);
-        g.strokePoints(pontos, true);
-      };
-      if (s.neuronio) {
-        const n = this.mao.neuronios[s.neuronio];
-        const x = colunaX(n.camada), y = linhaY(n.camada, n.posicao);
-        g.lineStyle(3, 16773544, brilho2);
-        g.strokeRoundedRect(x - 39, y - 51, 78, 103, 10);
-        estrela(x + 30, y - 42, 11);
-      }
-      for (const imagem of this.cartasDaMao) {
-        if (s.cartas && s.cartas.includes(imagem.idCarta) && s.tipo !== "transfer") estrela(imagem.x + 40, imagem.y - 60, 10);
-      }
+    /** Linha curta da dica atual, para o rodapé do painel esquerdo. */
+    textoDaDicaDeJogo() {
+      if (!this.dicaAtual || !this.app.dicasLigadas || !this.ehVezDoHumano()) return "";
+      return "\u2605 Dica: " + this.dicaAtual.titulo;
     },
     /* ------------------------------------------------------------------ dicas flutuantes */
     /** Mostra a dica do botão `chave` ao lado do retângulo (x, y, l, a) do mundo do jogo. */
@@ -7438,7 +7582,6 @@ html, body { overscroll-behavior: none; }
     update(tempo) {
       if (!this.mao) return;
       this.desenharConexoesEAlvos(tempo);
-      this.desenharSugestao(this.camadaDestaques, tempo);
       this.desenharDestaqueDaVez(tempo);
     }
   };

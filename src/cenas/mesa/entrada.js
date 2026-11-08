@@ -17,7 +17,7 @@ export const metodosDeEntrada = {
   /** Cursor sobre um neurônio: mostra a carta na inspeção e explica o efeito de clicar. */
   aoPassarNoNeuronio(id, entrando) {
     const mao = this.mao, n = mao.neuronios[id], baralho = mao.config.baralho;
-    if (!entrando) { this.dicaDoCursor = null; this.mostrarDica(this.textoComSugestao()); return; }
+    if (!entrando) { this.dicaDoCursor = null; this.mostrarDica(this.textoComDicaDeJogo()); return; }
     if (n.removido) return;
     if (n.revelado) {
       const dono = n.dono >= 0 ? mao.jogadores[n.dono].nome : '';

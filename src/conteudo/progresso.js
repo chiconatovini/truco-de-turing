@@ -14,7 +14,7 @@ function progressoInicial() {
   return {
     vitorias: 0, maos: 0, dropouts: 0, vitoriasZen: 0,
     verbetesLidos: 0, lidos: {}, terrenos: {}, baralhos: {}, desbloqueadas: {},
-    mudo: false, musica: false, tutorialVisto: false, opcoes: null,
+    mudo: false, musica: true, musicaEscolhida: false, tutorialVisto: false, opcoes: null,
   };
 }
 

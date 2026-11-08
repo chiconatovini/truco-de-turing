@@ -30,7 +30,7 @@ export const metodosDoResultado = {
     if (this.encerrada) return;
     this.encerrada = true;
     this.ocupada = true;
-    this.sugestao = null;
+    this.dicaAtual = null;
     const mao = this.mao, partida = this.partida;
     const completa = !corrida;
     const vencedor = completa ? mao.resultado.vencedor : corrida.vencedor;

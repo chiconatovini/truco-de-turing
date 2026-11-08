@@ -52,7 +52,7 @@ export const metodosDeTurnos = {
     this.vanishingAvisado = [false, false];
     this.trucoConsideradoNoTurno = -1;
     this.oponenteCorreu = false;
-    this.sugestao = null;
+    this.dicaAtual = null;
     this.dicasNaMao = this.app.dicasLigadas;
     this.linhaDoTempo = [];
     this.linhasRegistradas = 0;
@@ -112,7 +112,6 @@ export const metodosDeTurnos = {
       return;
     }
     this.selecao = [];
-    this.sugestao = null;
     if (this.modo !== 'inicio') this.modo = 'livre';
     const eventos = this.mao.eventos.splice(0);
     this.ocupada = true;
@@ -145,7 +144,7 @@ export const metodosDeTurnos = {
       this.time.delayedCall(900, () => this.executarJogada({ tipo: 'passar', jogador: vez }));
       return;
     }
-    this.calcularSugestao();
+    this.darDicaDoTurno();
     this.redesenhar();
   },
 

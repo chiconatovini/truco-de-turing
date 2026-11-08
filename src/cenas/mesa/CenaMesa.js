@@ -74,7 +74,6 @@ export class CenaMesa extends Phaser.Scene {
   update(tempo) {
     if (!this.mao) return;
     this.desenharConexoesEAlvos(tempo);
-    this.desenharSugestao(this.camadaDestaques, tempo);
     this.desenharDestaqueDaVez(tempo);
   }
 }
