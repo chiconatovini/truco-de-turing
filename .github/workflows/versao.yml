@@ -45,8 +45,8 @@ jobs:
           echo "### Este pull request vai gerar a versão **$VERSAO** ao entrar na main" >> "$GITHUB_STEP_SUMMARY"
 
   versionar:
-    # o commit de versão feito pelo próprio robô não dispara outra versão
-    if: github.event_name == 'push' && github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[versao]')
+    # o commit de versão feito pelo próprio robô não dispara outra versão (ele começa com "Versão X.Y.Z [versao]")
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]' && !startsWith(github.event.head_commit.message, 'Versão ')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

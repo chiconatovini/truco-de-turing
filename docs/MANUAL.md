@@ -282,7 +282,7 @@ README e no `CHANGELOG.md`. O workflow `.github/workflows/versao.yml` o executa:
 
 - em cada **pull request** para a main: testes, empacotamento e a próxima versão no resumo do job;
 - em cada **merge ou push na main**: sobe a versão, refaz `dist/` e `docs/REFERENCIA.md`, faz o commit
-  `Versão X.Y.Z [versao]`, cria a tag `vX.Y.Z` e a release. O commit do robô não gera outra versão.
+  `Versão X.Y.Z [versao]`, cria a tag `vX.Y.Z` e a release. O commit do robô (que começa com "Versão ") não gera outra versão.
 
 O tipo vem do pull request: rótulo `versao:maior`/`versao:menor`, ou o título (`feat`, `nova`, `novo` →
 menor; `!:` ou BREAKING → maior); nos demais casos, correção. À mão:
