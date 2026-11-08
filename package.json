@@ -1,0 +1,23 @@
+{
+  "name": "truco-de-turing",
+  "version": "1.0.0",
+  "description": "Jogo de cartas em Phaser para ensinar redes neurais e deep learning (FPO 2026/2, tema 4).",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server -c-1 -p 8080 .",
+    "build": "node tools/build.js",
+    "simulate": "node tools/simulate.js 500 guloso aleatorio"
+  },
+  "keywords": [
+    "phaser",
+    "machine-learning",
+    "neural-networks",
+    "card-game",
+    "truco",
+    "educacao"
+  ],
+  "license": "GPL-3.0-only",
+  "dependencies": {
+    "phaser": "^3.80.1"
+  }
+}

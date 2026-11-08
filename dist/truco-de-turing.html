@@ -1,0 +1,3397 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- build:head -->
+<title>Truco de Turing</title>
+<meta name="description" content="Jogo de cartas para aprender redes neurais e deep learning, com alma de truco. FPO 2026/2, trabalho tema 4.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya:ital,wght@0,400;0,500;0,700;1,400&family=Alegreya+Sans:wght@400;500;700;900&family=Cinzel:wght@600;700;900&display=swap">
+<style>
+/* Mesa de truco à noite: feltro verde, latão, pergaminho e as cores azul/laranja do TensorFlow Playground. */
+:root {
+  /* layout: canvas Phaser 16:9 ocupando a tela + painéis HTML sobrepostos para menus e regras */
+  --felt: #0f3b2a;
+  --felt-deep: #08241a;
+  --wood: #22130a;
+  --brass: #d9b260;
+  --brass-soft: #a88843;
+  --parchment: #efe3c6;
+  --parchment-deep: #d9c7a0;
+  --ink: #24170c;
+  --blue: #4aa3df;
+  --orange: #f59322;
+  --wine: #7a1626;
+  --display: 'Cinzel', 'Trajan Pro', Georgia, serif;
+  --body: 'Alegreya', Georgia, 'Times New Roman', serif;
+  --ui: 'Alegreya Sans', 'Segoe UI', Arial, sans-serif;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 40%, #12382a 0%, #071810 70%, #040c08 100%);
+  background-color: var(--felt-deep);
+  color: var(--parchment);
+  font-family: var(--ui);
+  overflow: hidden;
+}
+#game {
+  position: fixed;
+  inset: 0;
+  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+}
+#game canvas { display: block; }
+
+/* ---------- Painéis sobrepostos ---------- */
+#ui { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+.overlay {
+  position: absolute; inset: 0;
+  display: flex; overflow-y: auto;
+  padding-block: max(12px, env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-bottom, 0px));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  background: rgba(4, 10, 7, 0.72);
+  pointer-events: auto;
+  animation: fade 0.18s ease-out;
+}
+.overlay > * { margin: auto; }
+.overlay.clear { background: transparent; }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes rise { from { transform: translateY(14px); opacity: 0.4; } to { transform: none; opacity: 1; } }
+
+.sheet {
+  position: relative;
+  width: min(880px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 120px),
+    var(--parchment);
+  color: var(--ink);
+  border: 3px solid #0d0a08;
+  outline: 2px solid var(--brass);
+  outline-offset: -9px;
+  border-radius: 14px;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  padding: 28px 30px 26px;
+  font-family: var(--body);
+  font-size: 17px;
+  line-height: 1.5;
+  animation: rise 0.22s ease-out;
+}
+.sheet.narrow { width: min(520px, 100%); }
+.sheet h1, .sheet h2, .sheet h3 { font-family: var(--display); text-wrap: balance; color: #2b1608; margin: 0; }
+.sheet h2 { font-size: 28px; letter-spacing: 0.02em; }
+.sheet h3 { font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase; margin-top: 18px; color: #6b1a22; }
+.sheet p { margin: 8px 0; max-width: 68ch; }
+.sheet ul { margin: 6px 0; padding-left: 20px; }
+.sheet li { margin: 3px 0; }
+.sheet kbd, .chip {
+  display: inline-block; font-family: var(--ui); font-weight: 700; font-size: 13px;
+  padding: 1px 8px; border-radius: 999px; background: #2b1608; color: var(--parchment);
+}
+.chip.blue { background: #1f5f8a; }
+.chip.orange { background: #a8580c; }
+.close-x {
+  position: absolute; top: 12px; right: 14px;
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid #2b1608; background: transparent; color: #2b1608;
+  font: 700 20px var(--ui); cursor: pointer;
+}
+.close-x:hover { background: #2b1608; color: var(--parchment); }
+
+.btn {
+  font-family: var(--display); font-weight: 700; letter-spacing: 0.06em;
+  font-size: 16px; padding: 11px 20px; border-radius: 10px; cursor: pointer;
+  border: 2px solid #0d0a08;
+  background: linear-gradient(180deg, #f3d488, #c79a3a);
+  color: #24140a;
+  box-shadow: 0 3px 0 #6b4a12, 0 8px 18px rgba(0, 0, 0, 0.35);
+  transition: transform 0.08s ease, filter 0.15s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #6b4a12; }
+.btn.wine { background: linear-gradient(180deg, #b0303d, #6e1420); color: #ffe9d6; box-shadow: 0 3px 0 #3a0a10, 0 8px 18px rgba(0, 0, 0, 0.35); }
+.btn.ghost { background: transparent; color: #2b1608; box-shadow: none; }
+.btn.small { font-size: 13px; padding: 7px 12px; }
+.btn:focus-visible, select:focus-visible, .codex-list button:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row.end { justify-content: flex-end; }
+
+/* ---------- Menu ---------- */
+.menu {
+  width: min(1040px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: stretch;
+}
+.menu-hero { display: flex; flex-direction: column; justify-content: center; gap: 14px; color: var(--parchment); min-width: 0; }
+.menu-hero .eyebrow { font-family: var(--ui); font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; font-size: 13px; color: var(--brass); }
+.menu-hero h1 {
+  font-family: var(--display); font-weight: 900; margin: 0;
+  font-size: clamp(42px, 6.4vw, 82px); line-height: 0.95; letter-spacing: 0.01em;
+  color: #f6dc8f;
+  text-shadow: 0 2px 0 #6b4a12, 0 4px 0 #3d2a08, 0 18px 40px rgba(0, 0, 0, 0.6);
+  text-wrap: balance;
+}
+.menu-hero h1 span { display: block; font-size: 0.42em; letter-spacing: 0.3em; color: var(--brass); text-shadow: none; margin-bottom: 6px; }
+.menu-hero p { font-family: var(--body); font-size: 19px; line-height: 1.45; max-width: 46ch; margin: 0; color: #e9dcbc; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 14px; color: #cdbf9e; }
+.legend b { color: var(--parchment); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+.menu-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+.menu-actions .btn { font-size: 14px; padding: 10px 14px; }
+.menu-panel { padding: 22px 24px; }
+.field { display: grid; gap: 4px; margin-bottom: 12px; }
+.field label { font-family: var(--ui); font-weight: 700; font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b1a22; }
+.field select {
+  font: 600 16px var(--ui); color: var(--ink);
+  background: #fbf4e2; border: 2px solid #2b1608; border-radius: 8px; padding: 8px 10px; width: 100%;
+}
+.field .hint { font-size: 14px; color: #5a4630; line-height: 1.35; min-height: 2.7em; }
+.credits { font-size: 13px; color: #a8987a; line-height: 1.4; }
+.credits a { color: var(--brass); }
+
+/* ---------- Grimório ---------- */
+.codex { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; margin-top: 14px; }
+.codex-list { display: grid; gap: 4px; align-content: start; }
+.codex-list button {
+  text-align: left; font: 600 15px var(--ui); color: var(--ink);
+  background: transparent; border: 0; border-radius: 6px; padding: 6px 10px; cursor: pointer;
+}
+.codex-list button[aria-current='true'] { background: #2b1608; color: var(--parchment); }
+.codex-list button .seen { font-size: 11px; color: #8a6d3a; margin-left: 6px; }
+.codex-entry { min-width: 0; }
+.codex-entry .tag { font: 700 12px var(--ui); letter-spacing: 0.16em; text-transform: uppercase; color: #6b1a22; }
+.codex-entry .ingame { border-left: 4px solid var(--blue); background: rgba(74, 163, 223, 0.1); padding: 10px 14px; border-radius: 0 8px 8px 0; }
+
+/* ---------- Conquistas ---------- */
+.ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-top: 14px; }
+.ach {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center;
+  padding: 10px; border-radius: 10px; border: 1px solid rgba(43, 22, 8, 0.25); background: rgba(255, 255, 255, 0.35);
+}
+.ach .medal {
+  width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center;
+  font: 900 16px var(--display); color: #24140a; border: 2px solid #24140a;
+}
+.ach.locked { opacity: 0.55; }
+.ach.locked .medal { background: #bfb39a !important; color: #6b5a40; }
+.ach b { display: block; font-family: var(--ui); font-size: 15px; }
+.ach small { display: block; font-family: var(--ui); font-size: 13px; color: #5a4630; line-height: 1.3; }
+.ach .tier { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #6b1a22; }
+
+/* ---------- Fim de mão ---------- */
+.result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 12px; }
+.net { border-radius: 10px; padding: 12px 14px; background: rgba(255, 255, 255, 0.4); border-top: 6px solid var(--blue); min-width: 0; }
+.net.p1 { border-top-color: var(--orange); }
+.net .total { font: 900 40px var(--display); line-height: 1; }
+.net .status { font: 700 12px var(--ui); letter-spacing: 0.14em; text-transform: uppercase; color: #6b1a22; }
+.terms { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+.term { font: 600 13px var(--ui); background: #fbf4e2; border: 1px solid #c9b48a; border-radius: 6px; padding: 2px 7px; }
+.term.combo { background: #2b1608; color: #f6dc8f; border-color: #2b1608; }
+.term.bad { background: #6e1420; color: #ffe1d6; border-color: #6e1420; }
+.tentos { font: 700 18px var(--ui); margin-top: 12px; }
+.tentos .big { font: 900 30px var(--display); }
+.unlocks { margin-top: 10px; display: grid; gap: 6px; }
+.unlock { display: flex; gap: 10px; align-items: center; font: 600 15px var(--ui); }
+
+/* ---------- Truco ---------- */
+.shout { text-align: center; }
+.shout .call {
+  font: 900 64px var(--display); color: #8a1222; letter-spacing: 0.04em; line-height: 1;
+  text-shadow: 0 3px 0 #f6dc8f;
+}
+.shout .who { font: 700 14px var(--ui); letter-spacing: 0.2em; text-transform: uppercase; color: #6b1a22; }
+.shout .row { justify-content: center; margin-top: 16px; }
+
+/* ---------- Toasts ---------- */
+#toasts {
+  position: fixed; top: max(10px, env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%);
+  display: grid; gap: 6px; z-index: 9; pointer-events: none; width: min(460px, calc(100% - 32px));
+}
+.toast {
+  pointer-events: auto;
+  background: var(--parchment); color: var(--ink); border: 2px solid #0d0a08; border-radius: 10px;
+  padding: 10px 14px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); font-family: var(--body); font-size: 15px; line-height: 1.35;
+  animation: rise 0.25s ease-out;
+}
+.toast b { font-family: var(--display); font-size: 14px; display: block; color: #6b1a22; letter-spacing: 0.04em; }
+.toast.badge { border-color: var(--brass); background: #2b1608; color: #f6dc8f; }
+.toast.badge b { color: var(--brass); }
+
+#rotate {
+  position: fixed; inset: auto 0 0 0; padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+  text-align: center; font: 600 14px var(--ui); background: rgba(0, 0, 0, 0.7); color: var(--parchment); z-index: 8; display: none;
+}
+@media (orientation: portrait) and (max-width: 700px) { #rotate { display: block; } }
+
+@media (max-width: 760px) {
+  .menu { grid-template-columns: minmax(0, 1fr); }
+  .codex { grid-template-columns: minmax(0, 1fr); }
+  .result-grid { grid-template-columns: minmax(0, 1fr); }
+  .sheet { padding: 22px 18px; font-size: 16px; }
+  .shout .call { font-size: 46px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay, .sheet, .toast { animation: none; }
+}
+
+</style>
+<!-- /build:head -->
+</head>
+<body>
+<!-- build:body -->
+<div id="game"></div>
+<div id="ui"></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="rotate">Gire o aparelho para jogar na horizontal.</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
+<script>
+/* Truco de Turing — regras, baralhos e terrenos.
+ * Arquivo puro (sem Phaser): roda no navegador e no Node (tools/simulate.js). */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+TT.SUITS = ['S', 'H', 'C', 'D'];
+TT.SUIT_INFO = {
+  S: { name: 'Espadas', sym: '♠', red: false, emblem: 'espada', frame: 'aco' },
+  H: { name: 'Copas', sym: '♥', red: true, emblem: 'copa', frame: 'rubi' },
+  C: { name: 'Paus', sym: '♣', red: false, emblem: 'pau', frame: 'mata' },
+  D: { name: 'Ouros', sym: '♦', red: true, emblem: 'ouro', frame: 'ouro' },
+};
+/* Desempate de naipe definido na especificação: espadas > copas > paus > ouros */
+TT.SUIT_ORDER = { S: 4, H: 3, C: 2, D: 1 };
+TT.RANK_NAME = {
+  A: 'Ás', '2': 'Dois', '3': 'Três', '4': 'Quatro', '5': 'Cinco', '6': 'Seis', '7': 'Sete',
+  '8': 'Oito', '9': 'Nove', '10': 'Dez', J: 'Valete', Q: 'Dama', K: 'Rei',
+};
+TT.RANK_PLURAL = { J: 'Valetes', Q: 'Damas', K: 'Reis' };
+/* Força de carta para "quem joga primeiro" e desempates de mão */
+TT.RANK_STRENGTH = { A: 14, K: 13, Q: 12, J: 11, '10': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4, '3': 3, '2': 2 };
+
+/* Arquitetura da rede na mesa: entrada(3) + 5 ocultas(5) + saída(4) */
+TT.LAYER_SIZES = [3, 5, 5, 5, 5, 5, 4];
+TT.N_LAYERS = TT.LAYER_SIZES.length;
+TT.OUTPUT = TT.N_LAYERS - 1;
+TT.HAND_SIZE = 5;
+TT.isHidden = function (layer) { return layer > 0 && layer < TT.OUTPUT; };
+TT.layerName = function (l) {
+  if (l === 0) return 'Entrada';
+  if (l === TT.OUTPUT) return 'Saída';
+  return 'Oculta ' + l;
+};
+
+TT.isFigure = function (card) { return card.r === 'J' || card.r === 'Q' || card.r === 'K'; };
+
+/* ---------- Baralhos ---------- */
+function standardDeck() {
+  var d = [];
+  TT.SUITS.forEach(function (s) {
+    TT.RANKS.forEach(function (r) { d.push({ id: r + s, r: r, s: s }); });
+  });
+  return d;
+}
+
+TT.DECKS = {
+  classico: {
+    name: 'Clássico',
+    short: 'Baralho padrão de 52 cartas, sem coringas.',
+    build: standardDeck,
+  },
+  truco: {
+    name: 'Truco',
+    short: 'Manilhas mandam: Zap (4♣) vale 12, Copas (7♥) vale 9, Espadilha (A♠) vale 13 e Pica-fumo (7♦) vale 10.',
+    build: standardDeck,
+    override: { '4C': 12, '7H': 9, AS: 13, '7D': 10 },
+    manilhas: { '4C': 'Zap', '7H': 'Copas', AS: 'Espadilha', '7D': 'Pica-fumo' },
+  },
+  fraternidade: {
+    name: 'Fraternidade',
+    short: 'Neurônios vizinhos do mesmo naipe valem o dobro.',
+    build: standardDeck,
+    fraternity: true,
+  },
+  yinyang: {
+    name: 'Yin-yang',
+    short: 'Só existem 2 e Ás. Tunagens, overfits e stack overflows a todo momento.',
+    build: function () {
+      var d = [];
+      for (var i = 0; i < 52; i++) {
+        var r = i % 2 ? 'A' : '2';
+        var s = TT.SUITS[Math.floor(i / 2) % 4];
+        d.push({ id: r + s + '#' + i, r: r, s: s });
+      }
+      return d;
+    },
+  },
+  powerbi: {
+    name: 'Power BI',
+    short: 'Depois de cada ação com a mão, as cartas que sobraram mudam aleatoriamente.',
+    build: standardDeck,
+    shuffleHand: true,
+  },
+};
+
+/* ---------- Terrenos ---------- */
+TT.TERRAINS = {
+  neutro: { name: 'Mesa neutra', short: 'Sem efeito. Feltro verde, café e truco.' },
+  montanha: {
+    name: 'Montanha',
+    short: 'A trilha sobe: cada neurônio vale 1 ponto a menos por camada alcançada.',
+  },
+  pantano: {
+    name: 'Pântano',
+    short: 'Neurônios sem tunagem afundam e perdem 1 ponto por rodada até a rede ser finalizada.',
+  },
+  oceano: {
+    name: 'Oceano',
+    short: 'A cada rodada o vento escolhe um naipe, que pontua em dobro.',
+  },
+};
+
+TT.baseValue = function (card, deckKey) {
+  var deck = TT.DECKS[deckKey];
+  var key = card.r + card.s;
+  if (deck && deck.override && deck.override[key] != null) return deck.override[key];
+  if (card.r === 'A') return 11;
+  if (TT.isFigure(card)) return 0;
+  return parseInt(card.r, 10);
+};
+
+TT.cardLabel = function (card) {
+  return (card.r === '10' ? '10' : card.r) + TT.SUIT_INFO[card.s].sym;
+};
+TT.cardName = function (card, deckKey) {
+  var deck = TT.DECKS[deckKey];
+  var key = card.r + card.s;
+  if (deck && deck.manilhas && deck.manilhas[key]) return deck.manilhas[key];
+  return TT.RANK_NAME[card.r] + ' de ' + TT.SUIT_INFO[card.s].name;
+};
+
+/* Gerador pseudoaleatório com semente (mulberry32): partidas reproduzíveis e simulações. */
+TT.rng = function (state) {
+  var t = (state.seed = (state.seed + 0x6d2b79f5) | 0);
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+TT.shuffle = function (arr, state) {
+  for (var i = arr.length - 1; i > 0; i--) {
+    var j = Math.floor(TT.rng(state) * (i + 1));
+    var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+  }
+  return arr;
+};
+
+</script>
+<script>
+/* Pontuação da rede ("forward pass").
+ *
+ * Regras da especificação:
+ *  - 2 a 10: valor nominal | Ás: 11 | J, Q, K: 0
+ *  - Pares de figuras iguais em camadas adjacentes valem 10 em conjunto, trios 20,
+ *    quadras zeram a rede inteira (vanishing gradient).
+ *  - Tunagem soma a nova carta; em figura adiciona +10, cumulativo com as figuras adjacentes.
+ *
+ * Leitura adotada para o exemplo do professor ("8-K-K-3" com tunagem em um K = 41):
+ *  cada carta de figura empilhada conta para o combo. K(2 cartas)+K(1 carta) = 3 Reis em
+ *  camadas adjacentes = trio (20) + tunagem (10) => 8 + 20 + 10 + 3 = 41.
+ *  Quatro figuras iguais numa sequência adjacente (contando as empilhadas) => vanishing gradient.
+ */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.slotById = function (state, id) { return state.slotIndex[id]; };
+
+TT.scoreNetwork = function (state, p) {
+  var pl = state.players[p];
+  var ctx = pl.frozen || { round: state.round, wind: state.wind };
+  var deckKey = state.cfg.deck;
+  var terrain = state.cfg.terrain;
+  var neurons = pl.path.map(function (id, i) {
+    var slot = TT.slotById(state, id);
+    var top = slot.cards[0];
+    var stack = slot.cards.length;
+    var fig = TT.isFigure(top);
+    var v, notes = [];
+    if (fig) {
+      v = 10 * (stack - 1);
+      if (stack > 1) notes.push('tunagem +' + v);
+    } else {
+      v = 0;
+      slot.cards.forEach(function (c) { v += TT.baseValue(c, deckKey); });
+      if (stack > 1) notes.push('tunado x' + stack);
+    }
+    if (terrain === 'montanha' && v > 0) {
+      var nv = Math.max(0, v - i);
+      if (nv !== v) notes.push('montanha -' + (v - nv));
+      v = nv;
+    } else if (terrain === 'pantano' && stack === 1 && v > 0) {
+      var sink = Math.max(0, ctx.round - slot.revealedRound);
+      var sv = Math.max(0, v - sink);
+      if (sv !== v) notes.push('afundou -' + (v - sv));
+      v = sv;
+    } else if (terrain === 'oceano' && top.s === ctx.wind && v > 0) {
+      notes.push('vento x2');
+      v *= 2;
+    }
+    return { slot: slot, layer: i, card: top, stack: stack, fig: fig, v: v, notes: notes };
+  });
+
+  /* Baralho da fraternidade: sequências do mesmo naipe dobram */
+  if (TT.DECKS[deckKey].fraternity) {
+    for (var i = 0; i < neurons.length; i++) {
+      var prev = neurons[i - 1], next = neurons[i + 1];
+      var n = neurons[i];
+      if ((prev && prev.card.s === n.card.s) || (next && next.card.s === n.card.s)) {
+        if (n.v > 0) { n.v *= 2; n.notes.push('fraternidade x2'); }
+        n.frat = true;
+      }
+    }
+  }
+
+  /* Combos de figuras em camadas adjacentes */
+  var combos = [];
+  var vanishing = false;
+  var k = 0;
+  while (k < neurons.length) {
+    var start = k;
+    if (neurons[k].fig) {
+      while (k + 1 < neurons.length && neurons[k + 1].fig && neurons[k + 1].card.r === neurons[start].card.r) k++;
+    }
+    var len = k - start + 1;
+    if (len >= 2) {
+      var count = 0;
+      for (var j = start; j <= k; j++) count += neurons[j].stack;
+      var rank = neurons[start].card.r;
+      if (count >= 4) {
+        vanishing = true;
+        combos.push({ from: start, to: k, rank: rank, count: count, pts: 0, label: 'Quadra de ' + TT.RANK_PLURAL[rank] + ': vanishing gradient' });
+      } else {
+        var pts = 10 * (count - 1);
+        combos.push({ from: start, to: k, rank: rank, count: count, pts: pts, label: (count === 2 ? 'Par' : 'Trio') + ' de ' + TT.RANK_PLURAL[rank] + ' +' + pts });
+      }
+    }
+    k++;
+  }
+
+  var total = 0;
+  neurons.forEach(function (n) { total += n.v; });
+  combos.forEach(function (c) { total += c.pts; });
+  if (vanishing) total = 0;
+  return { total: total, neurons: neurons, combos: combos, vanishing: vanishing };
+};
+
+/* Média de pontos de uma carta desconhecida (para heurísticas dos bots) */
+TT.expectedCardValue = function (state, cards) {
+  if (!cards.length) return 0;
+  var s = 0;
+  cards.forEach(function (c) { s += TT.baseValue(c, state.cfg.deck); });
+  return s / cards.length;
+};
+
+</script>
+<script>
+/* Motor do jogo: estado, jogadas legais e aplicação de jogadas. Sem dependências de interface. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.STARTERS = {
+  'revela-descarta': 'Cada um revela uma carta da mão; a maior começa e as duas vão para o cemitério',
+  'revela-volta': 'Cada um revela uma carta da mão; a maior começa e as duas voltam para a mão',
+  sorteio: 'Par ou ímpar: sorteio simples',
+};
+
+TT.newGame = function (opts) {
+  var state = {
+    cfg: { deck: opts.deck || 'classico', terrain: opts.terrain || 'neutro', starter: opts.starter || 'revela-volta' },
+    seed: opts.seed != null ? opts.seed | 0 : (Date.now() ^ (Math.random() * 1e9)) | 0,
+    uid: 0,
+    layers: [],
+    slotIndex: {},
+    players: opts.players.map(function (pp, i) {
+      return {
+        idx: i, name: pp.name, kind: pp.kind || 'human', bot: pp.bot || null,
+        hand: [], path: [], status: 'building', dropouts: 0, actionsUsed: 0,
+        transferUsed: false, frozen: null, starterCard: null,
+        stats: { reveals: 0, tunings: 0, overfits: 0, earlyStops: 0, overflows: 0, selfStops: 0, suffered: 0, vanish: 0, transfer: 0 },
+      };
+    }),
+    limbo: [], graveyard: [],
+    current: 0, first: 0, round: 1, turn: 0, passesInRow: 0,
+    wind: null, phase: 'starter', events: [], log: [], history: [], result: null, sim: false,
+  };
+  var deck = TT.shuffle(TT.DECKS[state.cfg.deck].build(), state);
+  for (var l = 0; l < TT.N_LAYERS; l++) {
+    var layer = [];
+    for (var n = 0; n < TT.LAYER_SIZES[l]; n++) {
+      var slot = { id: 'L' + l + 'N' + n, layer: l, idx: n, cards: [deck.pop()], faceUp: false, owner: -1, removed: false, known: false, revealedRound: 0 };
+      layer.push(slot);
+      state.slotIndex[slot.id] = slot;
+    }
+    state.layers.push(layer);
+  }
+  state.players.forEach(function (pl) { for (var i = 0; i < TT.HAND_SIZE; i++) pl.hand.push(deck.pop()); });
+  state.limbo = deck; /* 10 cartas queimadas: ruído */
+  if (state.cfg.terrain === 'oceano') state.wind = TT.SUITS[Math.floor(TT.rng(state) * 4)];
+  if (state.cfg.starter === 'sorteio') {
+    state.first = state.current = Math.floor(TT.rng(state) * state.players.length);
+    state.phase = 'play';
+    emit(state, { t: 'start', p: state.first, how: 'sorteio' });
+  }
+  pushHistory(state);
+  return state;
+};
+
+function emit(state, ev) {
+  if (state.sim) return;
+  state.events.push(ev);
+}
+function log(state, msg) {
+  if (state.sim) return;
+  state.log.push(msg);
+}
+function pushHistory(state) {
+  if (state.sim) return;
+  state.history.push(state.players.map(function (_, p) { return TT.scoreNetwork(state, p).total; }));
+}
+
+TT.rebuildIndex = function (state) {
+  state.slotIndex = {};
+  state.layers.forEach(function (layer) { layer.forEach(function (s) { state.slotIndex[s.id] = s; }); });
+  return state;
+};
+
+/* Cópia profunda leve para simulações (sem eventos/log/histórico) */
+TT.cloneState = function (state) {
+  var c = {
+    cfg: state.cfg, seed: state.seed, uid: state.uid,
+    layers: state.layers.map(function (layer) {
+      return layer.map(function (s) {
+        return { id: s.id, layer: s.layer, idx: s.idx, cards: s.cards.slice(), faceUp: s.faceUp, owner: s.owner, removed: s.removed, known: s.known, revealedRound: s.revealedRound };
+      });
+    }),
+    slotIndex: {},
+    players: state.players.map(function (pl) {
+      return {
+        idx: pl.idx, name: pl.name, kind: pl.kind, bot: pl.bot, hand: pl.hand.slice(), path: pl.path.slice(),
+        status: pl.status, dropouts: pl.dropouts, actionsUsed: pl.actionsUsed, transferUsed: pl.transferUsed,
+        frozen: pl.frozen, starterCard: pl.starterCard, stats: Object.assign({}, pl.stats),
+      };
+    }),
+    limbo: state.limbo.slice(), graveyard: state.graveyard.slice(),
+    current: state.current, first: state.first, round: state.round, turn: state.turn, passesInRow: state.passesInRow,
+    wind: state.wind, phase: state.phase, events: [], log: [], history: [], result: null, sim: true,
+  };
+  return TT.rebuildIndex(c);
+};
+
+TT.frontier = function (state, p) {
+  var path = state.players[p].path;
+  return path.length ? state.slotIndex[path[path.length - 1]] : null;
+};
+
+TT.revealTargets = function (state, p) {
+  var pl = state.players[p];
+  if (pl.status !== 'building') return [];
+  var next = pl.path.length;
+  if (next >= TT.N_LAYERS) return [];
+  return state.layers[next].filter(function (s) { return !s.removed && s.owner === -1; });
+};
+
+/* Neurônios que podem receber cartas empilhadas: fronteira oculta de redes ainda em construção */
+TT.stackTargets = function (state) {
+  var out = [];
+  state.players.forEach(function (pl, o) {
+    if (pl.status !== 'building') return;
+    var f = TT.frontier(state, o);
+    if (f && TT.isHidden(f.layer) && f.cards.length < 4) out.push(f);
+  });
+  return out;
+};
+
+TT.stackEffect = function (state, p, slot, n) {
+  var size = slot.cards.length + n;
+  var self = slot.owner === p;
+  if (size === 2) return { kind: self ? 'tunagem' : 'overfit', self: self };
+  if (size === 3) return { kind: 'earlystop', self: self };
+  if (size === 4) return { kind: 'stackoverflow', self: self };
+  return null;
+};
+
+TT.EFFECT_LABEL = {
+  tunagem: 'Tunagem', overfit: 'Overfit', earlystop: 'Early stop', stackoverflow: 'Stack overflow',
+};
+
+TT.canStack = function (state, p, slotId, cardIds) {
+  if (state.phase !== 'play' || state.current !== p || !cardIds.length) return false;
+  var slot = state.slotIndex[slotId];
+  if (!slot || TT.stackTargets(state).indexOf(slot) < 0) return false;
+  if (slot.cards.length + cardIds.length > 4) return false;
+  var hand = state.players[p].hand;
+  return cardIds.every(function (id) {
+    var c = hand.find(function (h) { return h.id === id; });
+    return c && c.r === slot.cards[0].r;
+  });
+};
+
+TT.trailingHidden = function (state, p) {
+  var pl = state.players[p];
+  if (pl.status !== 'building' || pl.path.length < 2) return 0;
+  return pl.path.length - 1;
+};
+
+TT.transferRank = function (state, p) {
+  var pl = state.players[p];
+  if (pl.transferUsed) return null;
+  var count = {};
+  pl.hand.forEach(function (c) { count[c.r] = (count[c.r] || 0) + 1; });
+  for (var r in count) if (count[r] >= 4) return r;
+  return null;
+};
+
+TT.canPass = function (state, p) {
+  return state.phase === 'play' && state.current === p && TT.revealTargets(state, p).length === 0;
+};
+
+function combos(arr, k) {
+  var out = [];
+  (function rec(start, acc) {
+    if (acc.length === k) { out.push(acc.slice()); return; }
+    for (var i = start; i < arr.length; i++) { acc.push(arr[i]); rec(i + 1, acc); acc.pop(); }
+  })(0, []);
+  return out;
+}
+
+/* Lista de jogadas legais. opts.dropout inclui dropouts "baratos" (para bots). */
+TT.legalMoves = function (state, p, opts) {
+  opts = opts || {};
+  var pl = state.players[p];
+  var moves = [];
+  if (state.phase === 'starter') {
+    if (pl.starterCard == null) pl.hand.forEach(function (c) { moves.push({ t: 'starter', p: p, card: c.id }); });
+    return moves;
+  }
+  if (state.phase !== 'play' || state.current !== p) return moves;
+  var reveals = TT.revealTargets(state, p);
+  reveals.forEach(function (s) { moves.push({ t: 'reveal', p: p, slot: s.id }); });
+  TT.stackTargets(state).forEach(function (slot) {
+    var rank = slot.cards[0].r;
+    var matching = pl.hand.filter(function (c) { return c.r === rank; });
+    var maxN = Math.min(matching.length, 4 - slot.cards.length);
+    for (var n = 1; n <= maxN; n++) {
+      var values = {};
+      matching.forEach(function (c) { values[TT.baseValue(c, state.cfg.deck)] = 1; });
+      var sets = Object.keys(values).length > 1 ? combos(matching, n) : [matching.slice(0, n)];
+      sets.forEach(function (set) {
+        moves.push({ t: 'stack', p: p, slot: slot.id, cards: set.map(function (c) { return c.id; }) });
+      });
+    }
+  });
+  var tr = TT.transferRank(state, p);
+  if (tr) {
+    moves.push({ t: 'transfer', p: p, cards: pl.hand.filter(function (c) { return c.r === tr; }).slice(0, 4).map(function (c) { return c.id; }) });
+  }
+  if (opts.dropout) {
+    var maxD = Math.min(TT.trailingHidden(state, p), pl.hand.length);
+    var cheap = pl.hand.slice().sort(function (a, b) { return TT.baseValue(a, state.cfg.deck) - TT.baseValue(b, state.cfg.deck); });
+    for (var d = 1; d <= Math.min(maxD, 2); d++) {
+      moves.push({ t: 'dropout', p: p, n: d, pay: cheap.slice(0, d).map(function (c) { return c.id; }) });
+    }
+  }
+  if (!reveals.length) moves.push({ t: 'pass', p: p });
+  return moves;
+};
+
+function takeFromHand(pl, ids) {
+  return ids.map(function (id) {
+    var i = pl.hand.findIndex(function (c) { return c.id === id; });
+    if (i < 0) throw new Error('Carta fora da mão: ' + id);
+    return pl.hand.splice(i, 1)[0];
+  });
+}
+
+function finalize(state, o, status) {
+  var pl = state.players[o];
+  pl.status = status;
+  pl.frozen = { round: state.round, wind: state.wind };
+}
+
+function powerBiShuffle(state, pl) {
+  if (!TT.DECKS[state.cfg.deck].shuffleHand) return;
+  pl.hand = pl.hand.map(function () {
+    state.uid++;
+    var r = TT.RANKS[Math.floor(TT.rng(state) * 13)];
+    var s = TT.SUITS[Math.floor(TT.rng(state) * 4)];
+    return { id: r + s + '~' + state.uid, r: r, s: s };
+  });
+  emit(state, { t: 'powerbi', p: pl.idx });
+}
+
+function endTurn(state) {
+  state.turn++;
+  state.current = (state.current + 1) % state.players.length;
+  if (state.current === state.first) {
+    state.round++;
+    if (state.cfg.terrain === 'oceano') {
+      state.wind = TT.SUITS[Math.floor(TT.rng(state) * 4)];
+      emit(state, { t: 'wind', suit: state.wind });
+    }
+  }
+  pushHistory(state);
+  var allFinal = state.players.every(function (pl) { return pl.status !== 'building'; });
+  if (allFinal || state.passesInRow >= state.players.length) finishGame(state);
+}
+
+function resolveStarter(state) {
+  var ps = state.players;
+  var best = -1, bestKey = -1, tie = false;
+  ps.forEach(function (pl, i) {
+    var c = pl.starterCard;
+    var key = TT.RANK_STRENGTH[c.r] * 10 + TT.SUIT_ORDER[c.s];
+    if (key > bestKey) { bestKey = key; best = i; tie = false; } else if (key === bestKey) tie = true;
+  });
+  if (tie) best = Math.floor(TT.rng(state) * ps.length);
+  var discard = state.cfg.starter === 'revela-descarta';
+  var cards = ps.map(function (pl) { return pl.starterCard; });
+  ps.forEach(function (pl) {
+    if (discard) {
+      var i = pl.hand.findIndex(function (c) { return c.id === pl.starterCard.id; });
+      state.graveyard.push(pl.hand.splice(i, 1)[0]);
+    }
+  });
+  state.first = state.current = best;
+  state.phase = 'play';
+  emit(state, { t: 'start', p: best, how: 'revela', cards: cards, tie: tie, discard: discard });
+  log(state, ps[best].name + ' começa' + (tie ? ' (empate decidido no par ou ímpar)' : '') + '.');
+}
+
+TT.applyMove = function (state, m) {
+  var p = m.p;
+  var pl = state.players[p];
+  if (m.t === 'starter') {
+    pl.starterCard = pl.hand.find(function (c) { return c.id === m.card; });
+    if (state.players.every(function (x) { return x.starterCard; })) resolveStarter(state);
+    return state;
+  }
+  if (state.phase !== 'play') throw new Error('Partida não está em andamento');
+  if (state.current !== p) throw new Error('Não é a vez de ' + pl.name);
+
+  if (m.t === 'reveal') {
+    var slot = state.slotIndex[m.slot];
+    if (TT.revealTargets(state, p).indexOf(slot) < 0) throw new Error('Neurônio indisponível');
+    slot.faceUp = true; slot.owner = p; slot.known = true; slot.revealedRound = state.round;
+    pl.path.push(slot.id);
+    pl.stats.reveals++;
+    state.passesInRow = 0;
+    emit(state, { t: 'reveal', p: p, slot: slot.id, card: slot.cards[0] });
+    log(state, pl.name + ' ativou ' + TT.cardLabel(slot.cards[0]) + ' na camada ' + TT.layerName(slot.layer) + '.');
+    if (slot.layer === TT.OUTPUT) {
+      finalize(state, p, 'done');
+      emit(state, { t: 'complete', p: p });
+      log(state, pl.name + ' chegou à camada de saída!');
+    }
+    endTurn(state);
+    return state;
+  }
+
+  if (m.t === 'stack') {
+    if (!TT.canStack(state, p, m.slot, m.cards)) throw new Error('Empilhamento inválido');
+    var target = state.slotIndex[m.slot];
+    var o = target.owner;
+    var victim = state.players[o];
+    var eff = TT.stackEffect(state, p, target, m.cards.length);
+    var played = takeFromHand(pl, m.cards);
+    target.cards = target.cards.concat(played);
+    pl.actionsUsed++;
+    state.passesInRow = 0;
+    if (eff.kind === 'tunagem') {
+      pl.stats.tunings++;
+      target.revealedRound = state.round;
+      emit(state, { t: 'tunagem', p: p, o: o, slot: target.id, cards: played });
+      log(state, pl.name + ' tunou ' + TT.cardLabel(target.cards[0]) + ' com ' + played.map(TT.cardLabel).join(' ') + '.');
+    } else {
+      var removed = target.cards;
+      state.graveyard = state.graveyard.concat(removed);
+      target.cards = []; target.removed = true; target.owner = -1;
+      victim.path.pop();
+      victim.stats.suffered++;
+      if (eff.self) pl.stats.selfStops++;
+      if (eff.kind === 'overfit') {
+        pl.stats.overfits++;
+        log(state, pl.name + ' aplicou OVERFIT em ' + TT.cardLabel(removed[0]) + ' de ' + victim.name + '.');
+      } else if (eff.kind === 'earlystop') {
+        if (!eff.self) pl.stats.earlyStops++;
+        finalize(state, o, 'earlystop');
+        log(state, pl.name + ' aplicou EARLY STOP' + (eff.self ? ' na própria rede' : ' em ' + victim.name) + '.');
+      } else {
+        if (!eff.self) pl.stats.overflows++;
+        state.graveyard = state.graveyard.concat(victim.hand);
+        var lost = victim.hand.length;
+        victim.hand = [];
+        finalize(state, o, 'overflow');
+        log(state, 'STACK OVERFLOW! ' + victim.name + ' perdeu a rede e ' + lost + ' carta(s) da mão.');
+      }
+      emit(state, { t: eff.kind, p: p, o: o, slot: target.id, cards: removed, self: eff.self });
+    }
+    powerBiShuffle(state, pl);
+    endTurn(state);
+    return state;
+  }
+
+  if (m.t === 'dropout') {
+    var maxD = TT.trailingHidden(state, p);
+    if (m.n < 1 || m.n > maxD || m.pay.length !== m.n) throw new Error('Dropout inválido');
+    var paid = takeFromHand(pl, m.pay);
+    state.graveyard = state.graveyard.concat(paid);
+    var dropped = [];
+    for (var i = 0; i < m.n; i++) {
+      var s = state.slotIndex[pl.path.pop()];
+      var extra = s.cards.splice(1);
+      state.graveyard = state.graveyard.concat(extra);
+      s.faceUp = false; s.owner = -1; s.known = true;
+      dropped.push(s.id);
+    }
+    pl.dropouts += m.n;
+    pl.actionsUsed++;
+    emit(state, { t: 'dropout', p: p, slots: dropped, paid: paid });
+    log(state, pl.name + ' fez dropout (GatoNet) de ' + m.n + ' camada(s).');
+    powerBiShuffle(state, pl);
+    return state; /* não consome o turno */
+  }
+
+  if (m.t === 'transfer') {
+    var rank = TT.transferRank(state, p);
+    if (!rank || m.cards.length !== 4) throw new Error('Transfer learning indisponível');
+    var out = takeFromHand(pl, m.cards);
+    state.graveyard = state.graveyard.concat(out);
+    TT.shuffle(state.limbo, state);
+    var got = state.limbo.splice(0, Math.min(4, state.limbo.length));
+    pl.hand = pl.hand.concat(got);
+    pl.transferUsed = true;
+    pl.actionsUsed++;
+    pl.stats.transfer++;
+    state.passesInRow = 0;
+    emit(state, { t: 'transfer', p: p, out: out, got: got.length });
+    log(state, pl.name + ' fez TRANSFER LEARNING: trocou quatro ' + rank + ' por ' + got.length + ' carta(s) do limbo.');
+    powerBiShuffle(state, pl);
+    endTurn(state);
+    return state;
+  }
+
+  if (m.t === 'pass') {
+    if (!TT.canPass(state, p)) throw new Error('Só passa a vez quem não pode ativar neurônio');
+    state.passesInRow++;
+    emit(state, { t: 'pass', p: p });
+    log(state, pl.name + ' passou a vez.');
+    endTurn(state);
+    return state;
+  }
+  throw new Error('Jogada desconhecida: ' + m.t);
+};
+
+/* Desempates, na ordem da especificação */
+function bestHandSum(state, pl, n) {
+  var vals = pl.hand.map(function (c) { return TT.baseValue(c, state.cfg.deck); }).sort(function (a, b) { return b - a; });
+  var s = 0;
+  for (var i = 0; i < n; i++) s += vals[i];
+  return s;
+}
+function highCardKey(state, pl) {
+  var best = 0;
+  pl.hand.forEach(function (c) {
+    var k = TT.baseValue(c, state.cfg.deck) * 1000 + TT.RANK_STRENGTH[c.r] * 10 + TT.SUIT_ORDER[c.s];
+    if (k > best) best = k;
+  });
+  return best;
+}
+function filterMax(list, fn) {
+  var best = -Infinity;
+  list.forEach(function (i) { best = Math.max(best, fn(i)); });
+  return list.filter(function (i) { return fn(i) === best; });
+}
+
+function finishGame(state) {
+  state.phase = 'over';
+  var scores = state.players.map(function (_, p) { return TT.scoreNetwork(state, p).total; });
+  var cand = state.players.map(function (_, i) { return i; });
+  var reason = 'maior soma da rede';
+  cand = filterMax(cand, function (i) { return scores[i]; });
+  if (cand.length > 1) {
+    reason = 'empate na soma; menos dropouts';
+    cand = filterMax(cand, function (i) { return -state.players[i].dropouts; });
+  }
+  if (cand.length > 1) {
+    var n = Math.min.apply(null, cand.map(function (i) { return state.players[i].hand.length; }));
+    if (n === 0) {
+      reason = 'empate; quem ficou sem cartas na mão perde';
+      cand = filterMax(cand, function (i) { return state.players[i].hand.length > 0 ? 1 : 0; });
+    } else {
+      reason = 'empate; maior soma das ' + n + ' melhores cartas da mão';
+      cand = filterMax(cand, function (i) { return bestHandSum(state, state.players[i], n); });
+    }
+  }
+  if (cand.length > 1) {
+    reason = 'empate; carta mais alta na mão (naipe desempata)';
+    cand = filterMax(cand, function (i) { return highCardKey(state, state.players[i]); });
+  }
+  if (cand.length > 1) {
+    reason = 'empate total; vence quem jogou primeiro';
+    cand = cand.indexOf(state.first) >= 0 ? [state.first] : [cand[0]];
+  }
+  var stuck = state.players.map(function (pl) { return pl.status === 'building' && pl.path.length < TT.N_LAYERS; });
+  state.result = { scores: scores, winner: cand[0], reason: reason, stuck: stuck };
+  emit(state, { t: 'over', result: state.result });
+  if (!state.sim) log(state, 'Fim da mão: ' + state.players[cand[0]].name + ' vence (' + reason + ').');
+}
+
+</script>
+<script>
+/* Oponentes artificiais.
+ *  - aleatorio: "Ruído Branco", joga qualquer coisa legal.
+ *  - guloso:    "GatoNet", olha um passo à frente com uma função de avaliação (valor esperado).
+ *  - montecarlo:"Monte Carlo, o Truqueiro", determiniza a informação oculta e simula partidas até o fim.
+ */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.BOTS = {
+  aleatorio: { name: 'Ruído Branco', avatar: 'ruido', blurb: 'Joga qualquer jogada legal. Ótimo para aprender as regras.' },
+  guloso: { name: 'GatoNet', avatar: 'gato', blurb: 'Guloso: avalia cada jogada um passo à frente pelo valor esperado.' },
+  montecarlo: { name: 'Monte Carlo', avatar: 'mc', blurb: 'Simula centenas de partidas antes de cada jogada. Pede truco com convicção.' },
+};
+
+var HAND_VALUE = 2.5;
+
+/* Cartas que o jogador p não consegue ver */
+function hiddenCards(state, p) {
+  var out = [];
+  state.layers.forEach(function (layer) {
+    layer.forEach(function (s) { if (!s.removed && !s.faceUp && !s.known) out.push(s.cards[0]); });
+  });
+  state.players.forEach(function (pl, i) { if (i !== p) out = out.concat(pl.hand); });
+  return out.concat(state.limbo);
+}
+
+/* Sorteia uma configuração plausível para o que p não vê (determinização) */
+TT.determinize = function (state, p) {
+  var c = TT.cloneState(state);
+  c.seed = (Math.random() * 2147483647) | 0;
+  var pool = TT.shuffle(hiddenCards(c, p).slice(), c);
+  var k = 0;
+  c.layers.forEach(function (layer) {
+    layer.forEach(function (s) { if (!s.removed && !s.faceUp && !s.known) s.cards[0] = pool[k++]; });
+  });
+  c.players.forEach(function (pl, i) {
+    if (i === p) return;
+    pl.hand = pl.hand.map(function () { return pool[k++]; });
+  });
+  c.limbo = c.limbo.map(function () { return pool[k++]; });
+  return c;
+};
+
+TT.evPerLayer = function (state, p) {
+  return TT.expectedCardValue(state, hiddenCards(state, p));
+};
+
+function projected(state, q, ev) {
+  var pl = state.players[q];
+  var s = TT.scoreNetwork(state, q).total;
+  if (pl.status === 'building') {
+    var remaining = TT.N_LAYERS - pl.path.length;
+    var can = TT.revealTargets(state, q).length > 0;
+    s += remaining * ev * (can ? 0.85 : 0.35);
+  }
+  return s + pl.hand.length * HAND_VALUE;
+}
+
+TT.evaluate = function (state, p, ev) {
+  if (state.phase === 'over') {
+    var r = state.result;
+    return (r.winner === p ? 1000 : -1000) + (r.scores[p] - Math.max.apply(null, r.scores.filter(function (_, i) { return i !== p; })));
+  }
+  var mine = projected(state, p, ev);
+  var best = -Infinity;
+  state.players.forEach(function (_, q) { if (q !== p) best = Math.max(best, projected(state, q, ev)); });
+  return mine - best;
+};
+
+/* Agrupa revelações de neurônios desconhecidos de uma mesma camada (são equivalentes para quem joga) */
+function dedupe(state, moves) {
+  var seen = {};
+  var out = [];
+  moves.forEach(function (m) {
+    if (m.t === 'reveal') {
+      var s = state.slotIndex[m.slot];
+      if (!s.known) {
+        var key = 'u' + s.layer;
+        if (seen[key]) { seen[key].alts.push(m.slot); return; }
+        m = Object.assign({ alts: [m.slot] }, m);
+        seen[key] = m;
+      }
+    }
+    out.push(m);
+  });
+  return out;
+}
+function pickAlt(m) {
+  if (m.alts && m.alts.length) {
+    var r = Object.assign({}, m);
+    r.slot = m.alts[Math.floor(Math.random() * m.alts.length)];
+    delete r.alts;
+    return r;
+  }
+  return m;
+}
+function strip(m) { var r = Object.assign({}, m); delete r.alts; return r; }
+
+TT.botRandom = function (state, p) {
+  var moves = TT.legalMoves(state, p);
+  var reveals = moves.filter(function (m) { return m.t === 'reveal'; });
+  if (reveals.length && Math.random() < 0.7) return reveals[Math.floor(Math.random() * reveals.length)];
+  return moves[Math.floor(Math.random() * moves.length)];
+};
+
+TT.botGreedy = function (state, p) {
+  var ev = TT.evPerLayer(state, p);
+  var moves = dedupe(state, TT.legalMoves(state, p, { dropout: true }));
+  var best = null, bestScore = -Infinity;
+  moves.forEach(function (m) {
+    var samples = m.t === 'reveal' && m.alts ? 8 : 1;
+    var total = 0;
+    for (var i = 0; i < samples; i++) {
+      var c = samples > 1 ? TT.determinize(state, p) : TT.cloneState(state);
+      var mm = strip(pickAlt(m));
+      TT.applyMove(c, mm);
+      total += TT.evaluate(c, p, ev);
+    }
+    var score = total / samples + Math.random() * 0.3;
+    if (m.t === 'dropout') score -= 1.5; /* GatoNet tem preguiça de pagar cartas */
+    if (score > bestScore) { bestScore = score; best = m; }
+  });
+  return pickAlt(best);
+};
+
+/* Política rápida usada nos rollouts de Monte Carlo */
+function rolloutMove(state, q) {
+  var pl = state.players[q];
+  var moves = TT.legalMoves(state, q);
+  if (moves.length === 1) return moves[0];
+  if (Math.random() < 0.12) return moves[Math.floor(Math.random() * moves.length)];
+  var best = null, bestPri = 0;
+  moves.forEach(function (m) {
+    if (m.t !== 'stack') return;
+    var slot = state.slotIndex[m.slot];
+    var eff = TT.stackEffect(state, q, slot, m.cards.length);
+    var pri = 0;
+    var v = TT.baseValue(slot.cards[0], state.cfg.deck);
+    if (!eff.self) {
+      if (eff.kind === 'stackoverflow') pri = 9;
+      else if (eff.kind === 'earlystop') pri = 8;
+      else if (eff.kind === 'overfit' && v >= 7) pri = 5;
+    } else if (eff.kind === 'tunagem' && (v >= 6 || TT.isFigure(slot.cards[0]))) pri = 4;
+    if (pri > bestPri) { bestPri = pri; best = m; }
+  });
+  if (best && Math.random() < 0.75) return best;
+  var reveals = moves.filter(function (m) { return m.t === 'reveal'; });
+  if (reveals.length) {
+    var known = reveals.filter(function (m) { return state.slotIndex[m.slot].known; });
+    var goodKnown = known.filter(function (m) { return TT.baseValue(state.slotIndex[m.slot].cards[0], state.cfg.deck) >= 7; });
+    if (goodKnown.length) return goodKnown[0];
+    var unknown = reveals.filter(function (m) { return !state.slotIndex[m.slot].known; });
+    var list = unknown.length ? unknown : reveals;
+    return list[Math.floor(Math.random() * list.length)];
+  }
+  return moves[moves.length - 1];
+}
+
+TT.playout = function (state) {
+  var guard = 0;
+  while (state.phase === 'play' && guard++ < 200) {
+    TT.applyMove(state, rolloutMove(state, state.current));
+  }
+  return state;
+};
+
+/* Probabilidade estimada de p vencer a mão a partir do estado atual */
+TT.winProb = function (state, p, n) {
+  if (state.phase === 'over') return state.result.winner === p ? 1 : 0;
+  var wins = 0;
+  for (var i = 0; i < n; i++) {
+    var c = TT.determinize(state, p);
+    if (c.phase === 'starter') return 0.5;
+    TT.playout(c);
+    if (c.result && c.result.winner === p) wins++;
+  }
+  return wins / n;
+};
+
+TT.botMonteCarlo = function (state, p, budgetMs) {
+  budgetMs = budgetMs || 380;
+  var moves = dedupe(state, TT.legalMoves(state, p, { dropout: true }));
+  if (moves.length === 1) return pickAlt(moves[0]);
+  var stats = moves.map(function () { return { w: 0, n: 0, d: 0 }; });
+  var t0 = Date.now();
+  var rounds = 0;
+  while ((Date.now() - t0 < budgetMs || rounds < 6) && rounds < 400) {
+    for (var i = 0; i < moves.length; i++) {
+      var c = TT.determinize(state, p);
+      TT.applyMove(c, strip(pickAlt(moves[i])));
+      TT.playout(c);
+      var st = stats[i];
+      st.n++;
+      if (c.result) {
+        if (c.result.winner === p) st.w++;
+        st.d += c.result.scores[p] - c.result.scores[1 - p];
+      }
+    }
+    rounds++;
+  }
+  var best = 0, bestScore = -Infinity;
+  stats.forEach(function (st, i) {
+    var score = st.w / st.n + 0.002 * (st.d / st.n);
+    if (moves[i].t === 'dropout') score -= 0.02;
+    if (score > bestScore) { bestScore = score; best = i; }
+  });
+  var chosen = pickAlt(moves[best]);
+  chosen.mc = { winRate: stats[best].w / stats[best].n, sims: rounds * moves.length };
+  return chosen;
+};
+
+TT.botStarterCard = function (state, p) {
+  var hand = state.players[p].hand.slice();
+  if (state.cfg.starter === 'revela-descarta') {
+    /* descarta a carta menos útil: a de menor valor de pontos */
+    hand.sort(function (a, b) { return TT.baseValue(a, state.cfg.deck) - TT.baseValue(b, state.cfg.deck) || TT.RANK_STRENGTH[a.r] - TT.RANK_STRENGTH[b.r]; });
+    return hand[0];
+  }
+  hand.sort(function (a, b) { return TT.RANK_STRENGTH[b.r] * 10 + TT.SUIT_ORDER[b.s] - (TT.RANK_STRENGTH[a.r] * 10 + TT.SUIT_ORDER[a.s]); });
+  return hand[0];
+};
+
+TT.botMove = function (state, p) {
+  var kind = state.players[p].bot;
+  if (state.phase === 'starter') return { t: 'starter', p: p, card: TT.botStarterCard(state, p).id };
+  if (kind === 'aleatorio') return TT.botRandom(state, p);
+  if (kind === 'montecarlo') return TT.botMonteCarlo(state, p);
+  return TT.botGreedy(state, p);
+};
+
+/* ---- Truco: decisões do bot ---- */
+TT.botTrucoCall = function (state, p, kind) {
+  if (state.phase !== 'play') return false;
+  if (kind === 'aleatorio') return Math.random() < 0.06;
+  var pw = TT.winProb(state, p, kind === 'montecarlo' ? 60 : 24);
+  if (pw > 0.72) return Math.random() < 0.8;
+  if (pw > 0.4 && Math.random() < 0.05) return true; /* blefe */
+  return false;
+};
+
+TT.botTrucoAnswer = function (state, p, kind, stake, canRaise) {
+  if (kind === 'aleatorio') {
+    var r = Math.random();
+    return r < 0.55 ? 'accept' : r < 0.85 ? 'run' : canRaise ? 'raise' : 'accept';
+  }
+  var pw = state.phase === 'starter' ? 0.5 : TT.winProb(state, p, kind === 'montecarlo' ? 60 : 24);
+  if (canRaise && pw > 0.8) return 'raise';
+  var bar = 0.3 + Math.min(0.15, stake * 0.012);
+  if (pw >= bar) return 'accept';
+  if (Math.random() < 0.08) return 'accept'; /* teimosia */
+  return 'run';
+};
+
+</script>
+<script>
+/* Camada de truco: a partida vale tentos (até 12) e cada mão pode ser trucada.
+ * TRUCO! (3) -> SEIS! (6) -> NOVE! (9) -> DOZE! (12). Quem corre entrega o valor atual.
+ * Mão de onze: com alguém a um tento da vitória, ninguém pode trucar. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.TRUCO_LADDER = [1, 3, 6, 9, 12];
+TT.TRUCO_SHOUT = { 3: 'TRUCO!', 6: 'SEIS!', 9: 'NOVE!', 12: 'DOZE!' };
+
+TT.newMatch = function (target) {
+  return { target: target, tentos: [0, 0], hand: 0, value: 1, raisedBy: -1, pending: null, over: false, winner: -1, log: [] };
+};
+
+TT.nextStake = function (v) {
+  var i = TT.TRUCO_LADDER.indexOf(v);
+  return i >= 0 && i < TT.TRUCO_LADDER.length - 1 ? TT.TRUCO_LADDER[i + 1] : null;
+};
+
+TT.maoDeOnze = function (m) {
+  return m.target > 1 && (m.tentos[0] === m.target - 1 || m.tentos[1] === m.target - 1);
+};
+
+TT.canTruco = function (m, p) {
+  if (m.over || m.target <= 1 || m.pending) return false;
+  if (m.raisedBy === p) return false;
+  if (TT.maoDeOnze(m)) return false;
+  return TT.nextStake(m.value) != null;
+};
+
+TT.callTruco = function (m, p) {
+  if (!TT.canTruco(m, p)) return false;
+  m.pending = { by: p, to: TT.nextStake(m.value) };
+  return true;
+};
+
+/* Responde a um pedido pendente. Retorna {handOver, winner, pts} quando alguém corre. */
+TT.answerTruco = function (m, q, answer) {
+  var pend = m.pending;
+  if (!pend) return null;
+  if (answer === 'run') {
+    m.pending = null;
+    return { handOver: true, winner: pend.by, pts: m.value };
+  }
+  m.value = pend.to;
+  m.raisedBy = pend.by;
+  m.pending = null;
+  if (answer === 'raise') {
+    var nxt = TT.nextStake(m.value);
+    if (nxt) m.pending = { by: q, to: nxt };
+  }
+  return { handOver: false };
+};
+
+TT.scoreHand = function (m, winner, pts) {
+  var gain = pts != null ? pts : m.value;
+  m.tentos[winner] = Math.min(m.target, m.tentos[winner] + gain);
+  if (m.tentos[winner] >= m.target) { m.over = true; m.winner = winner; }
+  return gain;
+};
+
+TT.nextHand = function (m) {
+  m.hand++;
+  m.value = 1;
+  m.raisedBy = -1;
+  m.pending = null;
+};
+
+</script>
+<script>
+/* Conteúdo educativo (Grimório), conquistas, textos de carta e provocações dos bots. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.CODEX = [
+  { id: 'neuronio', title: 'Neurônio', tag: 'Fundamento',
+    concept: 'Um neurônio artificial recebe entradas, multiplica cada uma por um peso, soma tudo com um viés e passa o resultado por uma função de ativação (ReLU, sigmoide, tanh). É a unidade mínima de uma rede neural.',
+    game: 'Cada carta na mesa é um neurônio. O valor da carta faz o papel da ativação: é quanto aquele neurônio contribui para a saída.' },
+  { id: 'camadas', title: 'Camadas', tag: 'Arquitetura',
+    concept: 'Redes densas organizam neurônios em camadas: a de entrada recebe os dados, as ocultas aprendem representações intermediárias e a de saída entrega a predição. "Profunda" quer dizer muitas camadas ocultas.',
+    game: 'A mesa tem 1 camada de entrada (3 neurônios), 5 ocultas (5 cada) e 1 de saída (4). Entrada e saída são imunes a ações, como dados e rótulos que não se alteram durante o treino.' },
+  { id: 'forward', title: 'Propagação direta', tag: 'Treino',
+    concept: 'No forward pass o sinal atravessa a rede da entrada até a saída, camada por camada. Cada camada só recebe o que a anterior produziu.',
+    game: 'Você constrói um caminho com um neurônio por camada, sempre avançando para a camada seguinte. A soma das cartas desse caminho é a saída da sua rede.' },
+  { id: 'pesos', title: 'Pesos e conexões', tag: 'Fundamento',
+    concept: 'Os pesos dizem quanto cada conexão importa. No TensorFlow Playground, a espessura das linhas mostra o tamanho do peso e a cor mostra o sinal.',
+    game: 'As linhas entre seus neurônios engrossam conforme o valor das cartas. Azul é você, laranja é o adversário, como no Playground.' },
+  { id: 'perda', title: 'Curva de treino', tag: 'Treino',
+    concept: 'Durante o treino acompanhamos a função de perda época a época. Uma curva que cai e estabiliza indica convergência; uma que oscila indica taxa de aprendizado alta ou dados ruidosos.',
+    game: 'O gráfico no painel mostra a soma de cada rede turno a turno. Quedas bruscas são overfits e early stops sofridos.' },
+  { id: 'tunagem', title: 'Tunagem (ajuste fino)', tag: 'Ação',
+    concept: 'Fine-tuning é continuar treinando um modelo para reforçar o que ele já sabe fazer. Ajustar demais um mesmo componente, porém, deixa o modelo frágil e especializado.',
+    game: 'Empilhe uma carta de mesma figura no seu último neurônio oculto: a carta soma à rede (figuras ganham +10). O risco: um neurônio com 2 cartas fica a uma carta do early stop.' },
+  { id: 'overfit', title: 'Overfitting', tag: 'Ação',
+    concept: 'Sobreajuste é quando o modelo decora o conjunto de treino, inclusive o ruído, e generaliza mal para dados novos. É combatido com regularização, mais dados e dropout.',
+    game: 'Coloque uma carta de mesma figura sobre o último neurônio oculto do adversário: ele sofre dropout forçado, o neurônio vai para o cemitério e a rede dele recua uma camada.' },
+  { id: 'dropout', title: 'Dropout', tag: 'Ação',
+    concept: 'Dropout (Srivastava et al., 2014) desliga neurônios aleatórios durante o treino. A rede deixa de depender de poucos caminhos e generaliza melhor.',
+    game: 'GatoNet: pague 1 carta da mão por camada oculta para desvirar seus últimos neurônios e tentar outro caminho. Não gasta o turno. Os neurônios desvirados ficam marcados, e todos lembram o valor deles.' },
+  { id: 'earlystop', title: 'Early stopping', tag: 'Ação',
+    concept: 'Parada antecipada interrompe o treino quando o erro de validação para de cair. Bom para evitar sobreajuste, ruim se acontecer cedo demais.',
+    game: 'Faça um neurônio da fronteira do adversário ter 3 cartas empilhadas: ele vai para o cemitério e a rede do adversário é finalizada ali mesmo, com a soma que tiver.' },
+  { id: 'stackoverflow', title: 'Stack overflow', tag: 'Ação',
+    concept: 'Estouro de pilha é quando uma recursão nunca termina. Em redes profundas, o primo é a explosão de gradientes: valores crescem até virar NaN. A cura costuma ser gradient clipping.',
+    game: 'Quatro cartas no mesmo neurônio: além do early stop, a vítima perde todas as cartas da mão. O jogo acaba para ela.' },
+  { id: 'vanishing', title: 'Vanishing gradient', tag: 'Combo',
+    concept: 'Em redes profundas com ativações saturantes, o gradiente é multiplicado por números pequenos a cada camada e some antes de chegar ao início. ReLU, normalização e conexões residuais ajudam.',
+    game: 'Quatro figuras iguais em camadas adjacentes (contando as empilhadas) zeram a rede inteira. Pares valem +10 e trios +20, então a cobiça tem limite.' },
+  { id: 'transfer', title: 'Transfer learning', tag: 'Ação',
+    concept: 'Aprendizado por transferência reaproveita um modelo pré-treinado em outra tarefa, trocando só o que precisa. Economiza dados e tempo de treino.',
+    game: 'Com quatro cartas iguais na mão, troque-as por quatro cartas do limbo. Uma vez por mão.' },
+  { id: 'ruido', title: 'Ruído e limbo', tag: 'Dados',
+    concept: 'Dados reais têm ruído. Injetar ruído de propósito (data augmentation, inicialização aleatória) torna o modelo mais robusto.',
+    game: 'As 10 cartas que sobram vão para o limbo sem serem vistas. Elas tiram a certeza de qualquer contagem de cartas e só voltam via transfer learning.' },
+  { id: 'montecarlo', title: 'Simulação de Monte Carlo', tag: 'Métodos',
+    concept: 'Monte Carlo estima uma quantidade gerando muitas realizações aleatórias de um processo e agregando os resultados. Busca em árvore de Monte Carlo (MCTS) usa isso para escolher jogadas.',
+    game: 'O bot Monte Carlo sorteia o que não vê (sua mão, as cartas viradas, o limbo), joga centenas de partidas até o fim e escolhe a jogada que mais venceu.' },
+  { id: 'terrenos', title: 'Mudança de distribuição', tag: 'Dados',
+    concept: 'Modelos sofrem quando os dados de uso diferem dos de treino (dataset shift) ou mudam com o tempo (concept drift). Regularizações como weight decay encolhem pesos a cada passo.',
+    game: 'Montanha cobra pela profundidade. Pântano é weight decay: neurônios não tunados perdem 1 ponto por rodada. Oceano é concept drift: o vento muda o naipe que vale dobro.' },
+  { id: 'truco', title: 'Decisão sob incerteza', tag: 'Métodos',
+    concept: 'Escolher com informação incompleta é estimar probabilidades e comparar valores esperados. Blefar funciona porque o outro lado também só estima.',
+    game: 'Peça TRUCO quando achar que vence: a mão passa a valer 3, depois 6, 9 e 12. Quem corre entrega o valor atual. Os bots estimam a chance de vitória simulando a mão.' },
+];
+
+TT.TIERS = {
+  bronze: { name: 'Bronze', color: '#c0834a' },
+  prata: { name: 'Prata', color: '#b8c2cc' },
+  ouro: { name: 'Ouro', color: '#e7c35a' },
+  platina: { name: 'Platina', color: '#9fe3e0' },
+  adamantium: { name: 'Adamantium', color: '#b48cff' },
+  antimateria: { name: 'Antimatéria', color: '#ff6fb1' },
+};
+
+/* ctx: { st (estado final), me, won, match, matchWon, stats (acumuladas), trucoWon, botRan, opts } */
+TT.ACHIEVEMENTS = [
+  { id: 'primeira', name: 'Primeira época', desc: 'Vença sua primeira mão.', tier: 'bronze', test: (c) => c.won },
+  { id: 'dez', name: 'Convergiu', desc: 'Vença 10 mãos.', tier: 'prata', test: (c) => c.stats.wins >= 10 },
+  { id: 'cinquenta', name: 'Estado da arte', desc: 'Vença 50 mãos.', tier: 'ouro', test: (c) => c.stats.wins >= 50 },
+  { id: 'gato10', name: 'Gato curioso', desc: 'Faça 10 dropouts somando todas as mãos.', tier: 'bronze', test: (c) => c.stats.dropouts >= 10 },
+  { id: 'gato100', name: 'Sete vidas não bastam', desc: 'Faça 100 dropouts.', tier: 'platina', test: (c) => c.stats.dropouts >= 100 },
+  { id: 'zen', name: 'Inferência pura', desc: 'Vença uma mão sem executar nenhuma ação, só ativando neurônios.', tier: 'prata', test: (c) => c.won && c.st.players[c.me].actionsUsed === 0 },
+  { id: 'zen10', name: 'Monge do forward pass', desc: 'Vença 10 mãos sem executar nenhuma ação.', tier: 'adamantium', test: (c) => c.stats.zenWins >= 10 },
+  { id: 'desk', name: 'Desk rejection', desc: 'Aplique early stop ou stack overflow na sua própria rede.', tier: 'prata', test: (c) => c.st.players[c.me].stats.selfStops > 0 },
+  { id: 'patos', name: 'Marcha dos patos', desc: 'Perca para um jogador que ficou travado numa camada oculta.', tier: 'ouro', test: (c) => !c.won && c.st.result.stuck[c.st.result.winner] },
+  { id: 'contra', name: 'Contra tudo e contra todos', desc: 'Vença com uma rede que sofreu stack overflow.', tier: 'antimateria', test: (c) => c.won && c.st.players[c.me].status === 'overflow' },
+  { id: 'artilheiro', name: 'Artilheiro dos gols inúteis', desc: 'Faça transfer learning e perca a mão mesmo assim.', tier: 'ouro', test: (c) => !c.won && c.st.players[c.me].transferUsed },
+  { id: 'transfer', name: 'Pré-treinado', desc: 'Faça um transfer learning.', tier: 'prata', test: (c) => c.st.players[c.me].transferUsed },
+  { id: 'vanishing', name: 'Gradiente evaporado', desc: 'Termine uma mão com alguma rede zerada por vanishing gradient.', tier: 'ouro', test: (c) => c.st.players.some((_, i) => TT.scoreNetwork(c.st, i).vanishing) },
+  { id: 'overfit', name: 'Regularizador', desc: 'Aplique overfit no adversário.', tier: 'bronze', test: (c) => c.st.players[c.me].stats.overfits > 0 },
+  { id: 'earlystop', name: 'Paciência de validação', desc: 'Aplique early stop no adversário.', tier: 'prata', test: (c) => c.st.players[c.me].stats.earlyStops > 0 },
+  { id: 'overflow', name: 'Segmentation fault', desc: 'Aplique stack overflow no adversário.', tier: 'ouro', test: (c) => c.st.players[c.me].stats.overflows > 0 },
+  { id: 'trio', name: 'Atenção multi-cabeça', desc: 'Termine com um trio de figuras na sua rede.', tier: 'prata', test: (c) => TT.scoreNetwork(c.st, c.me).combos.some((k) => k.count === 3) },
+  { id: 'sessenta', name: 'Rede profunda', desc: 'Termine uma mão com 60 pontos ou mais.', tier: 'ouro', test: (c) => c.st.result.scores[c.me] >= 60 },
+  { id: 'truco', name: 'Truco, marreco!', desc: 'Vença uma mão trucada.', tier: 'bronze', test: (c) => c.won && c.handValue >= 3 },
+  { id: 'doze', name: 'Vale a partida', desc: 'Vença uma mão valendo 12 tentos.', tier: 'platina', test: (c) => c.won && c.handValue >= 12 },
+  { id: 'correu', name: 'Corre que é cilada', desc: 'Faça o bot correr do truco.', tier: 'prata', test: (c) => c.botRan },
+  { id: 'campeao', name: 'Campeão da mesa', desc: 'Vença uma partida de 12 tentos.', tier: 'ouro', test: (c) => c.matchWon },
+  { id: 'maquina', name: 'Venceu a máquina', desc: 'Vença o Monte Carlo numa partida de 12 tentos.', tier: 'adamantium', test: (c) => c.matchWon && c.opts.bot === 'montecarlo' },
+  { id: 'cartografo', name: 'Cartógrafo', desc: 'Vença mãos em todos os terrenos.', tier: 'platina', test: (c) => Object.keys(TT.TERRAINS).every((t) => c.stats.terrains[t]) },
+  { id: 'colecionador', name: 'Colecionador', desc: 'Vença mãos com todos os baralhos.', tier: 'platina', test: (c) => Object.keys(TT.DECKS).every((d) => c.stats.decks[d]) },
+  { id: 'zap', name: 'Zap na saída', desc: 'Vença com o Zap (4♣) na rede, no baralho de truco.', tier: 'ouro', test: (c) => c.won && c.st.cfg.deck === 'truco' && c.st.players[c.me].path.some((id) => { var s = c.st.slotIndex[id]; return s.cards[0].r === '4' && s.cards[0].s === 'C'; }) },
+  { id: 'biblio', name: 'Bibliotecário', desc: 'Leia todos os verbetes do Grimório.', tier: 'prata', test: (c) => c.stats.codexRead >= TT.CODEX.length },
+];
+
+TT.FLAVOR = {
+  A: 'Um neurônio bem treinado vale mais que mil mal inicializados.',
+  '2': 'Duas entradas e um XOR impossível. Minsky avisou.',
+  '3': 'Três épocas e já jura que convergiu.',
+  '4': 'Quatro folds de validação cruzada, nenhum de confiança.',
+  '5': 'Cinco sementes aleatórias, cinco resultados diferentes.',
+  '6': 'Seis camadas e nenhuma conexão residual.',
+  '7': 'Sete hiperparâmetros ajustados na base do chute.',
+  '8': 'Batch de 8: barulhento, mas honesto.',
+  '9': 'Nove dígitos do MNIST esperando classificação.',
+  '10': 'Dez classes, uma softmax, nenhuma certeza.',
+  J: 'O valete decorou o conjunto de treino inteiro.',
+  Q: 'A dama distribui atenção entre todas as posições.',
+  K: 'O rei reina absoluto até o gradiente sumir.',
+  Zap: 'Quando o Zap entra na rede, até o gradiente pede licença.',
+  Copas: 'O sete de copas não perdoa ativação morna.',
+  Espadilha: 'A espadilha corta a perda pela metade.',
+  'Pica-fumo': 'Fumaça na rede: ninguém vê o gradiente passar.',
+};
+
+TT.TAUNTS = {
+  truco: ['TRUCO, marreco!', 'Vem pro gradiente, vem!', 'Truco! Minha loss tá lá embaixo.', 'Truco! Já simulei esse final.'],
+  accept: ['Desce!', 'Cai dentro, que eu converjo.', 'Aceito. Tá com medo do backprop?'],
+  run: ['Corro. Volto com mais dados.', 'Essa eu deixo passar. Early stop estratégico.', 'Corri, mas foi regularização.'],
+  raise: ['Pois eu peço SEIS!', 'Vai mais alto que meu learning rate!'],
+  overfit: ['Decorou o dataset, foi?', 'Overfit! Generaliza isso aí.'],
+  earlystop: ['Parou de aprender, campeão.', 'Validação diz: chega por hoje.'],
+  stackoverflow: ['Segmentation fault na tua mão!', 'Estourou a pilha, perdeu as cartas!'],
+  sufferOverfit: ['Ei! Eu ia generalizar...', 'Meu neurônio favorito...'],
+  sufferStop: ['Nãããão, minha época!', 'Tá bom, congelo os pesos.'],
+  vanishing: ['O gradiente sumiu mais rápido que café na copa.'],
+  win: ['Convergi.', 'Loss zero, tentos no bolso.', 'GG, ótimo dataset.'],
+  lose: ['Bom jogo. Vou retreinar.', 'Overfitei na mão errada.', 'Próxima época é minha.'],
+};
+TT.taunt = function (key) {
+  var list = TT.TAUNTS[key] || [''];
+  return list[Math.floor(Math.random() * list.length)];
+};
+
+/* Armazenamento local seguro (pode falhar em janelas privadas) */
+TT.Store = {
+  key: 'truco-de-turing:v1',
+  load: function () {
+    var base = { wins: 0, hands: 0, dropouts: 0, zenWins: 0, codexRead: 0, read: {}, terrains: {}, decks: {}, unlocked: {}, muted: false, seenTutorial: false };
+    try {
+      var raw = globalThis.localStorage && localStorage.getItem(this.key);
+      if (raw) return Object.assign(base, JSON.parse(raw));
+    } catch (e) { /* sem armazenamento */ }
+    return base;
+  },
+  save: function (data) {
+    try { if (globalThis.localStorage) localStorage.setItem(this.key, JSON.stringify(data)); } catch (e) { /* ignora */ }
+  },
+};
+
+</script>
+<script>
+/* Arte procedural das cartas: moldura de "card game de fantasia" + naipes espanhóis do truco.
+ * Tudo desenhado em canvas 2D (sem imagens externas). */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+(function () {
+  var FULL_W = 240, FULL_H = 336, MINI_W = 120, MINI_H = 168;
+
+  var FRAMES = {
+    S: { name: 'aco', light: '#a9b8c8', mid: '#6d7f93', dark: '#253140', sky1: '#3a4d66', sky2: '#a8c0d8', ink: '#eaf2fb' },
+    H: { name: 'rubi', light: '#e07a6e', mid: '#a5302f', dark: '#3d0f12', sky1: '#5a1820', sky2: '#e9967a', ink: '#ffe9e2' },
+    C: { name: 'mata', light: '#8fc07f', mid: '#3e7349', dark: '#122a19', sky1: '#1f4a2c', sky2: '#b7d99a', ink: '#eaf7e2' },
+    D: { name: 'ouro', light: '#f2d27a', mid: '#b98a2a', dark: '#3d2a08', sky1: '#6b4a12', sky2: '#f6dc8f', ink: '#fff6da' },
+  };
+  var PARCH = '#efe3c6', PARCH_D = '#d9c7a0', INK = '#24170c';
+
+  function canvas(w, h) {
+    var c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    return c;
+  }
+  function rr(ctx, x, y, w, h, r) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+  function hash(str) {
+    var h = 2166136261;
+    for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); }
+    return h >>> 0;
+  }
+  function prng(seed) {
+    return function () {
+      seed = (seed + 0x6d2b79f5) | 0;
+      var t = Math.imul(seed ^ (seed >>> 15), seed | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function wrap(ctx, text, x, y, maxW, lh) {
+    var lines = [];
+    text.split('\n').forEach(function (para) {
+      var words = para.split(' ');
+      var line = '';
+      words.forEach(function (w) {
+        var t = line ? line + ' ' + w : w;
+        if (ctx.measureText(t).width > maxW && line) { lines.push(line); line = w; } else line = t;
+      });
+      lines.push(line);
+    });
+    lines.forEach(function (l, i) { ctx.fillText(l, x, y + i * lh); });
+    return lines.length;
+  }
+
+  function fitText(ctx, text, x, y, maxW, size, weight, family) {
+    do { ctx.font = weight + ' ' + size + 'px ' + family; size -= 0.5; } while (ctx.measureText(text).width > maxW && size > 7);
+    ctx.fillText(text, x, y);
+  }
+
+  /* ---------- Naipes espanhóis ---------- */
+  function emblem(ctx, kind, cx, cy, s, rot) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    if (rot) ctx.rotate(rot);
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = Math.max(1, s * 0.035);
+    ctx.strokeStyle = '#1a1208';
+    var g;
+    if (kind === 'espada') {
+      g = ctx.createLinearGradient(-s * 0.08, 0, s * 0.08, 0);
+      g.addColorStop(0, '#dfe7ef'); g.addColorStop(0.5, '#ffffff'); g.addColorStop(1, '#8796a8');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(0, -s * 0.5);
+      ctx.lineTo(s * 0.075, -s * 0.38);
+      ctx.lineTo(s * 0.06, s * 0.2);
+      ctx.lineTo(-s * 0.06, s * 0.2);
+      ctx.lineTo(-s * 0.075, -s * 0.38);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -s * 0.42); ctx.lineTo(0, s * 0.17); ctx.strokeStyle = 'rgba(40,50,60,.5)'; ctx.stroke();
+      ctx.strokeStyle = '#1a1208';
+      ctx.fillStyle = '#c9a03a';
+      rr(ctx, -s * 0.24, s * 0.19, s * 0.48, s * 0.07, s * 0.03); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#6b3f1d';
+      rr(ctx, -s * 0.045, s * 0.26, s * 0.09, s * 0.18, s * 0.02); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#c9a03a';
+      ctx.beginPath(); ctx.arc(0, s * 0.47, s * 0.06, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else if (kind === 'copa') {
+      g = ctx.createLinearGradient(-s * 0.3, 0, s * 0.3, 0);
+      g.addColorStop(0, '#9a6a14'); g.addColorStop(0.45, '#ffe08a'); g.addColorStop(1, '#a87516');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.3, -s * 0.32);
+      ctx.bezierCurveTo(-s * 0.3, s * 0.02, -s * 0.12, s * 0.08, -s * 0.05, s * 0.1);
+      ctx.lineTo(-s * 0.04, s * 0.28);
+      ctx.bezierCurveTo(-s * 0.2, s * 0.32, -s * 0.24, s * 0.38, -s * 0.24, s * 0.42);
+      ctx.lineTo(s * 0.24, s * 0.42);
+      ctx.bezierCurveTo(s * 0.24, s * 0.38, s * 0.2, s * 0.32, s * 0.04, s * 0.28);
+      ctx.lineTo(s * 0.05, s * 0.1);
+      ctx.bezierCurveTo(s * 0.12, s * 0.08, s * 0.3, s * 0.02, s * 0.3, -s * 0.32);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#7a1424';
+      ctx.beginPath(); ctx.ellipse(0, -s * 0.32, s * 0.3, s * 0.07, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#c0283c';
+      ctx.beginPath(); ctx.arc(0, -s * 0.05, s * 0.06, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else if (kind === 'ouro') {
+      g = ctx.createRadialGradient(-s * 0.1, -s * 0.12, s * 0.05, 0, 0, s * 0.42);
+      g.addColorStop(0, '#fff3b8'); g.addColorStop(0.6, '#e6b43c'); g.addColorStop(1, '#9a6a14');
+      ctx.fillStyle = g;
+      ctx.beginPath(); ctx.arc(0, 0, s * 0.4, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, s * 0.3, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#b5781a';
+      ctx.beginPath();
+      for (var i = 0; i < 16; i++) {
+        var a = (i / 16) * Math.PI * 2;
+        var r = i % 2 ? s * 0.11 : s * 0.25;
+        ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+      }
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#fff3b8';
+      ctx.beginPath(); ctx.arc(0, 0, s * 0.07, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    } else if (kind === 'pau') {
+      ctx.rotate(-0.35);
+      g = ctx.createLinearGradient(-s * 0.1, 0, s * 0.1, 0);
+      g.addColorStop(0, '#5a3214'); g.addColorStop(0.5, '#a8692e'); g.addColorStop(1, '#4a2810');
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(-s * 0.05, s * 0.48);
+      ctx.lineTo(-s * 0.13, -s * 0.36);
+      ctx.quadraticCurveTo(0, -s * 0.56, s * 0.13, -s * 0.36);
+      ctx.lineTo(s * 0.05, s * 0.48);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#7a4a1e';
+      [[-0.1, -0.15], [0.09, -0.02], [-0.07, 0.15], [0.07, 0.3]].forEach(function (k) {
+        ctx.beginPath(); ctx.ellipse(k[0] * s, k[1] * s, s * 0.05, s * 0.035, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      });
+      ctx.fillStyle = '#3f8a3a';
+      ctx.beginPath(); ctx.ellipse(s * 0.12, -s * 0.3, s * 0.07, s * 0.035, -0.6, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  TT.drawEmblem = emblem;
+
+  function crown(ctx, rank, cx, cy, s, col) {
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.fillStyle = col; ctx.strokeStyle = '#1a1208'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    if (rank === 'K') {
+      ctx.moveTo(-s * 0.5, s * 0.25); ctx.lineTo(-s * 0.5, -s * 0.2); ctx.lineTo(-s * 0.25, s * 0.02);
+      ctx.lineTo(0, -s * 0.35); ctx.lineTo(s * 0.25, s * 0.02); ctx.lineTo(s * 0.5, -s * 0.2); ctx.lineTo(s * 0.5, s * 0.25);
+    } else if (rank === 'Q') {
+      ctx.moveTo(-s * 0.45, s * 0.25);
+      ctx.quadraticCurveTo(-s * 0.5, -s * 0.15, -s * 0.2, -s * 0.05);
+      ctx.quadraticCurveTo(0, -s * 0.4, s * 0.2, -s * 0.05);
+      ctx.quadraticCurveTo(s * 0.5, -s * 0.15, s * 0.45, s * 0.25);
+    } else {
+      ctx.moveTo(-s * 0.45, s * 0.25); ctx.quadraticCurveTo(-s * 0.4, -s * 0.25, s * 0.1, -s * 0.22);
+      ctx.quadraticCurveTo(s * 0.55, -s * 0.2, s * 0.5, s * 0.05); ctx.lineTo(s * 0.45, s * 0.25);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#c0283c';
+    ctx.beginPath(); ctx.arc(0, s * 0.08, s * 0.07, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    if (rank === 'J') { ctx.strokeStyle = '#f5f0e0'; ctx.beginPath(); ctx.moveTo(s * 0.1, -s * 0.2); ctx.quadraticCurveTo(s * 0.4, -s * 0.6, s * 0.6, -s * 0.45); ctx.lineWidth = 3; ctx.stroke(); }
+    ctx.restore();
+  }
+
+  function neuralBackdrop(ctx, x, y, w, h, rnd, color) {
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x, y, w, h); ctx.clip();
+    var cols = 4, pts = [];
+    for (var c = 0; c < cols; c++) {
+      var n = 2 + Math.floor(rnd() * 3);
+      var col = [];
+      for (var i = 0; i < n; i++) col.push([x + w * (0.12 + 0.76 * c / (cols - 1)), y + h * (0.15 + 0.7 * (i + 0.5) / n) + (rnd() - 0.5) * 10]);
+      pts.push(col);
+    }
+    ctx.strokeStyle = color; ctx.globalAlpha = 0.28;
+    for (var c2 = 0; c2 < cols - 1; c2++) {
+      pts[c2].forEach(function (a) {
+        pts[c2 + 1].forEach(function (b) {
+          ctx.lineWidth = 0.5 + rnd() * 2.2;
+          ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke();
+        });
+      });
+    }
+    ctx.globalAlpha = 0.45; ctx.fillStyle = color;
+    pts.forEach(function (col) { col.forEach(function (p) { ctx.beginPath(); ctx.arc(p[0], p[1], 3.5, 0, Math.PI * 2); ctx.fill(); }); });
+    ctx.restore();
+  }
+
+  function pipLayout(n) {
+    var L = {
+      1: [[0.5, 0.5]], 2: [[0.5, 0.25], [0.5, 0.75]], 3: [[0.5, 0.18], [0.5, 0.5], [0.5, 0.82]],
+      4: [[0.3, 0.27], [0.7, 0.27], [0.3, 0.73], [0.7, 0.73]], 5: [[0.3, 0.25], [0.7, 0.25], [0.5, 0.5], [0.3, 0.75], [0.7, 0.75]],
+      6: [[0.3, 0.2], [0.7, 0.2], [0.3, 0.5], [0.7, 0.5], [0.3, 0.8], [0.7, 0.8]],
+      7: [[0.3, 0.2], [0.7, 0.2], [0.5, 0.35], [0.3, 0.5], [0.7, 0.5], [0.3, 0.8], [0.7, 0.8]],
+      8: [[0.3, 0.18], [0.7, 0.18], [0.5, 0.34], [0.3, 0.5], [0.7, 0.5], [0.5, 0.66], [0.3, 0.82], [0.7, 0.82]],
+      9: [[0.25, 0.2], [0.5, 0.2], [0.75, 0.2], [0.25, 0.5], [0.5, 0.5], [0.75, 0.5], [0.25, 0.8], [0.5, 0.8], [0.75, 0.8]],
+      10: [[0.2, 0.2], [0.4, 0.2], [0.6, 0.2], [0.8, 0.2], [0.3, 0.5], [0.7, 0.5], [0.2, 0.8], [0.4, 0.8], [0.6, 0.8], [0.8, 0.8]],
+    };
+    return L[n] || L[1];
+  }
+
+  function frameShell(ctx, W, H, fr, legendary) {
+    ctx.fillStyle = '#0d0a08';
+    rr(ctx, 0, 0, W, H, W * 0.06); ctx.fill();
+    var g = ctx.createLinearGradient(0, 0, W, H);
+    if (legendary) {
+      g.addColorStop(0, '#fff1b0'); g.addColorStop(0.3, '#d4a12a'); g.addColorStop(0.55, '#fff6d0'); g.addColorStop(0.8, '#b07a12'); g.addColorStop(1, '#f6dc8f');
+    } else {
+      g.addColorStop(0, fr.light); g.addColorStop(0.5, fr.mid); g.addColorStop(1, fr.dark);
+    }
+    ctx.fillStyle = g;
+    rr(ctx, W * 0.04, W * 0.04, W - W * 0.08, H - W * 0.08, W * 0.035); ctx.fill();
+    /* textura sutil */
+    var rnd = prng(hash(fr.name + W));
+    ctx.globalAlpha = 0.12; ctx.fillStyle = '#000';
+    for (var i = 0; i < W * 1.2; i++) ctx.fillRect(W * 0.05 + rnd() * W * 0.9, W * 0.05 + rnd() * (H - W * 0.1), 1, 1);
+    ctx.globalAlpha = 1;
+  }
+
+  function plate(ctx, x, y, w, h, fr) {
+    var g = ctx.createLinearGradient(x, y, x, y + h);
+    g.addColorStop(0, '#fbf4e2'); g.addColorStop(1, PARCH_D);
+    ctx.fillStyle = g;
+    rr(ctx, x, y, w, h, h * 0.45); ctx.fill();
+    ctx.lineWidth = 1.5; ctx.strokeStyle = fr.dark; ctx.stroke();
+  }
+
+  TT.cardMeta = function (card, deckKey) {
+    var deck = TT.DECKS[deckKey];
+    var key = card.r + card.s;
+    var manilha = deck.manilhas && deck.manilhas[key];
+    var v = TT.baseValue(card, deckKey);
+    var fig = TT.isFigure(card);
+    var type = manilha ? 'Manilha — Neurônio Lendário' : fig ? 'Neurônio — Figura' : card.r === 'A' ? 'Neurônio — Ás' : 'Neurônio — Numérico';
+    var rules;
+    if (fig) rules = 'Ativa com 0. Tunagem: +10.\nPar vizinho +10 · Trio +20 · Quadra zera a rede.';
+    else rules = (manilha ? 'Manilha: ' : '') + 'Ativa com ' + v + ' pontos.\nTunagem: empilhe outro ' + card.r + ' para somar o valor dele.';
+    var flavor = (manilha && TT.FLAVOR[manilha]) || TT.FLAVOR[card.r];
+    return { name: TT.cardName(card, deckKey), v: v, fig: fig, manilha: manilha, type: type, rules: rules, flavor: flavor };
+  };
+
+  /* ---------- Carta completa (inspeção e mão) ---------- */
+  TT.drawFullCard = function (card, deckKey) {
+    var c = canvas(FULL_W, FULL_H), ctx = c.getContext('2d');
+    var fr = FRAMES[card.s];
+    var meta = TT.cardMeta(card, deckKey);
+    var si = TT.SUIT_INFO[card.s];
+    var rnd = prng(hash(card.r + card.s + deckKey));
+    frameShell(ctx, FULL_W, FULL_H, fr, !!meta.manilha);
+
+    /* barra de nome + custo */
+    plate(ctx, 16, 16, 208, 30, fr);
+    ctx.fillStyle = INK; ctx.font = '700 15px Cinzel, Georgia, serif'; ctx.textBaseline = 'middle';
+    var name = meta.name;
+    var fs = 15;
+    while (ctx.measureText(name).width > 150 && fs > 10) {
+      fs--;
+      ctx.font = '700 ' + fs + 'px Cinzel, Georgia, serif';
+    }
+    ctx.fillText(name, 26, 32);
+    /* "custo" em gemas: valor da carta */
+    var gem = meta.fig ? '0' : String(meta.v);
+    ctx.font = '700 13px "Alegreya Sans", Arial, sans-serif';
+    var gw = Math.max(22, ctx.measureText(gem).width + 12);
+    var gx = 216 - gw;
+    var gg = ctx.createRadialGradient(gx + gw / 2 - 3, 27, 2, gx + gw / 2, 31, 14);
+    gg.addColorStop(0, '#ffffff'); gg.addColorStop(1, fr.light);
+    ctx.fillStyle = gg; rr(ctx, gx, 20, gw, 22, 11); ctx.fill();
+    ctx.strokeStyle = fr.dark; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.fillStyle = INK; ctx.textAlign = 'center'; ctx.fillText(gem, gx + gw / 2, 32); ctx.textAlign = 'left';
+
+    /* janela de arte */
+    var ax = 20, ay = 52, aw = 200, ah = 132;
+    var sky = ctx.createLinearGradient(0, ay, 0, ay + ah);
+    sky.addColorStop(0, fr.sky1); sky.addColorStop(1, fr.sky2);
+    ctx.fillStyle = sky; ctx.fillRect(ax, ay, aw, ah);
+    neuralBackdrop(ctx, ax, ay, aw, ah, rnd, fr.ink);
+    /* raios de luz */
+    ctx.save(); ctx.beginPath(); ctx.rect(ax, ay, aw, ah); ctx.clip();
+    ctx.globalAlpha = 0.12; ctx.fillStyle = '#fff';
+    for (var i = 0; i < 6; i++) {
+      var a0 = -Math.PI / 2 + (i - 2.5) * 0.35;
+      ctx.beginPath(); ctx.moveTo(ax + aw / 2, ay + ah * 0.55);
+      ctx.lineTo(ax + aw / 2 + Math.cos(a0 - 0.08) * 220, ay + ah * 0.55 + Math.sin(a0 - 0.08) * 220);
+      ctx.lineTo(ax + aw / 2 + Math.cos(a0 + 0.08) * 220, ay + ah * 0.55 + Math.sin(a0 + 0.08) * 220);
+      ctx.fill();
+    }
+    ctx.restore(); ctx.globalAlpha = 1;
+    if (meta.fig) {
+      var cx = ax + aw / 2;
+      /* silhueta */
+      ctx.fillStyle = 'rgba(10,8,6,.55)';
+      ctx.beginPath(); ctx.arc(cx, ay + 62, 22, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(cx - 52, ay + ah); ctx.quadraticCurveTo(cx - 48, ay + 86, cx, ay + 84); ctx.quadraticCurveTo(cx + 48, ay + 86, cx + 52, ay + ah); ctx.fill();
+      crown(ctx, card.r, cx, ay + 36, 46, card.r === 'K' ? '#f2c94c' : card.r === 'Q' ? '#e8d6ff' : '#c7462f');
+      emblem(ctx, si.emblem, cx + 50, ay + 92, 58, 0.25);
+      ctx.font = '900 30px Cinzel, Georgia, serif'; ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.textAlign = 'center';
+      ctx.fillText(card.r, ax + 26, ay + 26); ctx.textAlign = 'left';
+    } else {
+      var n = card.r === 'A' ? 1 : parseInt(card.r, 10);
+      var size = n === 1 ? 104 : n <= 3 ? 46 : n <= 6 ? 38 : 30;
+      pipLayout(n).forEach(function (p, k) {
+        emblem(ctx, si.emblem, ax + aw * p[0], ay + ah * p[1], size, (rnd() - 0.5) * 0.3 + (k % 2 ? 0.1 : -0.1));
+      });
+    }
+    if (meta.manilha) {
+      ctx.save(); ctx.globalCompositeOperation = 'overlay';
+      var holo = ctx.createLinearGradient(ax, ay, ax + aw, ay + ah);
+      holo.addColorStop(0, 'rgba(255,0,180,.35)'); holo.addColorStop(0.5, 'rgba(0,220,255,.35)'); holo.addColorStop(1, 'rgba(255,230,0,.35)');
+      ctx.fillStyle = holo; ctx.fillRect(ax, ay, aw, ah); ctx.restore();
+    }
+    ctx.lineWidth = 3; ctx.strokeStyle = '#120d08'; ctx.strokeRect(ax, ay, aw, ah);
+
+    /* linha de tipo */
+    plate(ctx, 16, 188, 208, 24, fr);
+    ctx.fillStyle = INK;
+    fitText(ctx, meta.type, 25, 201, 172, 11, '700', 'Cinzel, Georgia, serif');
+    /* símbolo de coleção: nabla do gradiente */
+    ctx.fillStyle = fr.mid; ctx.beginPath(); ctx.moveTo(204, 194); ctx.lineTo(216, 194); ctx.lineTo(210, 206); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = INK; ctx.lineWidth = 1; ctx.stroke();
+
+    /* caixa de texto */
+    var tg = ctx.createLinearGradient(0, 216, 0, 304);
+    tg.addColorStop(0, '#f5ecd6'); tg.addColorStop(1, PARCH);
+    ctx.fillStyle = tg; ctx.fillRect(22, 216, 196, 88);
+    ctx.strokeStyle = fr.dark; ctx.lineWidth = 1.5; ctx.strokeRect(22, 216, 196, 88);
+    ctx.fillStyle = INK; ctx.font = '500 12px Alegreya, Georgia, serif'; ctx.textBaseline = 'top';
+    var used = wrap(ctx, meta.rules, 30, 222, 180, 14);
+    ctx.font = 'italic 11px Alegreya, Georgia, serif'; ctx.fillStyle = '#4b3a26';
+    wrap(ctx, meta.flavor, 30, 228 + used * 14, 150, 13);
+
+    /* caixa de "poder" */
+    var pv = meta.fig ? '0' : String(meta.v);
+    plate(ctx, 166, 290, 58, 28, fr);
+    ctx.fillStyle = INK; ctx.font = '900 17px "Alegreya Sans", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(pv + ' ' + si.sym, 195, 305);
+    ctx.textAlign = 'left';
+    /* linha de colecionador */
+    ctx.font = '500 8px "Alegreya Sans", Arial, sans-serif'; ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.textBaseline = 'alphabetic';
+    var idx = TT.SUITS.indexOf(card.s) * 13 + TT.RANKS.indexOf(card.r) + 1;
+    ctx.fillText('TdT · FPO 2026/2 · ' + idx + '/52', 18, 318);
+    ctx.fillText('Arte gerada por código', 18, 327);
+    return c;
+  };
+
+  /* ---------- Carta da mesa (neurônio) ---------- */
+  TT.drawMiniCard = function (card, deckKey) {
+    var c = canvas(MINI_W, MINI_H), ctx = c.getContext('2d');
+    var fr = FRAMES[card.s];
+    var meta = TT.cardMeta(card, deckKey);
+    var si = TT.SUIT_INFO[card.s];
+    frameShell(ctx, MINI_W, MINI_H, fr, !!meta.manilha);
+    var g = ctx.createLinearGradient(0, 10, 0, MINI_H - 10);
+    g.addColorStop(0, '#fbf5e6'); g.addColorStop(1, PARCH);
+    ctx.fillStyle = g; rr(ctx, 10, 10, MINI_W - 20, MINI_H - 20, 8); ctx.fill();
+    ctx.strokeStyle = fr.dark; ctx.lineWidth = 2; ctx.stroke();
+    var red = si.red;
+    ctx.fillStyle = red ? '#a8232f' : '#1d1a17';
+    ctx.textBaseline = 'top'; ctx.textAlign = 'left';
+    ctx.font = '900 30px Cinzel, Georgia, serif';
+    ctx.fillText(card.r, 16, 14);
+    ctx.font = '700 24px Arial, sans-serif';
+    ctx.fillText(si.sym, 18, 46);
+    if (meta.fig) {
+      crown(ctx, card.r, 72, 70, 40, card.r === 'K' ? '#f2c94c' : card.r === 'Q' ? '#e8d6ff' : '#c7462f');
+      emblem(ctx, si.emblem, 66, 112, 52, 0.2);
+    } else {
+      emblem(ctx, si.emblem, 70, 88, card.r === 'A' ? 78 : 64, 0.1);
+    }
+    /* selo de valor */
+    var vtxt = meta.fig ? '0' : String(meta.v);
+    ctx.fillStyle = fr.dark; ctx.beginPath(); ctx.arc(MINI_W - 26, MINI_H - 26, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = meta.manilha ? '#ffe28a' : fr.light; ctx.lineWidth = 2.5; ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.font = '900 16px "Alegreya Sans", Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(vtxt, MINI_W - 26, MINI_H - 25);
+    return c;
+  };
+
+  /* ---------- Verso ---------- */
+  TT.drawCardBack = function (w, h) {
+    var c = canvas(w, h), ctx = c.getContext('2d');
+    var k = w / FULL_W;
+    ctx.scale(k, k);
+    var W = FULL_W, H = FULL_H;
+    ctx.fillStyle = '#0d0a08'; rr(ctx, 0, 0, W, H, 14); ctx.fill();
+    var g = ctx.createLinearGradient(0, 0, W, H);
+    g.addColorStop(0, '#6e1420'); g.addColorStop(1, '#3a0a14');
+    ctx.fillStyle = g; rr(ctx, 10, 10, W - 20, H - 20, 10); ctx.fill();
+    ctx.save(); rr(ctx, 10, 10, W - 20, H - 20, 10); ctx.clip();
+    ctx.strokeStyle = 'rgba(232,190,110,.22)'; ctx.lineWidth = 1.2;
+    for (var i = -H; i < W + H; i += 16) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i + H, H); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i, H); ctx.lineTo(i + H, 0); ctx.stroke();
+    }
+    ctx.restore();
+    ctx.strokeStyle = '#d9b260'; ctx.lineWidth = 3; rr(ctx, 18, 18, W - 36, H - 36, 8); ctx.stroke();
+    ctx.lineWidth = 1; rr(ctx, 24, 24, W - 48, H - 48, 6); ctx.stroke();
+    /* medalhão */
+    var mg = ctx.createRadialGradient(W / 2, H / 2 - 10, 10, W / 2, H / 2, 80);
+    mg.addColorStop(0, '#2a1a10'); mg.addColorStop(1, '#120b06');
+    ctx.fillStyle = mg; ctx.beginPath(); ctx.ellipse(W / 2, H / 2, 72, 96, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#d9b260'; ctx.lineWidth = 3; ctx.stroke();
+    /* mini rede 3-4-2 */
+    var cols = [[3, -44], [4, 0], [2, 44]];
+    var pts = cols.map(function (cc) {
+      var arr = [];
+      for (var j = 0; j < cc[0]; j++) arr.push([W / 2 + cc[1], H / 2 - 18 + (j - (cc[0] - 1) / 2) * 22]);
+      return arr;
+    });
+    ctx.strokeStyle = 'rgba(217,178,96,.7)'; ctx.lineWidth = 1.2;
+    for (var a = 0; a < 2; a++) pts[a].forEach(function (p) { pts[a + 1].forEach(function (q) { ctx.beginPath(); ctx.moveTo(p[0], p[1]); ctx.lineTo(q[0], q[1]); ctx.stroke(); }); });
+    pts.forEach(function (col, ci) {
+      col.forEach(function (p) {
+        ctx.fillStyle = ci === 1 ? '#f59322' : '#4aa3df';
+        ctx.beginPath(); ctx.arc(p[0], p[1], 5, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#d9b260'; ctx.stroke();
+      });
+    });
+    ctx.fillStyle = '#e8c878'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '700 15px Cinzel, Georgia, serif';
+    ctx.fillText('TRUCO DE', W / 2, H / 2 + 46);
+    ctx.fillText('TURING', W / 2, H / 2 + 64);
+    return c;
+  };
+
+  /* ---------- Cartas de terreno ---------- */
+  TT.drawTerrainCard = function (key) {
+    var c = canvas(FULL_W, FULL_H), ctx = c.getContext('2d');
+    var pal = {
+      neutro: { light: '#9fc79a', mid: '#3c6e47', dark: '#13291a', name: 'neutro' },
+      montanha: { light: '#e0a27c', mid: '#8a4b2c', dark: '#2e160b', name: 'montanha' },
+      pantano: { light: '#a7a08a', mid: '#4b4a3b', dark: '#18170f', name: 'pantano' },
+      oceano: { light: '#8fd0e6', mid: '#2a6f93', dark: '#0b2433', name: 'oceano' },
+    }[key];
+    var t = TT.TERRAINS[key];
+    var rnd = prng(hash(key));
+    frameShell(ctx, FULL_W, FULL_H, pal, false);
+    plate(ctx, 16, 16, 208, 30, pal);
+    ctx.fillStyle = INK; ctx.font = '700 16px Cinzel, Georgia, serif'; ctx.textBaseline = 'middle';
+    ctx.fillText(t.name, 26, 32);
+    var ax = 20, ay = 52, aw = 200, ah = 132;
+    ctx.save(); ctx.beginPath(); ctx.rect(ax, ay, aw, ah); ctx.clip();
+    var sky = ctx.createLinearGradient(0, ay, 0, ay + ah);
+    if (key === 'montanha') { sky.addColorStop(0, '#f6c48a'); sky.addColorStop(1, '#c4683d'); }
+    else if (key === 'pantano') { sky.addColorStop(0, '#5d6a52'); sky.addColorStop(1, '#232a1e'); }
+    else if (key === 'oceano') { sky.addColorStop(0, '#bfe7f4'); sky.addColorStop(1, '#2f7fa8'); }
+    else { sky.addColorStop(0, '#2b5c37'); sky.addColorStop(1, '#173a22'); }
+    ctx.fillStyle = sky; ctx.fillRect(ax, ay, aw, ah);
+    if (key === 'montanha') {
+      [['#6b3a24', 0.8], ['#4a2414', 1]].forEach(function (m, li) {
+        ctx.fillStyle = m[0];
+        ctx.beginPath(); ctx.moveTo(ax, ay + ah);
+        for (var x = 0; x <= aw; x += 20) ctx.lineTo(ax + x, ay + ah * (0.35 + 0.15 * li) + Math.abs(Math.sin(x * 0.03 + li * 2)) * 40 * m[1] + rnd() * 10);
+        ctx.lineTo(ax + aw, ay + ah); ctx.fill();
+      });
+      ctx.fillStyle = '#fff6e8'; ctx.beginPath(); ctx.moveTo(ax + 100, ay + 40); ctx.lineTo(ax + 88, ay + 58); ctx.lineTo(ax + 112, ay + 58); ctx.fill();
+      ctx.strokeStyle = '#ffe9b0'; ctx.setLineDash([4, 4]); ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(ax + 20, ay + ah - 6); ctx.quadraticCurveTo(ax + 90, ay + 90, ax + 100, ay + 52); ctx.stroke(); ctx.setLineDash([]);
+    } else if (key === 'pantano') {
+      for (var tr = 0; tr < 7; tr++) {
+        var x0 = ax + rnd() * aw, h0 = 50 + rnd() * 70;
+        ctx.strokeStyle = '#1a1c12'; ctx.lineWidth = 4 + rnd() * 4;
+        ctx.beginPath(); ctx.moveTo(x0, ay + ah); ctx.quadraticCurveTo(x0 + (rnd() - 0.5) * 30, ay + ah - h0 / 2, x0 + (rnd() - 0.5) * 20, ay + ah - h0); ctx.stroke();
+      }
+      ctx.fillStyle = '#20261a'; ctx.fillRect(ax, ay + ah - 34, aw, 34);
+      ctx.globalAlpha = 0.35; ctx.fillStyle = '#d8e2c8';
+      for (var mi = 0; mi < 5; mi++) { ctx.beginPath(); ctx.ellipse(ax + rnd() * aw, ay + ah - 30 + rnd() * 20, 50, 7, 0, 0, Math.PI * 2); ctx.fill(); }
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#c8ff8a';
+      for (var e = 0; e < 3; e++) { ctx.beginPath(); ctx.arc(ax + 40 + e * 60, ay + ah - 14, 3, 0, Math.PI * 2); ctx.fill(); }
+    } else if (key === 'oceano') {
+      for (var wv = 0; wv < 6; wv++) {
+        ctx.strokeStyle = 'rgba(255,255,255,' + (0.3 + wv * 0.1) + ')'; ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (var x2 = 0; x2 <= aw; x2 += 4) ctx.lineTo(ax + x2, ay + 60 + wv * 13 + Math.sin(x2 * 0.08 + wv) * 4);
+        ctx.stroke();
+      }
+      ctx.save(); ctx.translate(ax + 160, ay + 34);
+      ctx.strokeStyle = '#123'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = '#c0283c'; ctx.beginPath(); ctx.moveTo(0, -18); ctx.lineTo(5, 0); ctx.lineTo(-5, 0); ctx.fill();
+      ctx.fillStyle = '#eee'; ctx.beginPath(); ctx.moveTo(0, 18); ctx.lineTo(5, 0); ctx.lineTo(-5, 0); ctx.fill();
+      ctx.restore();
+    } else {
+      ctx.globalAlpha = 0.08; ctx.fillStyle = '#000';
+      for (var nz = 0; nz < 900; nz++) ctx.fillRect(ax + rnd() * aw, ay + rnd() * ah, 1, 1);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = '#f2ebe0'; ctx.beginPath(); ctx.ellipse(ax + 100, ay + 92, 26, 8, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#efe6d8'; rr(ctx, ax + 84, ay + 60, 32, 30, 6); ctx.fill();
+      ctx.fillStyle = '#3b2010'; ctx.beginPath(); ctx.ellipse(ax + 100, ay + 62, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(ax + 95, ay + 52); ctx.quadraticCurveTo(ax + 90, ay + 40, ax + 98, ay + 30); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(ax + 105, ay + 52); ctx.quadraticCurveTo(ax + 112, ay + 42, ax + 104, ay + 32); ctx.stroke();
+    }
+    ctx.restore();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#120d08'; ctx.strokeRect(ax, ay, aw, ah);
+    plate(ctx, 16, 188, 208, 24, pal);
+    ctx.fillStyle = INK;
+    fitText(ctx, 'Terreno — Distribuição de dados', 25, 201, 190, 11, '700', 'Cinzel, Georgia, serif');
+    ctx.fillStyle = '#f5ecd6'; ctx.fillRect(22, 216, 196, 100);
+    ctx.strokeStyle = pal.dark; ctx.lineWidth = 1.5; ctx.strokeRect(22, 216, 196, 100);
+    ctx.fillStyle = INK; ctx.font = '500 12.5px Alegreya, Georgia, serif'; ctx.textBaseline = 'top';
+    wrap(ctx, t.short, 30, 224, 180, 15);
+    return c;
+  };
+
+  /* ---------- Avatares ---------- */
+  TT.drawAvatar = function (kind, colorHex) {
+    var S = 112, c = canvas(S, S), ctx = c.getContext('2d');
+    ctx.beginPath(); ctx.arc(S / 2, S / 2, S / 2 - 3, 0, Math.PI * 2);
+    var g = ctx.createRadialGradient(S / 2, S / 3, 5, S / 2, S / 2, S / 2);
+    g.addColorStop(0, '#3a2a1c'); g.addColorStop(1, '#140d08');
+    ctx.fillStyle = g; ctx.fill();
+    ctx.lineWidth = 5; ctx.strokeStyle = colorHex; ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.arc(S / 2, S / 2, S / 2 - 6, 0, Math.PI * 2); ctx.clip();
+    if (kind === 'gato') {
+      ctx.fillStyle = '#2b3442';
+      ctx.beginPath(); ctx.moveTo(26, 46); ctx.lineTo(32, 16); ctx.lineTo(50, 34); ctx.lineTo(62, 34); ctx.lineTo(80, 16); ctx.lineTo(86, 46);
+      ctx.quadraticCurveTo(94, 90, 56, 96); ctx.quadraticCurveTo(18, 90, 26, 46); ctx.fill();
+      ctx.fillStyle = '#4ad7ff';
+      ctx.beginPath(); ctx.ellipse(42, 56, 8, 6, 0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(70, 56, 8, 6, -0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#081018'; ctx.fillRect(41, 51, 2, 10); ctx.fillRect(69, 51, 2, 10);
+      ctx.fillStyle = '#f59322'; ctx.beginPath(); ctx.moveTo(52, 70); ctx.lineTo(60, 70); ctx.lineTo(56, 75); ctx.fill();
+      ctx.strokeStyle = '#cfd8e2'; ctx.lineWidth = 1.2;
+      [[-1, 70], [-1, 76], [1, 70], [1, 76]].forEach(function (w) { ctx.beginPath(); ctx.moveTo(56 + w[0] * 10, w[1]); ctx.lineTo(56 + w[0] * 34, w[1] - 4 + (w[1] - 70)); ctx.stroke(); });
+      ctx.strokeStyle = '#f59322'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(56, 40, 30, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
+    } else if (kind === 'mc') {
+      ctx.fillStyle = '#4b2a6b';
+      ctx.beginPath(); ctx.moveTo(56, 6); ctx.lineTo(86, 60); ctx.lineTo(26, 60); ctx.fill();
+      ctx.fillStyle = '#f2c94c';
+      for (var s = 0; s < 5; s++) { ctx.beginPath(); ctx.arc(44 + s * 7, 30 + (s % 2) * 12, 2, 0, Math.PI * 2); ctx.fill(); }
+      ctx.save(); ctx.translate(56, 78); ctx.rotate(0.3);
+      ctx.fillStyle = '#f5efe0'; rr(ctx, -20, -20, 40, 40, 6); ctx.fill(); ctx.strokeStyle = '#222'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#c0283c';
+      [[-10, -10], [10, -10], [0, 0], [-10, 10], [10, 10]].forEach(function (d) { ctx.beginPath(); ctx.arc(d[0], d[1], 3.5, 0, Math.PI * 2); ctx.fill(); });
+      ctx.restore();
+    } else if (kind === 'ruido') {
+      var rnd = prng(7);
+      for (var y = 0; y < S; y += 3) for (var x = 0; x < S; x += 3) {
+        var v = Math.floor(rnd() * 255);
+        ctx.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; ctx.fillRect(x, y, 3, 3);
+      }
+      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fillRect(0, 48, S, 18);
+      ctx.fillStyle = '#fff'; ctx.font = '700 12px "Alegreya Sans", Arial'; ctx.textAlign = 'center'; ctx.fillText('SEM SINAL', 56, 61);
+    } else {
+      ctx.fillStyle = colorHex;
+      ctx.beginPath(); ctx.arc(56, 44, 18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(20, 104); ctx.quadraticCurveTo(22, 66, 56, 66); ctx.quadraticCurveTo(90, 66, 92, 104); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.font = '900 18px Cinzel, Georgia'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(kind === 'p2' ? 'II' : 'I', 56, 45);
+    }
+    ctx.restore();
+    return c;
+  };
+
+  TT.CARD_SIZES = { FULL_W: FULL_W, FULL_H: FULL_H, MINI_W: MINI_W, MINI_H: MINI_H };
+})();
+
+</script>
+<script>
+/* Efeitos sonoros sintetizados com WebAudio (nenhum arquivo de áudio). */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.Sfx = (function () {
+  var ctx = null;
+  var muted = false;
+  function ac() {
+    if (!ctx) {
+      var AC = globalThis.AudioContext || globalThis.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+    }
+    if (ctx.state === 'suspended') ctx.resume();
+    return ctx;
+  }
+  function tone(freq, dur, type, vol, when, slide) {
+    var a = ac(); if (!a || muted) return;
+    var t = a.currentTime + (when || 0);
+    var o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(slide, t + dur);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(vol || 0.15, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(a.destination);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(dur, vol, when, lp) {
+    var a = ac(); if (!a || muted) return;
+    var t = a.currentTime + (when || 0);
+    var buf = a.createBuffer(1, Math.floor(a.sampleRate * dur), a.sampleRate);
+    var d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    var src = a.createBufferSource(); src.buffer = buf;
+    var f = a.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = lp || 3000;
+    var g = a.createGain(); g.gain.value = vol || 0.2;
+    src.connect(f); f.connect(g); g.connect(a.destination);
+    src.start(t);
+  }
+  return {
+    unlock: function () { ac(); },
+    setMuted: function (m) { muted = m; },
+    isMuted: function () { return muted; },
+    flip: function () { noise(0.06, 0.18, 0, 5000); tone(880, 0.05, 'triangle', 0.05, 0.02); },
+    place: function () { noise(0.09, 0.25, 0, 900); },
+    select: function () { tone(660, 0.05, 'triangle', 0.06); },
+    tune: function () { [523, 659, 784].forEach(function (f, i) { tone(f, 0.16, 'triangle', 0.08, i * 0.06); }); },
+    hit: function () { tone(220, 0.25, 'sawtooth', 0.09, 0, 90); noise(0.2, 0.2, 0, 1200); },
+    boom: function () { tone(110, 0.6, 'sawtooth', 0.14, 0, 40); noise(0.6, 0.35, 0, 600); },
+    dropout: function () { tone(740, 0.12, 'square', 0.04); tone(990, 0.12, 'square', 0.04, 0.08); },
+    truco: function () { tone(392, 0.18, 'square', 0.08); tone(523, 0.32, 'square', 0.08, 0.16); },
+    win: function () { [523, 659, 784, 1047].forEach(function (f, i) { tone(f, 0.22, 'triangle', 0.09, i * 0.1); }); },
+    lose: function () { [392, 330, 262].forEach(function (f, i) { tone(f, 0.3, 'triangle', 0.08, i * 0.14); }); },
+    badge: function () { [880, 1175].forEach(function (f, i) { tone(f, 0.18, 'sine', 0.08, i * 0.09); }); },
+  };
+})();
+
+</script>
+<script>
+/* Painéis HTML sobre o canvas: menu, regras, grimório, conquistas, modais e avisos. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.UI = (function () {
+  function $(sel) { return document.querySelector(sel); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function open(html, opts) {
+    opts = opts || {};
+    var ov = document.createElement('div');
+    ov.className = 'overlay' + (opts.clear ? ' clear' : '');
+    ov.innerHTML = html;
+    $('#ui').appendChild(ov);
+    var api = {
+      el: ov,
+      close: function () { if (ov.parentNode) ov.parentNode.removeChild(ov); if (opts.onClose) opts.onClose(); },
+    };
+    ov.querySelectorAll('[data-close]').forEach(function (b) { b.addEventListener('click', api.close); });
+    if (opts.dismissable) {
+      ov.addEventListener('click', function (e) { if (e.target === ov) api.close(); });
+    }
+    var focus = ov.querySelector('[autofocus], .btn');
+    if (focus) setTimeout(function () { focus.focus({ preventScroll: true }); }, 30);
+    return api;
+  }
+  function closeAll() { $('#ui').innerHTML = ''; }
+
+  function toast(title, body, kind, ms) {
+    var t = document.createElement('div');
+    t.className = 'toast' + (kind ? ' ' + kind : '');
+    t.innerHTML = '<b>' + esc(title) + '</b>' + esc(body || '');
+    var box = $('#toasts');
+    while (box.children.length >= 2) box.removeChild(box.firstChild);
+    box.appendChild(t);
+    setTimeout(function () { t.style.transition = 'opacity .4s'; t.style.opacity = '0'; }, (ms || 5200) - 400);
+    setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, ms || 5200);
+    t.addEventListener('click', function () { if (t.parentNode) t.parentNode.removeChild(t); });
+  }
+
+  /* ---------- Menu principal ---------- */
+  function menu(app) {
+    var o = app.opts;
+    function options(obj, sel) {
+      return Object.keys(obj).map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + esc(obj[k].name || obj[k]) + '</option>'; }).join('');
+    }
+    var opp = {
+      montecarlo: { name: 'Monte Carlo (difícil)' }, guloso: { name: 'GatoNet (médio)' },
+      aleatorio: { name: 'Ruído Branco (fácil)' }, hotseat: { name: '2 humanos no mesmo aparelho' },
+    };
+    var starters = { 'revela-volta': { name: 'Revela carta da mão (volta para a mão)' }, 'revela-descarta': { name: 'Revela carta da mão (vai para o cemitério)' }, sorteio: { name: 'Par ou ímpar (sorteio)' } };
+    var modes = { '12': { name: 'Partida até 12 tentos, com truco' }, '1': { name: 'Mão única, sem truco' } };
+    var html =
+      '<div class="menu">' +
+      '<section class="menu-hero">' +
+      '<div class="eyebrow">FPO 2026/2 · Trabalho tema 4</div>' +
+      '<h1><span>O JOGO DO</span>Truco de Turing</h1>' +
+      '<p>Monte uma rede neural carta por carta, da entrada à saída. Tune seus neurônios, aplique overfit no adversário, fuja do vanishing gradient e, quando sentir a mão boa, grite TRUCO.</p>' +
+      '<div class="legend"><span><i class="dot" style="background:var(--blue)"></i><b>Azul</b> é a sua rede</span><span><i class="dot" style="background:var(--orange)"></i><b>Laranja</b> é a do adversário</span></div>' +
+      '<div class="menu-actions">' +
+      '<button class="btn wine" id="m-play" autofocus>Jogar</button>' +
+      '<button class="btn" id="m-rules">Como jogar</button>' +
+      '<button class="btn" id="m-codex">Grimório</button>' +
+      '<button class="btn" id="m-ach">Conquistas</button>' +
+      '</div>' +
+      '<div class="credits">Regras originais: prof. Peng Yaohao (FPO 2026/2, PPCA/UnB). Inspirado no <a href="https://playground.tensorflow.org/" target="_blank" rel="noopener">TensorFlow Playground</a>. Feito com Phaser. Código aberto sob a licença <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>.</div>' +
+      '</section>' +
+      '<section class="sheet menu-panel">' +
+      '<h3 style="margin-top:0">Configurar a mesa</h3>' +
+      '<div class="field"><label for="m-opp">Oponente</label><select id="m-opp">' + options(opp, o.bot) + '</select><div class="hint" id="m-opp-h"></div></div>' +
+      '<div class="field"><label for="m-deck">Baralho</label><select id="m-deck">' + options(TT.DECKS, o.deck) + '</select><div class="hint" id="m-deck-h"></div></div>' +
+      '<div class="field"><label for="m-terrain">Terreno</label><select id="m-terrain">' + options(TT.TERRAINS, o.terrain) + '</select><div class="hint" id="m-terrain-h"></div></div>' +
+      '<div class="field"><label for="m-start">Quem começa</label><select id="m-start">' + options(starters, o.starter) + '</select></div>' +
+      '<div class="field" style="margin-bottom:0"><label for="m-mode">Partida</label><select id="m-mode">' + options(modes, String(o.target)) + '</select></div>' +
+      '</section></div>';
+    var m = open(html, { clear: true });
+    var el = m.el;
+    function sync() {
+      var bot = el.querySelector('#m-opp').value;
+      el.querySelector('#m-opp-h').textContent = bot === 'hotseat' ? 'Dois jogadores se revezam no mesmo aparelho. A mão de quem não joga fica escondida.' : TT.BOTS[bot].blurb;
+      el.querySelector('#m-deck-h').textContent = TT.DECKS[el.querySelector('#m-deck').value].short;
+      el.querySelector('#m-terrain-h').textContent = TT.TERRAINS[el.querySelector('#m-terrain').value].short;
+    }
+    el.querySelectorAll('select').forEach(function (s) { s.addEventListener('change', sync); });
+    sync();
+    function read() {
+      app.opts = {
+        bot: el.querySelector('#m-opp').value, deck: el.querySelector('#m-deck').value,
+        terrain: el.querySelector('#m-terrain').value, starter: el.querySelector('#m-start').value,
+        target: parseInt(el.querySelector('#m-mode').value, 10),
+      };
+      app.saveOpts();
+    }
+    el.querySelector('#m-play').addEventListener('click', function () { TT.Sfx.unlock(); read(); m.close(); app.play(); });
+    el.querySelector('#m-rules').addEventListener('click', function () { read(); rules(app); });
+    el.querySelector('#m-codex').addEventListener('click', function () { read(); codex(app); });
+    el.querySelector('#m-ach').addEventListener('click', function () { read(); achievements(app); });
+    return m;
+  }
+
+  /* ---------- Regras ---------- */
+  function rules(app, onClose) {
+    var html =
+      '<div class="sheet"><button class="close-x" data-close aria-label="Fechar">×</button>' +
+      '<h2>Como jogar</h2>' +
+      '<p>Dois jogadores disputam quem constrói a rede neural de maior soma, ligando a <b>camada de entrada</b> à <b>camada de saída</b> com um neurônio em cada uma das 5 camadas ocultas. A sua rede é <span class="chip blue">azul</span>, a do adversário é <span class="chip orange">laranja</span>.</p>' +
+      '<h3>Preparação</h3>' +
+      '<ul><li>Baralho de 52 cartas, sem coringas. Na mesa, viradas: 3 na entrada, 5 em cada uma das 5 camadas ocultas e 4 na saída.</li>' +
+      '<li>Cada jogador recebe 5 cartas na mão. Elas <b>não são repostas</b>: são seu estoque de ações para a mão inteira.</li>' +
+      '<li>As 10 restantes vão para o <b>limbo</b> sem serem vistas (ruído).</li></ul>' +
+      '<h3>Seu turno</h3>' +
+      '<p>Faça uma destas coisas: <b>ative um neurônio</b> virado na próxima camada da sua rede (clique nele), ou use cartas da mão numa ação. Cada neurônio pertence a um só jogador. Só pode passar quem não tem neurônio para ativar.</p>' +
+      '<h3>Pontuação</h3>' +
+      '<ul><li>2 a 10 valem o número, Ás vale 11, J, Q e K valem 0.</li>' +
+      '<li>Figuras iguais em camadas vizinhas: par vale +10, trio +20. Quatro figuras iguais seguidas (contando as empilhadas) causam <b>vanishing gradient</b> e zeram a rede.</li></ul>' +
+      '<h3>Ações com a mão</h3>' +
+      '<p>Selecione cartas da mão de mesma figura do neurônio e clique no alvo. Entrada e saída são imunes. O alvo é sempre o neurônio oculto mais recente de uma rede.</p>' +
+      '<ul><li><b>Tunagem</b> (1 carta no seu neurônio): a carta soma à rede; em figuras, +10.</li>' +
+      '<li><b>Overfit</b> (1 carta no neurônio do adversário): o neurônio vai para o cemitério e a rede dele recua uma camada.</li>' +
+      '<li><b>Early stop</b> (o neurônio fica com 3 cartas): a rede atingida é finalizada na hora.</li>' +
+      '<li><b>Stack overflow</b> (4 cartas): early stop e a vítima perde a mão inteira.</li>' +
+      '<li><b>Dropout / GatoNet</b>: desvire seus últimos neurônios ocultos pagando 1 carta por camada. Não gasta o turno.</li>' +
+      '<li><b>Transfer learning</b>: com quatro cartas iguais na mão, troque-as por quatro do limbo (uma vez por mão).</li></ul>' +
+      '<p>Exemplo do enunciado: a rede 8-K-K-3 com tunagem num K soma 8 + (trio de Reis 20) + (tunagem 10) + 3 = <b>41</b>.</p>' +
+      '<h3>Fim da mão e desempates</h3>' +
+      '<p>A mão acaba quando todas as redes estão finalizadas (chegaram à saída, ou sofreram early stop ou stack overflow) ou quando todos passam em seguida. Vence a maior soma. Empate: menos dropouts; depois a maior soma das melhores cartas da mão; depois a carta mais alta (espadas &gt; copas &gt; paus &gt; ouros); por fim, quem jogou primeiro.</p>' +
+      '<h3>Truco</h3>' +
+      '<p>Na partida até 12 tentos cada mão vale 1. Na sua vez, peça <b>TRUCO</b> (3). O outro aceita, corre (você leva o valor atual) ou aumenta: SEIS, NOVE, DOZE. Com alguém a um tento da vitória é <b>mão de onze</b> e ninguém truca.</p>' +
+      '<h3>Baralhos e terrenos</h3>' +
+      '<ul>' + Object.keys(TT.DECKS).map(function (k) { return '<li><b>' + TT.DECKS[k].name + ':</b> ' + esc(TT.DECKS[k].short) + '</li>'; }).join('') +
+      Object.keys(TT.TERRAINS).filter(function (k) { return k !== 'neutro'; }).map(function (k) { return '<li><b>' + TT.TERRAINS[k].name + ':</b> ' + esc(TT.TERRAINS[k].short) + '</li>'; }).join('') + '</ul>' +
+      '<div class="row end" style="margin-top:14px"><button class="btn" data-close>Entendi</button></div></div>';
+    if (app) { app.store.seenTutorial = true; app.persist(); }
+    return open(html, { dismissable: true, onClose: onClose });
+  }
+
+  /* ---------- Grimório ---------- */
+  function codex(app, startId, onClose) {
+    var store = app.store;
+    var html = '<div class="sheet"><button class="close-x" data-close aria-label="Fechar">×</button>' +
+      '<h2>Grimório de conceitos</h2><p>Cada mecânica do jogo é um conceito de aprendizado de máquina. Os verbetes aparecem destacados quando acontecem na mesa.</p>' +
+      '<div class="codex"><nav class="codex-list" id="cx-list"></nav><article class="codex-entry" id="cx-entry"></article></div></div>';
+    var m = open(html, { dismissable: true, onClose: onClose });
+    var list = m.el.querySelector('#cx-list'), entry = m.el.querySelector('#cx-entry');
+    function show(id) {
+      var e = TT.CODEX.find(function (x) { return x.id === id; }) || TT.CODEX[0];
+      if (!store.read[e.id]) { store.read[e.id] = true; store.codexRead = Object.keys(store.read).length; app.persist(); app.checkMetaAchievements(); }
+      entry.innerHTML = '<div class="tag">' + esc(e.tag) + '</div><h2>' + esc(e.title) + '</h2><p>' + esc(e.concept) + '</p><p class="ingame"><b>No jogo:</b> ' + esc(e.game) + '</p>';
+      render(e.id);
+    }
+    function render(active) {
+      list.innerHTML = TT.CODEX.map(function (e) {
+        return '<button data-id="' + e.id + '" aria-current="' + (e.id === active) + '">' + esc(e.title) + (store.read[e.id] ? '<span class="seen">lido</span>' : '') + '</button>';
+      }).join('');
+      list.querySelectorAll('button').forEach(function (b) { b.addEventListener('click', function () { show(b.dataset.id); }); });
+    }
+    show(startId || TT.CODEX[0].id);
+    return m;
+  }
+
+  /* ---------- Conquistas ---------- */
+  function achievements(app) {
+    var store = app.store;
+    var got = TT.ACHIEVEMENTS.filter(function (a) { return store.unlocked[a.id]; }).length;
+    var html = '<div class="sheet"><button class="close-x" data-close aria-label="Fechar">×</button>' +
+      '<h2>Conquistas</h2><p>' + got + ' de ' + TT.ACHIEVEMENTS.length + ' desbloqueadas · ' + store.wins + ' mãos vencidas · ' + store.dropouts + ' dropouts. Contam nas partidas contra bots.</p>' +
+      '<div class="ach-grid">' + TT.ACHIEVEMENTS.map(function (a) {
+        var t = TT.TIERS[a.tier];
+        var on = store.unlocked[a.id];
+        return '<div class="ach' + (on ? '' : ' locked') + '"><div class="medal" style="background:' + t.color + '">' + (on ? '✓' : '?') + '</div><div><span class="tier">' + t.name + '</span><b>' + esc(a.name) + '</b><small>' + esc(a.desc) + '</small></div></div>';
+      }).join('') + '</div></div>';
+    return open(html, { dismissable: true });
+  }
+
+  function confirm(title, text, buttons, opts) {
+    opts = opts || {};
+    var html = '<div class="sheet narrow' + (opts.shout ? ' shout' : '') + '">' + (opts.top || '') + '<h2>' + esc(title) + '</h2>' + (text ? '<p>' + text + '</p>' : '') +
+      '<div class="row end" style="margin-top:16px">' + buttons.map(function (b, i) { return '<button class="btn ' + (b.cls || '') + '" data-i="' + i + '">' + esc(b.label) + '</button>'; }).join('') + '</div></div>';
+    var m = open(html);
+    m.el.querySelectorAll('[data-i]').forEach(function (btn) {
+      btn.addEventListener('click', function () { m.close(); var b = buttons[+btn.dataset.i]; if (b.cb) b.cb(); });
+    });
+    return m;
+  }
+
+  return { open: open, closeAll: closeAll, toast: toast, menu: menu, rules: rules, codex: codex, achievements: achievements, confirm: confirm, esc: esc };
+})();
+
+</script>
+<script>
+/* Cena de carregamento (fontes + texturas base) e cena de fundo do menu. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.W = 1280;
+TT.H = 720;
+TT.COLORS = { p0: 0x4aa3df, p1: 0xf59322, gold: 0xd9b260, wine: 0x7a1626, felt: 0x0f3b2a, parchment: 0xefe3c6, ink: 0x24170c };
+TT.CSS = { p0: '#4aa3df', p1: '#f59322', gold: '#d9b260', parchment: '#efe3c6', ink: '#24170c' };
+
+function makeFelt(w, h) {
+  var c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  var ctx = c.getContext('2d');
+  var g = ctx.createRadialGradient(w * 0.48, h * 0.48, 60, w * 0.5, h * 0.5, w * 0.75);
+  g.addColorStop(0, '#15503a'); g.addColorStop(0.6, '#0e3a2a'); g.addColorStop(1, '#06180f');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, w, h);
+  var img = ctx.getImageData(0, 0, w, h), d = img.data;
+  for (var i = 0; i < d.length; i += 4) {
+    var n = (Math.random() - 0.5) * 14;
+    d[i] += n; d[i + 1] += n; d[i + 2] += n;
+  }
+  ctx.putImageData(img, 0, 0);
+  return c;
+}
+
+class BootScene extends Phaser.Scene {
+  constructor() { super('Boot'); }
+  create() {
+    var self = this;
+    var t = this.add.text(TT.W / 2, TT.H / 2, 'Embaralhando neurônios…', { fontFamily: 'Georgia, serif', fontSize: '24px', color: '#d9b260' }).setOrigin(0.5);
+    var fonts = ['900 30px Cinzel', '700 15px Cinzel', '500 12px Alegreya', 'italic 11px Alegreya', '700 13px "Alegreya Sans"', '900 17px "Alegreya Sans"'];
+    var loads = document.fonts ? Promise.all(fonts.map(function (f) { return document.fonts.load(f).catch(function () {}); })) : Promise.resolve();
+    var timeout = new Promise(function (r) { setTimeout(r, 3000); });
+    Promise.race([loads, timeout]).then(function () {
+      t.destroy();
+      self.textures.addCanvas('felt', makeFelt(TT.W, TT.H));
+      self.textures.addCanvas('back-full', TT.drawCardBack(TT.CARD_SIZES.FULL_W, TT.CARD_SIZES.FULL_H));
+      self.textures.addCanvas('back-mini', TT.drawCardBack(TT.CARD_SIZES.MINI_W, TT.CARD_SIZES.MINI_H));
+      Object.keys(TT.TERRAINS).forEach(function (k) { self.textures.addCanvas('terrain-' + k, TT.drawTerrainCard(k)); });
+      [['gato', TT.CSS.p1], ['mc', TT.CSS.p1], ['ruido', TT.CSS.p1], ['p1', TT.CSS.p0], ['p2', TT.CSS.p1]].forEach(function (a) {
+        self.textures.addCanvas('avatar-' + a[0], TT.drawAvatar(a[0], a[1]));
+      });
+      var g = self.make.graphics({ x: 0, y: 0, add: false });
+      g.fillStyle(0xffffff, 1); g.fillCircle(6, 6, 6); g.generateTexture('spark', 12, 12); g.destroy();
+      self.scene.start('Menu');
+    });
+  }
+}
+
+class MenuScene extends Phaser.Scene {
+  constructor() { super('Menu'); }
+  create() {
+    this.add.image(0, 0, 'felt').setOrigin(0).setAlpha(0.9);
+    /* rede neural de fundo, ao estilo do Playground */
+    var g = this.add.graphics();
+    var cols = [3, 5, 5, 5, 4];
+    var pts = cols.map(function (n, c) {
+      var a = [];
+      for (var i = 0; i < n; i++) a.push({ x: 120 + c * 260, y: 360 + (i - (n - 1) / 2) * 120 });
+      return a;
+    });
+    this.pts = pts; this.g = g;
+    /* cartas flutuando */
+    var deck = TT.DECKS.classico.build();
+    TT.shuffle(deck, { seed: 99 });
+    this.floaters = [];
+    for (var i = 0; i < 9; i++) {
+      var card = deck[i];
+      var key = TT.texMini(this, card, 'classico');
+      var sp = this.add.image(Phaser.Math.Between(60, 1220), Phaser.Math.Between(60, 660), key).setScale(0.55).setAlpha(0.22).setAngle(Phaser.Math.Between(-25, 25));
+      this.tweens.add({ targets: sp, y: sp.y - Phaser.Math.Between(20, 60), angle: sp.angle + Phaser.Math.Between(-10, 10), duration: Phaser.Math.Between(3000, 6000), yoyo: true, repeat: -1, ease: 'Sine.inOut' });
+      this.floaters.push(sp);
+    }
+    TT.UI.closeAll();
+    TT.UI.menu(TT.App);
+  }
+  update(time) {
+    var g = this.g; g.clear();
+    var pts = this.pts;
+    for (var c = 0; c < pts.length - 1; c++) {
+      pts[c].forEach(function (a, i) {
+        pts[c + 1].forEach(function (b, j) {
+          var w = 0.5 + 2.5 * Math.abs(Math.sin(i * 1.7 + j * 2.3 + c + time / 2400));
+          g.lineStyle(w, (i + j + c) % 2 ? TT.COLORS.p0 : TT.COLORS.p1, 0.18);
+          g.lineBetween(a.x, a.y, b.x, b.y);
+        });
+      });
+    }
+    pts.forEach(function (col) { col.forEach(function (p) { g.fillStyle(0xd9b260, 0.25); g.fillCircle(p.x, p.y, 9); }); });
+  }
+}
+
+/* Texturas sob demanda para cada carta (o baralho Power BI cria cartas novas no meio da mão) */
+TT.texFull = function (scene, card, deck) {
+  var key = 'f:' + deck + ':' + card.r + card.s;
+  if (!scene.textures.exists(key)) scene.textures.addCanvas(key, TT.drawFullCard(card, deck));
+  return key;
+};
+TT.texMini = function (scene, card, deck) {
+  var key = 'm:' + deck + ':' + card.r + card.s;
+  if (!scene.textures.exists(key)) scene.textures.addCanvas(key, TT.drawMiniCard(card, deck));
+  return key;
+};
+
+TT.BootScene = BootScene;
+TT.MenuScene = MenuScene;
+
+</script>
+<script>
+/* A mesa: tabuleiro de camadas, mãos, painel de placar, truco, animações e fluxo de turnos. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+(function () {
+  var MS = 0.52;          /* escala das cartas da mesa (120x168 -> 62x87) */
+  var HS = 0.4;           /* escala das cartas na mão (240x336 -> 96x134) */
+  var PS = 0.82;          /* escala da inspeção */
+  var ROW_GAP = 95, BOARD_CY = 334;
+  var colX = function (l) { return 318 + l * 97; };
+  var rowY = function (l, i) { var n = TT.LAYER_SIZES[l]; return BOARD_CY + (i - (n - 1) / 2) * ROW_GAP; };
+  var PCOL = [TT.COLORS.p0, TT.COLORS.p1];
+  var PCSS = [TT.CSS.p0, TT.CSS.p1];
+  var KIND_COLOR = { reveal: 0xf6dc8f, tunagem: 0x7fe08a, overfit: 0xffa24a, earlystop: 0xff4d5e, stackoverflow: 0xff4dd2, dropout: 0x6fe7ff };
+  var STATUS = { building: 'em construção', done: 'chegou à saída', earlystop: 'early stop', overflow: 'stack overflow' };
+  var F_DISPLAY = 'Cinzel, Georgia, serif', F_UI = '"Alegreya Sans", Arial, sans-serif', F_BODY = 'Alegreya, Georgia, serif';
+
+  class GameScene extends Phaser.Scene {
+    constructor() { super('Game'); }
+
+    create() {
+      this.app = TT.App;
+      this.opts = Object.assign({}, this.app.opts);
+      this.hot = this.opts.bot === 'hotseat';
+      this.match = TT.newMatch(this.opts.target);
+      this.sessionSeen = this.app.sessionSeen;
+
+      this.add.image(0, 0, 'felt').setOrigin(0);
+      this.drawStatic();
+      this.connG = this.add.graphics().setDepth(2);
+      this.emptyG = this.add.graphics().setDepth(1);
+      this.hlG = this.add.graphics().setDepth(5);
+      this.handG = this.add.graphics().setDepth(11);
+      this.chartG = this.add.graphics().setDepth(6);
+      this.createHud();
+      var self = this;
+      this.input.keyboard.on('keydown-ESC', function () { self.cancelSelection(); });
+      this.events.once('shutdown', function () { self.ended = true; });
+      var go = function () { self.startHand(); };
+      if (!this.app.store.seenTutorial) TT.UI.rules(this.app, go); else go();
+    }
+
+    /* ------------------------------------------------------------------ cenário fixo */
+    drawStatic() {
+      var g = this.add.graphics().setDepth(0);
+      /* painéis laterais */
+      g.fillStyle(0x07150e, 0.72); g.fillRoundedRect(8, 80, 244, 632, 12);
+      g.fillStyle(0x07150e, 0.72); g.fillRoundedRect(962, 8, 310, 704, 12);
+      g.lineStyle(1.5, TT.COLORS.gold, 0.45); g.strokeRoundedRect(8, 80, 244, 632, 12); g.strokeRoundedRect(962, 8, 310, 704, 12);
+      /* colunas das camadas */
+      for (var l = 0; l < TT.N_LAYERS; l++) {
+        var imm = l === 0 || l === TT.OUTPUT;
+        var n = TT.LAYER_SIZES[l];
+        var top = rowY(l, 0) - 52, bot = rowY(l, n - 1) + 52;
+        g.fillStyle(imm ? 0x2a1a08 : 0x000000, imm ? 0.35 : 0.18);
+        g.fillRoundedRect(colX(l) - 42, top, 84, bot - top, 10);
+        if (imm) { g.lineStyle(1.5, 0xe8a7b8, 0.55); g.strokeRoundedRect(colX(l) - 42, top, 84, bot - top, 10); }
+        this.add.text(colX(l), 84, TT.layerName(l).toUpperCase(), { fontFamily: F_UI, fontStyle: '700', fontSize: '12px', color: imm ? '#f0b7c4' : '#d9c79a', letterSpacing: 1.5 }).setOrigin(0.5).setDepth(1);
+        if (imm) this.add.text(colX(l), top - 10, 'imune a ações', { fontFamily: F_UI, fontSize: '11px', color: '#f0b7c4' }).setOrigin(0.5).setDepth(1);
+      }
+      this.add.text(130, 96, 'INSPEÇÃO', { fontFamily: F_UI, fontStyle: '700', fontSize: '12px', color: '#d9c79a', letterSpacing: 2 }).setOrigin(0.5);
+    }
+
+    makeButton(x, y, w, h, label, cb, opt) {
+      opt = opt || {};
+      var c = this.add.container(x, y).setDepth(8);
+      var bg = this.add.graphics();
+      var fill = opt.fill || 0xd9b260, fill2 = opt.fill2 || 0xa47a28, txtCol = opt.color || '#24140a';
+      var draw = function (hover) {
+        bg.clear();
+        bg.fillStyle(0x0d0a08, 1); bg.fillRoundedRect(-w / 2, -h / 2 + 3, w, h, 9);
+        bg.fillGradientStyle(hover ? 0xfff0bc : fill, hover ? 0xfff0bc : fill, fill2, fill2, 1);
+        bg.fillRoundedRect(-w / 2, -h / 2, w, h, 9);
+        bg.lineStyle(2, 0x0d0a08, 1); bg.strokeRoundedRect(-w / 2, -h / 2, w, h, 9);
+      };
+      draw(false);
+      var t = this.add.text(0, 0, label, { fontFamily: opt.font || F_DISPLAY, fontStyle: '700', fontSize: (opt.size || 14) + 'px', color: txtCol, align: 'center' }).setOrigin(0.5);
+      c.add([bg, t]);
+      c.setSize(w, h);
+      c.setInteractive({ useHandCursor: true });
+      c.on('pointerover', function () { if (c.enabled) draw(true); });
+      c.on('pointerout', function () { draw(false); });
+      c.on('pointerdown', function () { if (c.enabled) { TT.Sfx.select(); cb(); } });
+      c.enabled = true;
+      c.label = t;
+      c.setEnabled = function (on) { c.enabled = on; c.setAlpha(on ? 1 : 0.38); if (!on) draw(false); };
+      return c;
+    }
+
+    createHud() {
+      var self = this;
+      var tx = function (x, y, s, style) { return self.add.text(x, y, s, Object.assign({ fontFamily: F_UI, fontSize: '14px', color: '#efe3c6' }, style || {})).setDepth(7); };
+      var h = (this.hud = {});
+      /* adversário (topo esquerdo) */
+      h.oppAvatar = this.add.image(44, 40, 'avatar-gato').setScale(0.56).setDepth(7);
+      h.oppName = tx(84, 16, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '18px', color: '#f6dc8f' });
+      h.oppSub = tx(84, 42, '', { fontSize: '13px', color: '#c9b993' });
+      h.bubble = this.add.container(700, 40).setDepth(30).setVisible(false);
+      h.bubbleBg = this.add.graphics();
+      h.bubbleText = this.add.text(0, 0, '', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '17px', color: '#24170c', wordWrap: { width: 230 } }).setOrigin(0.5);
+      h.bubble.add([h.bubbleBg, h.bubbleText]);
+      /* inspeção */
+      h.preview = this.add.image(130, 250, 'terrain-' + this.opts.terrain).setScale(PS).setDepth(7);
+      h.previewNote = tx(130, 396, '', { fontSize: '12px', color: '#c9b993', align: 'center', wordWrap: { width: 230 } }).setOrigin(0.5, 0);
+      /* pilhas */
+      h.limbo = this.add.image(72, 462, 'back-mini').setScale(0.42).setDepth(7).setInteractive();
+      h.limboTxt = tx(72, 504, '', { fontSize: '13px', align: 'center' }).setOrigin(0.5, 0);
+      h.grave = this.add.image(188, 462, 'back-mini').setScale(0.42).setDepth(7).setInteractive();
+      h.graveTxt = tx(188, 504, '', { fontSize: '13px', align: 'center' }).setOrigin(0.5, 0);
+      h.limbo.on('pointerover', function () { self.showPreview('back-full', 'Limbo: cartas queimadas no início (ruído). Só voltam por transfer learning.'); });
+      h.grave.on('pointerover', function () {
+        var top = self.st && self.st.graveyard[self.st.graveyard.length - 1];
+        self.showPreview(top ? TT.texFull(self, top, self.st.cfg.deck) : 'back-full', 'Cemitério: ' + (self.st ? self.st.graveyard.length : 0) + ' carta(s) fora de jogo. Mostrando a última.');
+      });
+      h.terrainTxt = tx(130, 534, '', { fontSize: '13px', align: 'center', color: '#d9c79a', wordWrap: { width: 230 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+      h.terrainTxt.on('pointerover', function () { self.showPreview('terrain-' + self.opts.terrain, TT.TERRAINS[self.opts.terrain].name); });
+      /* eu (rodapé esquerdo) */
+      h.meAvatar = this.add.image(36, 604, 'avatar-p1').setScale(0.42).setDepth(7);
+      h.meName = tx(66, 592, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '16px', color: '#bfe2fa' });
+      h.hint = tx(18, 628, '', { fontFamily: F_BODY, fontSize: '14.5px', color: '#efe3c6', wordWrap: { width: 226 }, lineSpacing: 1 });
+
+      /* painel direito */
+      h.handTitle = tx(1117, 20, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '15px', color: '#f6dc8f' }).setOrigin(0.5, 0);
+      h.tentos = tx(1117, 42, '', { fontSize: '14px', color: '#d9c79a' }).setOrigin(0.5, 0);
+      h.blocks = [0, 1].map(function (i) {
+        var y = 70 + i * 82;
+        var b = { y: y };
+        b.g = self.add.graphics().setDepth(6);
+        b.name = tx(988, y + 8, '', { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '15px' });
+        b.status = tx(988, y + 30, '', { fontSize: '11px', color: '#d9c79a', letterSpacing: 1.2 });
+        b.detail = tx(988, y + 50, '', { fontSize: '13px', color: '#c9b993' });
+        b.score = tx(1256, y + 38, '0', { fontFamily: F_DISPLAY, fontStyle: '900', fontSize: '38px' }).setOrigin(1, 0.5);
+        return b;
+      });
+      h.truco = this.makeButton(1117, 258, 286, 42, 'TRUCO!', function () { self.humanTruco(); }, { fill: 0xc0303e, fill2: 0x6e1420, color: '#ffe9d6', size: 20 });
+      h.chartLabel = tx(978, 288, 'CURVA DE TREINO · soma da rede por turno', { fontSize: '11px', color: '#d9c79a', letterSpacing: 1 });
+      h.chartMax = tx(978, 304, '', { fontSize: '10px', color: '#8f8166' });
+      h.log = tx(978, 398, '', { fontSize: '13px', color: '#d9cfb6', wordWrap: { width: 284 }, lineSpacing: 2 });
+      h.btnDrop = this.makeButton(1043, 574, 140, 38, 'Dropout', function () { self.toggleDropout(); }, { size: 14 });
+      h.btnTransfer = this.makeButton(1191, 574, 140, 38, 'Transfer', function () { self.humanTransfer(); }, { size: 14 });
+      h.btnPass = this.makeButton(1043, 618, 140, 38, 'Passar a vez', function () { self.humanPass(); }, { size: 13 });
+      h.btnRules = this.makeButton(1191, 618, 140, 38, 'Regras', function () { TT.UI.rules(null); }, { size: 14 });
+      h.btnCodex = this.makeButton(1018, 666, 90, 34, 'Grimório', function () { TT.UI.codex(self.app); }, { size: 12, fill: 0x8a7a5a, fill2: 0x4a3f2c, color: '#f5ecd6' });
+      h.btnSound = this.makeButton(1117, 666, 90, 34, '', function () { self.app.toggleSound(); self.refreshSoundBtn(); }, { size: 12, fill: 0x8a7a5a, fill2: 0x4a3f2c, color: '#f5ecd6' });
+      h.btnMenu = this.makeButton(1216, 666, 90, 34, 'Menu', function () { self.askMenu(); }, { size: 12, fill: 0x8a7a5a, fill2: 0x4a3f2c, color: '#f5ecd6' });
+      this.refreshSoundBtn();
+      h.thinking = tx(610, 560, '', { fontFamily: F_BODY, fontStyle: 'italic', fontSize: '15px', color: '#f6dc8f' }).setOrigin(0.5).setDepth(12);
+    }
+
+    refreshSoundBtn() { this.hud.btnSound.label.setText(TT.Sfx.isMuted() ? 'Som: não' : 'Som: sim'); }
+
+    /* ------------------------------------------------------------------ mão nova */
+    startHand() {
+      var self = this;
+      this.ended = false;
+      this.busy = true;
+      this.mode = 'idle';
+      this.sel = [];
+      this.hoverHint = null;
+      this.vanishSeen = [false, false];
+      this.trucoChecked = -1;
+      if (this.boardObjs) this.boardObjs.forEach(function (o) { o.destroy(); });
+      this.boardObjs = [];
+      var players = this.hot
+        ? [{ name: 'Jogador 1', kind: 'human' }, { name: 'Jogador 2', kind: 'human' }]
+        : [{ name: 'Você', kind: 'human' }, { name: TT.BOTS[this.opts.bot].name, kind: 'bot', bot: this.opts.bot }];
+      this.st = TT.newGame({ deck: this.opts.deck, terrain: this.opts.terrain, starter: this.opts.starter, players: players });
+      this.viewer = 0;
+      this.slotSprites = {};
+      this.st.layers.forEach(function (layer) {
+        layer.forEach(function (slot) {
+          var sp = self.add.image(colX(slot.layer), rowY(slot.layer, slot.idx), 'back-mini').setScale(MS).setDepth(3).setInteractive({ useHandCursor: true });
+          sp.slotId = slot.id;
+          sp.on('pointerdown', function () { self.onSlotClick(slot.id); });
+          sp.on('pointerover', function () { self.onSlotHover(slot.id, true); });
+          sp.on('pointerout', function () { self.onSlotHover(slot.id, false); });
+          var badge = self.add.text(sp.x + 26, sp.y - 40, '', { fontFamily: F_UI, fontStyle: '900', fontSize: '13px', color: '#24170c', backgroundColor: '#f6dc8f', padding: { x: 4, y: 1 } }).setOrigin(0.5).setDepth(4);
+          var mem = self.add.text(sp.x, sp.y + 32, '', { fontFamily: F_UI, fontStyle: '700', fontSize: '12px', color: '#f6dc8f', backgroundColor: 'rgba(0,0,0,.65)', padding: { x: 3, y: 1 } }).setOrigin(0.5).setDepth(4);
+          self.slotSprites[slot.id] = { sp: sp, badge: badge, mem: mem };
+          self.boardObjs.push(sp, badge, mem);
+          /* animação de distribuição */
+          sp.setAlpha(0); sp.y -= 30;
+          self.tweens.add({ targets: sp, alpha: 1, y: sp.y + 30, duration: 260, delay: slot.layer * 40 + slot.idx * 25, ease: 'Back.out' });
+        });
+      });
+      this.handSprites = [];
+      this.oppSprites = [];
+      this.hud.preview.setTexture('terrain-' + this.opts.terrain);
+      this.hud.previewNote.setText(TT.TERRAINS[this.opts.terrain].name + ' · baralho ' + TT.DECKS[this.opts.deck].name);
+      this.st.events.splice(0);
+      this.renderAll();
+      if (this.opts.terrain !== 'neutro') this.codexToast('terrenos');
+      this.time.delayedCall(700, function () { self.advance(); });
+    }
+
+    /* ------------------------------------------------------------------ helpers */
+    me() { return this.viewer; }
+    other(p) { return 1 - p; }
+    topPlayer() { return this.viewer < 0 ? 1 : this.other(this.viewer); }
+    bottomPlayer() { return this.viewer < 0 ? 0 : this.viewer; }
+    isHumanTurn() {
+      var st = this.st;
+      return !this.busy && !this.ended && st.phase === 'play' && st.players[st.current].kind === 'human' && st.current === this.viewer && !this.match.pending;
+    }
+    avatarKey(p) {
+      var pl = this.st.players[p];
+      if (pl.kind === 'bot') return 'avatar-' + TT.BOTS[pl.bot].avatar;
+      return p === 0 ? 'avatar-p1' : 'avatar-p2';
+    }
+
+    showPreview(key, note) { this.hud.preview.setTexture(key); this.hud.previewNote.setText(note || ''); }
+
+    /* ------------------------------------------------------------------ render */
+    renderAll() {
+      var self = this, st = this.st, deck = st.cfg.deck;
+      this.scores = st.players.map(function (_, p) { return TT.scoreNetwork(st, p); });
+      this.computeTargets();
+      /* mesa */
+      this.emptyG.clear();
+      st.layers.forEach(function (layer) {
+        layer.forEach(function (slot) {
+          var o = self.slotSprites[slot.id];
+          if (slot.removed) {
+            o.sp.setVisible(false); o.badge.setVisible(false); o.mem.setVisible(false);
+            self.emptyG.lineStyle(1.5, 0xd9b260, 0.28);
+            self.emptyG.strokeRoundedRect(o.sp.x - 31, o.sp.y - 43, 62, 87, 6);
+            return;
+          }
+          o.sp.setVisible(true);
+          if (slot.faceUp) {
+            o.sp.setTexture(TT.texMini(self, slot.cards[0], deck));
+            o.mem.setVisible(false);
+          } else {
+            o.sp.setTexture('back-mini');
+            o.mem.setVisible(slot.known).setText(slot.known ? 'lembra: ' + TT.cardLabel(slot.cards[0]) : '');
+          }
+          o.badge.setVisible(slot.cards.length > 1).setText('×' + slot.cards.length);
+        });
+      });
+      this.renderHands();
+      this.renderHud();
+    }
+
+    renderHands() {
+      var self = this, st = this.st, deck = st.cfg.deck;
+      this.handSprites.forEach(function (s) { s.destroy(); });
+      this.oppSprites.forEach(function (s) { s.destroy(); });
+      this.handSprites = []; this.oppSprites = [];
+      var bp = this.bottomPlayer();
+      var showHand = this.viewer >= 0;
+      var hand = st.players[bp].hand;
+      var n = hand.length;
+      var spacing = Math.min(104, 640 / Math.max(1, n));
+      hand.forEach(function (card, i) {
+        var x = 610 + (i - (n - 1) / 2) * spacing;
+        var selected = self.sel.indexOf(card.id) >= 0;
+        var y = selected ? 632 : 652;
+        var sp = self.add.image(x, y, showHand ? TT.texFull(self, card, deck) : 'back-full').setScale(HS).setDepth(10 + i);
+        sp.baseY = y;
+        if (showHand) {
+          sp.setInteractive({ useHandCursor: true });
+          sp.on('pointerover', function () { sp.y = sp.baseY - 8; self.showPreview(TT.texFull(self, card, deck), self.handCardNote(card)); });
+          sp.on('pointerout', function () { sp.y = sp.baseY; });
+          sp.on('pointerdown', function () { self.onHandClick(card.id); });
+        }
+        sp.cardId = card.id;
+        self.handSprites.push(sp);
+      });
+      var tp = this.topPlayer();
+      var on = st.players[tp].hand.length;
+      for (var i = 0; i < on; i++) {
+        var o = this.add.image(560 + (i - (on - 1) / 2) * 34, 40, 'back-mini').setScale(0.34).setDepth(7).setAngle((i - (on - 1) / 2) * 4);
+        this.oppSprites.push(o);
+      }
+      /* destaque das cartas selecionadas */
+      this.handG.clear();
+      this.handSprites.forEach(function (sp) {
+        if (self.sel.indexOf(sp.cardId) >= 0) {
+          var col = self.mode === 'dropout-pay' ? KIND_COLOR.dropout : 0xf6dc8f;
+          self.handG.lineStyle(4, col, 1);
+          self.handG.strokeRoundedRect(sp.x - 50, sp.y - 69, 100, 138, 10);
+        }
+      });
+    }
+
+    handCardNote(card) {
+      var st = this.st, me = this.viewer;
+      var targets = TT.stackTargets(st).filter(function (s) { return TT.canStack(st, me, s.id, [card.id]) || (s.cards[0].r === card.r); });
+      if (!targets.length) return 'Sem alvo para esta carta agora. Guarde para tunar, atacar ou pagar dropouts.';
+      return 'Clique para selecionar. Mesma figura de: ' + targets.map(function (s) { return TT.cardLabel(s.cards[0]) + (s.owner === me ? ' (sua)' : ' (adversário)'); }).join(', ') + '.';
+    }
+
+    renderHud() {
+      var st = this.st, h = this.hud, m = this.match, self = this;
+      var tp = this.topPlayer(), bp = this.bottomPlayer();
+      h.oppAvatar.setTexture(this.avatarKey(tp));
+      h.oppName.setText(st.players[tp].name).setColor(PCSS[tp]);
+      if (!this.thinkingNow) h.oppSub.setText(st.players[tp].kind === 'bot' ? TT.BOTS[st.players[tp].bot].blurb.split(':')[0].split('.')[0] : 'Aguardando a vez');
+      h.meAvatar.setTexture(this.avatarKey(bp));
+      h.meName.setText(st.players[bp].name).setColor(PCSS[bp]);
+      h.handTitle.setText('MÃO ' + (m.hand + 1) + ' · vale ' + m.value + (m.value === 1 ? ' tento' : ' tentos'));
+      h.tentos.setText(m.target > 1
+        ? st.players[0].name + ' ' + m.tentos[0] + ' × ' + m.tentos[1] + ' ' + st.players[1].name + '  ·  até ' + m.target + (TT.maoDeOnze(m) ? '  ·  MÃO DE ONZE' : '')
+        : 'Mão única · sem truco');
+      [tp, bp].forEach(function (p, i) {
+        var b = h.blocks[i], pl = st.players[p];
+        b.g.clear();
+        var active = st.phase === 'play' && st.current === p;
+        b.g.fillStyle(0x000000, active ? 0.45 : 0.25); b.g.fillRoundedRect(974, b.y, 288, 74, 8);
+        b.g.fillStyle(PCOL[p], 1); b.g.fillRoundedRect(974, b.y, 6, 74, 3);
+        if (active) { b.g.lineStyle(1.5, PCOL[p], 0.9); b.g.strokeRoundedRect(974, b.y, 288, 74, 8); }
+        b.name.setText(pl.name + (active ? '  ◀ vez' : '')).setColor(PCSS[p]);
+        var stuck = pl.status === 'building' && st.phase === 'play' && TT.revealTargets(st, p).length === 0;
+        b.status.setText((stuck ? 'TRAVADA' : STATUS[pl.status]).toUpperCase() + ' · camada ' + Math.max(0, pl.path.length - 1) + '/6');
+        b.detail.setText('mão ' + pl.hand.length + ' · dropouts ' + pl.dropouts + (pl.transferUsed ? ' · TL usado' : ''));
+        var sc = self.scores[p];
+        b.score.setText(String(sc.total)).setColor(sc.vanishing ? '#ff6b7a' : '#f5ecd6');
+      });
+      h.limboTxt.setText('Limbo ' + st.limbo.length);
+      h.graveTxt.setText('Cemitério ' + st.graveyard.length);
+      var top = st.graveyard[st.graveyard.length - 1];
+      h.grave.setTexture(top ? TT.texMini(this, top, st.cfg.deck) : 'back-mini').setAlpha(top ? 1 : 0.25);
+      var tline = 'Terreno: ' + TT.TERRAINS[st.cfg.terrain].name + ' · Baralho: ' + TT.DECKS[st.cfg.deck].name;
+      if (st.cfg.terrain === 'oceano' && st.wind) tline += '\nVento: ' + TT.SUIT_INFO[st.wind].sym + ' ' + TT.SUIT_INFO[st.wind].name + ' vale dobro';
+      if (st.cfg.terrain !== 'neutro') tline += '\nRodada ' + st.round;
+      h.terrainTxt.setText(tline);
+      /* botões */
+      var my = this.isHumanTurn();
+      var me = this.viewer;
+      h.btnDrop.setEnabled(my && TT.trailingHidden(st, me) > 0 && st.players[me].hand.length > 0);
+      h.btnDrop.label.setText(this.mode === 'dropout' || this.mode === 'dropout-pay' ? 'Cancelar' : 'Dropout');
+      h.btnTransfer.setEnabled(my && !!TT.transferRank(st, me));
+      h.btnPass.setEnabled(my && TT.canPass(st, me));
+      var canT = my && TT.canTruco(m, me);
+      h.truco.setEnabled(canT);
+      var nxt = TT.nextStake(m.value);
+      h.truco.label.setText(m.target <= 1 ? 'SEM TRUCO' : TT.maoDeOnze(m) ? 'MÃO DE ONZE' : nxt ? TT.TRUCO_SHOUT[nxt] : 'VALE TUDO');
+      /* log */
+      var lines = st.log.slice(-8);
+      h.log.setText(lines.join('\n'));
+      this.renderChart();
+      h.hint.setText(this.hoverHint || this.hintText());
+    }
+
+    renderChart() {
+      var g = this.chartG, hist = this.st.history;
+      g.clear();
+      var x0 = 978, y0 = 386, w = 280, hgt = 66;
+      g.fillStyle(0x000000, 0.25); g.fillRoundedRect(x0 - 4, y0 - hgt - 6, w + 8, hgt + 12, 6);
+      var max = 40;
+      hist.forEach(function (r) { r.forEach(function (v) { max = Math.max(max, v); }); });
+      max = Math.ceil(max / 20) * 20;
+      this.hud.chartMax.setText(max + ' pts');
+      g.lineStyle(1, 0xd9b260, 0.18);
+      [0.5, 1].forEach(function (f) { g.lineBetween(x0, y0 - hgt * f, x0 + w, y0 - hgt * f); });
+      var nPts = Math.max(2, hist.length);
+      [0, 1].forEach(function (p) {
+        g.lineStyle(2.5, PCOL[p], 1);
+        g.beginPath();
+        hist.forEach(function (r, i) {
+          var x = x0 + (i / (nPts - 1)) * w, y = y0 - (r[p] / max) * hgt;
+          if (i === 0) g.moveTo(x, y); else g.lineTo(x, y);
+        });
+        g.strokePath();
+        var last = hist[hist.length - 1];
+        if (last) { g.fillStyle(PCOL[p], 1); g.fillCircle(x0 + ((hist.length - 1) / (nPts - 1)) * w, y0 - (last[p] / max) * hgt, 3.5); }
+      });
+    }
+
+    hintText() {
+      var st = this.st, me = this.viewer;
+      if (this.ended) return 'Fim da mão.';
+      if (this.match.pending) return 'Truco na mesa! Aguardando resposta.';
+      if (st.phase === 'starter') {
+        if (this.mode === 'starter') return st.cfg.starter === 'revela-descarta'
+          ? 'Escolha uma carta da mão para revelar. A mais alta começa. Ela vai para o cemitério.'
+          : 'Escolha uma carta da mão para revelar. A mais alta começa. Ela volta para a sua mão.';
+        return 'Decidindo quem começa…';
+      }
+      var cur = st.players[st.current];
+      if (!this.isHumanTurn()) return cur.kind === 'bot' ? cur.name + ' está pensando…' : st.current === this.viewer ? 'Sua vez.' : 'Vez de ' + cur.name + '.';
+      if (this.mode === 'dropout') return 'Dropout: clique no neurônio oculto da sua rede até onde quer desfazer. Cada camada custa 1 carta da mão. Esc cancela.';
+      if (this.mode === 'dropout-pay') return 'Escolha ' + this.dropN + ' carta(s) da mão para pagar o dropout (' + this.sel.length + '/' + this.dropN + '). Esc cancela.';
+      if (this.sel.length) {
+        var rank = this.selRank();
+        var n = Object.keys(this.targets).length;
+        return n ? 'Clique num neurônio destacado para usar ' + this.sel.length + ' carta(s) ' + rank + '. Verde é tunagem; laranja e vermelho atacam.'
+          : 'Nenhum neurônio aceita ' + rank + ' agora. Ações só valem no último neurônio oculto de uma rede, com a mesma figura.';
+      }
+      var pl = st.players[me];
+      if (pl.status !== 'building') return 'Sua rede está finalizada. Ainda dá para atacar a fronteira do adversário com cartas da mão, ou passar a vez.';
+      var rt = TT.revealTargets(st, me);
+      if (!rt.length) return 'Não há neurônio livre na camada ' + TT.layerName(pl.path.length) + '. Faça dropout para recuar ou passe a vez.';
+      return 'Sua vez: ative um neurônio da camada ' + TT.layerName(pl.path.length) + ' (dourado) ou selecione cartas da mão para uma ação.';
+    }
+
+    selRank() {
+      var hand = this.st.players[this.viewer].hand;
+      var c = hand.find(function (x) { return x.id === this.sel[0]; }, this);
+      return c ? c.r : '';
+    }
+
+    computeTargets() {
+      var st = this.st, me = this.viewer, self = this;
+      this.targets = {};
+      if (st.phase !== 'play' || !this.isHumanTurn()) return;
+      if (this.mode === 'dropout') {
+        var pl = st.players[me];
+        pl.path.forEach(function (id, i) {
+          if (i >= 1 && TT.isHidden(st.slotIndex[id].layer)) {
+            var n = pl.path.length - i;
+            if (n <= pl.hand.length) self.targets[id] = { kind: 'dropout', n: n };
+          }
+        });
+        return;
+      }
+      if (this.mode === 'dropout-pay') return;
+      if (this.sel.length) {
+        TT.stackTargets(st).forEach(function (slot) {
+          if (TT.canStack(st, me, slot.id, self.sel)) {
+            var eff = TT.stackEffect(st, me, slot, self.sel.length);
+            self.targets[slot.id] = { kind: eff.kind, self: eff.self };
+          }
+        });
+        return;
+      }
+      TT.revealTargets(st, me).forEach(function (s) { self.targets[s.id] = { kind: 'reveal' }; });
+    }
+
+    /* ------------------------------------------------------------------ desenho contínuo */
+    update(time) {
+      if (!this.st) return;
+      var g = this.connG, st = this.st, self = this;
+      g.clear();
+      st.players.forEach(function (pl, p) {
+        var sc = self.scores && self.scores[p];
+        for (var i = 0; i < pl.path.length; i++) {
+          var a = st.slotIndex[pl.path[i]];
+          var ax = colX(a.layer), ay = rowY(a.layer, a.idx);
+          g.lineStyle(3, PCOL[p], 0.95); g.strokeRoundedRect(ax - 33, ay - 45, 66, 91, 7);
+          if (i === pl.path.length - 1) continue;
+          var b = st.slotIndex[pl.path[i + 1]];
+          var bx = colX(b.layer), by = rowY(b.layer, b.idx);
+          var v = sc && sc.neurons[i + 1] ? sc.neurons[i + 1].v : 2;
+          var w = 1.5 + Math.min(9, v * 0.5);
+          g.lineStyle(w, PCOL[p], 0.55);
+          g.lineBetween(ax + 31, ay, bx - 31, by);
+          for (var k = 0; k < 2; k++) {
+            var t = ((time / 1100) + k * 0.5 + i * 0.13) % 1;
+            g.fillStyle(0xffffff, 0.85);
+            g.fillCircle(ax + 31 + (bx - ax - 62) * t, ay + (by - ay) * t, 2 + w * 0.15);
+          }
+        }
+      });
+      /* leque de candidatos, como no Playground */
+      if (this.isHumanTurn() && !this.sel.length && this.mode === 'idle') {
+        var f = TT.frontier(st, this.viewer);
+        if (f) {
+          Object.keys(this.targets).forEach(function (id) {
+            var s = st.slotIndex[id];
+            g.lineStyle(1, PCOL[self.viewer], 0.25);
+            g.lineBetween(colX(f.layer) + 31, rowY(f.layer, f.idx), colX(s.layer) - 31, rowY(s.layer, s.idx));
+          });
+        }
+      }
+      var h = this.hlG; h.clear();
+      var pulse = 0.55 + 0.45 * Math.sin(time / 180);
+      if (this.mode === 'starter') {
+        this.handSprites.forEach(function (sp) { h.lineStyle(3, 0xf6dc8f, pulse); h.strokeRoundedRect(sp.x - 50, sp.y - 69, 100, 138, 10); });
+      }
+      Object.keys(this.targets || {}).forEach(function (id) {
+        var tg = self.targets[id], s = st.slotIndex[id];
+        var x = colX(s.layer), y = rowY(s.layer, s.idx);
+        h.lineStyle(tg.kind === 'reveal' ? 2.5 : 4, KIND_COLOR[tg.kind], pulse);
+        h.strokeRoundedRect(x - 36, y - 48, 72, 97, 9);
+      });
+    }
+
+    /* ------------------------------------------------------------------ entrada */
+    onSlotHover(id, over) {
+      var st = this.st, slot = st.slotIndex[id], deck = st.cfg.deck;
+      if (!over) { this.hoverHint = null; this.hud.hint.setText(this.hintText()); return; }
+      if (slot.removed) return;
+      if (slot.faceUp) {
+        var owner = slot.owner >= 0 ? st.players[slot.owner].name : '';
+        var sc = slot.owner >= 0 ? this.scores[slot.owner].neurons.find(function (n) { return n.slot.id === id; }) : null;
+        this.showPreview(TT.texFull(this, slot.cards[0], deck), 'Neurônio de ' + owner + (sc ? ': vale ' + sc.v + (sc.notes.length ? ' (' + sc.notes.join(', ') + ')' : '') : '') + (slot.cards.length > 1 ? ' · ' + slot.cards.length + ' cartas empilhadas' : ''));
+      } else if (slot.known) {
+        this.showPreview(TT.texFull(this, slot.cards[0], deck), 'Neurônio desvirado por dropout. Todos lembram que é ' + TT.cardLabel(slot.cards[0]) + '.');
+      } else {
+        this.showPreview('back-full', TT.layerName(slot.layer) + ': neurônio desconhecido.');
+      }
+      var tg = this.targets[id];
+      if (tg) {
+        var victim = slot.owner >= 0 ? st.players[slot.owner].name : '';
+        var label = TT.cardLabel(slot.cards[0]);
+        var txt = {
+          reveal: 'Ativar este neurônio na sua rede.',
+          tunagem: 'Tunagem: empilha ' + this.sel.length + ' carta(s) em ' + label + ' e soma o valor à sua rede.',
+          overfit: 'Overfit: ' + label + ' de ' + victim + ' vai para o cemitério e a rede recua uma camada.',
+          earlystop: tg.self ? 'Early stop na própria rede: ela congela agora e ' + label + ' some. Tem certeza?' : 'Early stop: a rede de ' + victim + ' é finalizada agora, sem ' + label + '.',
+          stackoverflow: tg.self ? 'Stack overflow na própria rede: você perde a rede e a mão. Desk rejection garantida.' : 'Stack overflow: ' + victim + ' perde a rede aqui e todas as cartas da mão.',
+          dropout: 'Dropout de ' + tg.n + ' camada(s), custando ' + tg.n + ' carta(s) da mão.',
+        }[tg.kind];
+        this.hoverHint = txt;
+        this.hud.hint.setText(txt);
+      }
+    }
+
+    onSlotClick(id) {
+      if (!this.isHumanTurn()) return;
+      var tg = this.targets[id];
+      if (!tg) {
+        if (this.sel.length) this.floatText(colX(this.st.slotIndex[id].layer), rowY(this.st.slotIndex[id].layer, this.st.slotIndex[id].idx), 'não encaixa', '#ffb3a8', 16);
+        return;
+      }
+      this.hoverHint = null;
+      var me = this.viewer;
+      if (tg.kind === 'reveal') return this.doMove({ t: 'reveal', p: me, slot: id });
+      if (tg.kind === 'dropout') {
+        this.mode = 'dropout-pay';
+        this.dropN = tg.n;
+        this.sel = [];
+        this.renderAll();
+        return;
+      }
+      this.doMove({ t: 'stack', p: me, slot: id, cards: this.sel.slice() });
+    }
+
+    onHandClick(cardId) {
+      var st = this.st, me = this.viewer;
+      if (st.phase === 'starter' && this.mode === 'starter') {
+        this.mode = 'idle';
+        TT.Sfx.place();
+        this.doMove({ t: 'starter', p: me, card: cardId });
+        return;
+      }
+      if (!this.isHumanTurn()) return;
+      TT.Sfx.select();
+      var i = this.sel.indexOf(cardId);
+      if (this.mode === 'dropout-pay') {
+        if (i >= 0) this.sel.splice(i, 1); else if (this.sel.length < this.dropN) this.sel.push(cardId);
+        if (this.sel.length === this.dropN) {
+          this.doMove({ t: 'dropout', p: me, n: this.dropN, pay: this.sel.slice() });
+          return;
+        }
+        this.renderAll();
+        return;
+      }
+      if (this.mode === 'dropout') this.mode = 'idle';
+      var hand = st.players[me].hand;
+      var card = hand.find(function (c) { return c.id === cardId; });
+      if (i >= 0) this.sel.splice(i, 1);
+      else {
+        var rank = this.selRank();
+        if (rank && rank !== card.r) this.sel = [];
+        this.sel.push(cardId);
+      }
+      this.renderAll();
+    }
+
+    cancelSelection() {
+      if (this.sel.length || this.mode !== 'idle') {
+        this.sel = [];
+        if (this.mode !== 'starter') this.mode = 'idle';
+        this.renderAll();
+      }
+    }
+    toggleDropout() {
+      if (this.mode === 'dropout' || this.mode === 'dropout-pay') { this.mode = 'idle'; this.sel = []; }
+      else { this.mode = 'dropout'; this.sel = []; }
+      this.renderAll();
+    }
+    humanTransfer() {
+      var me = this.viewer, r = TT.transferRank(this.st, me);
+      if (!r) return;
+      var ids = this.st.players[me].hand.filter(function (c) { return c.r === r; }).slice(0, 4).map(function (c) { return c.id; });
+      this.doMove({ t: 'transfer', p: me, cards: ids });
+    }
+    humanPass() { if (this.isHumanTurn() && TT.canPass(this.st, this.viewer)) this.doMove({ t: 'pass', p: this.viewer }); }
+
+    askMenu() {
+      var self = this;
+      TT.UI.confirm('Abandonar a partida?', 'O placar de tentos desta partida será perdido. Conquistas já desbloqueadas ficam salvas.', [
+        { label: 'Continuar jogando', cls: 'ghost' },
+        { label: 'Voltar ao menu', cls: 'wine', cb: function () { self.app.toMenu(); } },
+      ]);
+    }
+
+    /* ------------------------------------------------------------------ jogadas */
+    doMove(move) {
+      try {
+        TT.applyMove(this.st, move);
+      } catch (e) {
+        TT.UI.toast('Jogada inválida', e.message);
+        this.renderAll();
+        return;
+      }
+      this.sel = [];
+      if (this.mode !== 'starter') this.mode = 'idle';
+      var events = this.st.events.splice(0);
+      this.busy = true;
+      this.renderAll();
+      var delay = this.playEvents(events, move);
+      var self = this;
+      this.time.delayedCall(delay, function () { self.advance(); });
+    }
+
+    advance() {
+      if (this.ended || !this.scene.isActive()) return;
+      var st = this.st, self = this;
+      if (this.match.pending) return;
+      if (st.phase === 'over') return this.endHand(null);
+      if (st.phase === 'starter') {
+        st.players.forEach(function (pl, i) { if (pl.kind === 'bot' && !pl.starterCard) TT.applyMove(st, TT.botMove(st, i)); });
+        var waiting = st.players.findIndex(function (pl) { return pl.kind === 'human' && !pl.starterCard; });
+        if (waiting < 0) { var ev = st.events.splice(0); this.renderAll(); this.time.delayedCall(this.playEvents(ev), function () { self.advance(); }); return; }
+        var begin = function () { self.viewer = waiting; self.mode = 'starter'; self.busy = false; self.renderAll(); };
+        var someonePicked = st.players.some(function (p) { return !!p.starterCard; });
+        if (this.hot && (someonePicked || this.viewer !== waiting)) return this.passDevice(waiting, begin);
+        return begin();
+      }
+      var cur = st.current, pl = st.players[cur];
+      if (pl.kind === 'bot') return this.botTurn();
+      if (this.hot && this.viewer !== cur) return this.passDevice(cur, function () { self.viewer = cur; self.advance(); });
+      this.viewer = cur;
+      this.busy = false;
+      this.mode = 'idle';
+      var moves = TT.legalMoves(st, cur);
+      var onlyPass = moves.length === 1 && moves[0].t === 'pass';
+      if (onlyPass && (TT.trailingHidden(st, cur) === 0 || pl.hand.length === 0)) {
+        this.busy = true;
+        this.renderAll();
+        this.hud.hint.setText('Nenhuma jogada possível: passando a vez.');
+        this.time.delayedCall(900, function () { self.doMove({ t: 'pass', p: cur }); });
+        return;
+      }
+      this.renderAll();
+    }
+
+    passDevice(p, cb) {
+      var self = this;
+      this.viewer = -1;
+      this.busy = true;
+      this.renderAll();
+      TT.UI.confirm('Vez de ' + this.st.players[p].name, 'Passe o aparelho. A mão fica escondida até você confirmar.', [
+        { label: 'Estou pronto', cls: 'wine', cb: function () { self.viewer = p; cb(); } },
+      ]);
+    }
+
+    botTurn() {
+      var self = this, st = this.st, cur = st.current, kind = st.players[cur].bot;
+      this.busy = true;
+      this.thinkingNow = true;
+      this.hud.oppSub.setText(kind === 'montecarlo' ? 'simulando partidas…' : 'pensando…');
+      this.renderAll();
+      this.time.delayedCall(kind === 'montecarlo' ? 350 : 650, function () {
+        if (self.ended || st !== self.st) return;
+        if (self.trucoChecked !== st.turn && TT.canTruco(self.match, cur)) {
+          self.trucoChecked = st.turn;
+          if (TT.botTrucoCall(st, cur, kind)) { self.thinkingNow = false; return self.callTruco(cur); }
+        }
+        var move = TT.botMove(st, cur);
+        self.thinkingNow = false;
+        if (move.mc) {
+          self.hud.oppSub.setText('simulou ' + move.mc.sims + ' partidas · ' + Math.round(move.mc.winRate * 100) + '% de vitória');
+          self.codexToast('montecarlo');
+          delete move.mc;
+        }
+        self.doMove(move);
+      });
+    }
+
+    /* ------------------------------------------------------------------ truco */
+    humanTruco() {
+      if (!this.isHumanTurn() || !TT.canTruco(this.match, this.viewer)) return;
+      this.callTruco(this.viewer);
+    }
+
+    callTruco(p) {
+      var m = this.match, self = this;
+      TT.callTruco(m, p);
+      TT.Sfx.truco();
+      this.codexToast('truco');
+      var shout = TT.TRUCO_SHOUT[m.pending.to];
+      this.banner(shout, PCSS[p], 72);
+      if (this.st.players[p].kind === 'bot') this.say(TT.taunt('truco'));
+      this.busy = true;
+      this.renderAll();
+      this.time.delayedCall(900, function () { self.askAnswer(); });
+    }
+
+    askAnswer() {
+      var m = this.match, self = this;
+      var q = 1 - m.pending.by;
+      var pl = this.st.players[q];
+      var canRaise = TT.nextStake(m.pending.to) != null;
+      if (pl.kind === 'bot') {
+        var ans = TT.botTrucoAnswer(this.st, q, pl.bot, m.pending.to, canRaise);
+        this.say(TT.taunt(ans === 'raise' ? 'raise' : ans));
+        return this.resolveAnswer(q, ans);
+      }
+      var caller = this.st.players[m.pending.by].name;
+      var buttons = [
+        { label: 'Correr', cls: 'ghost', cb: function () { self.resolveAnswer(q, 'run'); } },
+        { label: 'Desce! (vale ' + m.pending.to + ')', cls: 'wine', cb: function () { self.resolveAnswer(q, 'accept'); } },
+      ];
+      if (canRaise) buttons.push({ label: 'Pedir ' + TT.TRUCO_SHOUT[TT.nextStake(m.pending.to)], cb: function () { self.resolveAnswer(q, 'raise'); } });
+      TT.UI.confirm(TT.TRUCO_SHOUT[m.pending.to],
+        (this.hot ? pl.name + ', responda. ' : '') + 'Se aceitar, a mão vale ' + m.pending.to + ' tentos. Se correr, ' + caller + ' leva ' + m.value + ' agora.',
+        buttons, { shout: true, top: '<div class="who">' + TT.UI.esc(caller) + ' pediu</div>' });
+    }
+
+    resolveAnswer(q, ans) {
+      var m = this.match, self = this;
+      var res = TT.answerTruco(m, q, ans);
+      if (ans === 'run') {
+        this.banner(this.st.players[q].name + ' correu!', '#efe3c6', 40);
+        if (this.st.players[q].kind === 'bot') this.botRan = true;
+        this.time.delayedCall(900, function () { self.endHand(res); });
+        return;
+      }
+      if (ans === 'raise') {
+        TT.Sfx.truco();
+        this.banner(TT.TRUCO_SHOUT[m.pending.to], PCSS[q], 72);
+        this.renderAll();
+        this.time.delayedCall(900, function () { self.askAnswer(); });
+        return;
+      }
+      this.floatText(610, 300, 'Aceito: mão vale ' + m.value, '#f6dc8f', 26);
+      this.renderAll();
+      this.time.delayedCall(600, function () { self.busy = false; self.advance(); });
+    }
+
+    /* ------------------------------------------------------------------ efeitos */
+    slotXY(id) { var s = this.st.slotIndex[id]; return { x: colX(s.layer), y: rowY(s.layer, s.idx) }; }
+
+    playEvents(events, move) {
+      var self = this, st = this.st, deck = st.cfg.deck;
+      var delay = 350;
+      events.forEach(function (ev) {
+        var isBot = ev.p != null && st.players[ev.p] && st.players[ev.p].kind === 'bot';
+        if (ev.t === 'reveal') {
+          var o = self.slotSprites[ev.slot];
+          o.sp.scaleX = 0;
+          self.tweens.add({ targets: o.sp, scaleX: MS, duration: 200, ease: 'Sine.out' });
+          TT.Sfx.flip();
+          var xy = self.slotXY(ev.slot);
+          var neuron = self.scores[ev.p].neurons.find(function (n) { return n.slot.id === ev.slot; });
+          self.floatText(xy.x, xy.y - 50, '+' + (neuron ? neuron.v : 0), PCSS[ev.p], 22);
+          self.showPreview(TT.texFull(self, ev.card, deck), st.players[ev.p].name + ' ativou ' + TT.cardName(ev.card, deck) + '.');
+          self.codexToast('neuronio');
+          if (st.players[ev.p].path.length >= 2) self.codexToast('forward');
+          if (st.players[ev.p].path.length >= 3) self.codexToast('pesos');
+          delay = Math.max(delay, 450);
+        } else if (ev.t === 'tunagem') {
+          var xy2 = self.slotXY(ev.slot);
+          ev.cards.forEach(function (c, i) { self.flyCard(c, isBot ? 560 : 610, isBot ? 40 : 652, xy2.x, xy2.y, i * 120); });
+          var add = 0;
+          ev.cards.forEach(function (c) { add += TT.isFigure(c) ? 10 : TT.baseValue(c, deck); });
+          self.time.delayedCall(320, function () { TT.Sfx.tune(); self.floatText(xy2.x, xy2.y - 50, 'Tunagem +' + add, '#7fe08a', 20); self.burst(xy2.x, xy2.y, 0x7fe08a, 14); });
+          self.codexToast('tunagem');
+          delay = Math.max(delay, 800);
+        } else if (ev.t === 'overfit' || ev.t === 'earlystop' || ev.t === 'stackoverflow') {
+          var xy3 = self.slotXY(ev.slot);
+          var played = move && move.cards ? move.cards.length : 1;
+          for (var k = 0; k < played; k++) self.flyCard(ev.cards[ev.cards.length - 1 - k], isBot ? 560 : 610, isBot ? 40 : 652, xy3.x, xy3.y, k * 110);
+          var ghost = self.add.image(xy3.x, xy3.y, TT.texMini(self, ev.cards[0], deck)).setScale(MS).setDepth(15);
+          self.tweens.add({ targets: ghost, x: '+=6', yoyo: true, repeat: 4, duration: 50, delay: 300 });
+          self.tweens.add({ targets: ghost, alpha: 0, scale: MS * 1.5, angle: 25, duration: 500, delay: 560, onComplete: function () { ghost.destroy(); } });
+          var col = { overfit: 0xffa24a, earlystop: 0xff4d5e, stackoverflow: 0xff4dd2 }[ev.t];
+          var title = { overfit: 'OVERFIT!', earlystop: 'EARLY STOP!', stackoverflow: 'STACK OVERFLOW!' }[ev.t];
+          self.time.delayedCall(420, function () {
+            self.burst(xy3.x, xy3.y, col, ev.t === 'stackoverflow' ? 50 : 26);
+            if (ev.t === 'stackoverflow') { TT.Sfx.boom(); self.cameras.main.shake(450, 0.012); }
+            else { TT.Sfx.hit(); self.cameras.main.shake(220, ev.t === 'earlystop' ? 0.007 : 0.003); }
+            self.banner(title + (ev.self ? ' (na própria rede)' : ''), '#' + col.toString(16).padStart(6, '0'), ev.t === 'stackoverflow' ? 58 : 50);
+          });
+          if (!ev.self) {
+            if (st.players[ev.p].kind === 'bot') self.say(TT.taunt(ev.t));
+            else if (st.players[ev.o].kind === 'bot') self.say(TT.taunt(ev.t === 'overfit' ? 'sufferOverfit' : 'sufferStop'));
+          }
+          self.codexToast(ev.t);
+          if (ev.t !== 'overfit') self.codexToast('overfit');
+          delay = Math.max(delay, 1250);
+        } else if (ev.t === 'dropout') {
+          ev.slots.forEach(function (id, i) {
+            var o2 = self.slotSprites[id];
+            o2.sp.scaleX = 0;
+            self.tweens.add({ targets: o2.sp, scaleX: MS, duration: 220, delay: i * 120 });
+          });
+          TT.Sfx.dropout();
+          self.banner('GatoNet! Dropout ×' + ev.slots.length, '#6fe7ff', 40);
+          self.codexToast('dropout');
+          delay = Math.max(delay, 700);
+        } else if (ev.t === 'transfer') {
+          TT.Sfx.badge();
+          self.banner('TRANSFER LEARNING', '#9fe3e0', 46);
+          self.codexToast('transfer');
+          self.codexToast('ruido');
+          delay = Math.max(delay, 1000);
+        } else if (ev.t === 'complete') {
+          TT.Sfx.badge();
+          self.floatText(colX(TT.OUTPUT), 590, 'Rede completa!', PCSS[ev.p], 22);
+          delay = Math.max(delay, 600);
+        } else if (ev.t === 'wind') {
+          self.floatText(610, 120, 'O vento virou: ' + TT.SUIT_INFO[ev.suit].sym + ' ' + TT.SUIT_INFO[ev.suit].name + ' vale dobro', '#bfe7f4', 20);
+        } else if (ev.t === 'powerbi') {
+          TT.UI.toast('Power BI', st.players[ev.p].name + ' atualizou o dashboard: as cartas da mão mudaram.', null, 3500);
+        } else if (ev.t === 'pass') {
+          self.floatText(ev.p === self.bottomPlayer() ? 610 : 560, ev.p === self.bottomPlayer() ? 570 : 90, st.players[ev.p].name + ' passou', '#efe3c6', 18);
+        } else if (ev.t === 'start') {
+          if (ev.cards) {
+            ev.cards.forEach(function (c, i) {
+              var img = self.add.image(520 + i * 180, 330, TT.texFull(self, c, deck)).setScale(0.5).setDepth(25).setAlpha(0);
+              self.tweens.add({ targets: img, alpha: 1, duration: 200 });
+              var lbl = self.add.text(520 + i * 180, 430, st.players[i].name, { fontFamily: F_DISPLAY, fontStyle: '700', fontSize: '16px', color: PCSS[i] }).setOrigin(0.5).setDepth(25);
+              self.time.delayedCall(1700, function () { self.tweens.add({ targets: [img, lbl], alpha: 0, duration: 300, onComplete: function () { img.destroy(); lbl.destroy(); } }); });
+            });
+            self.time.delayedCall(700, function () { self.banner(st.players[ev.p].name + ' começa' + (ev.tie ? ' (empate: sorteio)' : ''), PCSS[ev.p], 36); });
+            delay = Math.max(delay, 2100);
+          } else {
+            self.banner(st.players[ev.p].name + ' começa (sorteio)', PCSS[ev.p], 36);
+            delay = Math.max(delay, 900);
+          }
+        }
+      });
+      /* vanishing gradient recém-formado */
+      st.players.forEach(function (_, p) {
+        var sc = self.scores[p];
+        if (sc.vanishing && !self.vanishSeen[p]) {
+          self.vanishSeen[p] = true;
+          self.time.delayedCall(500, function () {
+            TT.Sfx.boom();
+            self.banner('VANISHING GRADIENT', '#ff6b7a', 52);
+            self.say(TT.taunt('vanishing'));
+          });
+          self.codexToast('vanishing');
+          delay = Math.max(delay, 1400);
+        } else if (!sc.vanishing) self.vanishSeen[p] = false;
+        if (sc.combos.some(function (c) { return !c.label.match(/vanishing/); })) self.codexToast('vanishing');
+      });
+      if (st.history.length > 3) this.codexToast('perda');
+      return delay;
+    }
+
+    flyCard(card, x0, y0, x1, y1, delay) {
+      var img = this.add.image(x0, y0, TT.texMini(this, card, this.st.cfg.deck)).setScale(0.6).setDepth(16);
+      this.tweens.add({ targets: img, x: x1 + 8, y: y1 - 8, scale: MS, angle: 8, duration: 320, delay: delay || 0, ease: 'Cubic.out', onComplete: function () { img.destroy(); } });
+    }
+
+    burst(x, y, color, n) {
+      var em = this.add.particles(x, y, 'spark', { speed: { min: 80, max: 260 }, lifespan: 650, scale: { start: 0.9, end: 0 }, tint: color, blendMode: 'ADD', emitting: false }).setDepth(18);
+      em.explode(n);
+      this.time.delayedCall(900, function () { em.destroy(); });
+    }
+
+    floatText(x, y, text, color, size) {
+      var t = this.add.text(x, y, text, { fontFamily: F_DISPLAY, fontStyle: '900', fontSize: (size || 20) + 'px', color: color || '#fff', stroke: '#0d0a08', strokeThickness: 5 }).setOrigin(0.5).setDepth(20);
+      this.tweens.add({ targets: t, y: y - 36, alpha: 0, duration: 1200, ease: 'Cubic.out', onComplete: function () { t.destroy(); } });
+    }
+
+    banner(text, color, size) {
+      var t = this.add.text(610, 330, text, { fontFamily: F_DISPLAY, fontStyle: '900', fontSize: (size || 48) + 'px', color: color || '#f6dc8f', stroke: '#0d0a08', strokeThickness: 8, align: 'center' }).setOrigin(0.5).setDepth(40).setScale(0.6).setAlpha(0);
+      this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 220, ease: 'Back.out' });
+      this.tweens.add({ targets: t, alpha: 0, y: 300, duration: 380, delay: 1050, onComplete: function () { t.destroy(); } });
+    }
+
+    say(text) {
+      var h = this.hud;
+      if (!text) return;
+      h.bubbleText.setText(text);
+      var w = Math.min(250, h.bubbleText.width + 28), hh = h.bubbleText.height + 18;
+      h.bubbleBg.clear();
+      h.bubbleBg.fillStyle(0xefe3c6, 1); h.bubbleBg.fillRoundedRect(-w / 2, -hh / 2, w, hh, 10);
+      h.bubbleBg.fillTriangle(-w / 2 + 10, -4, -w / 2 - 12, -10, -w / 2 + 10, 8);
+      h.bubbleBg.lineStyle(2, 0x0d0a08, 1); h.bubbleBg.strokeRoundedRect(-w / 2, -hh / 2, w, hh, 10);
+      h.bubble.setPosition(Math.min(950 - w / 2, 690 + w / 2), 40).setVisible(true).setAlpha(1);
+      this.tweens.killTweensOf(h.bubble);
+      this.tweens.add({ targets: h.bubble, alpha: 0, delay: 2600, duration: 400, onComplete: function () { h.bubble.setVisible(false); } });
+    }
+
+    codexToast(id) {
+      if (this.sessionSeen[id]) return;
+      this.sessionSeen[id] = true;
+      var e = TT.CODEX.find(function (x) { return x.id === id; });
+      if (!e) return;
+      TT.UI.toast('Grimório · ' + e.title, e.game, null, 6500);
+    }
+
+    /* ------------------------------------------------------------------ fim da mão */
+    endHand(runRes) {
+      if (this.ended) return;
+      this.ended = true;
+      this.busy = true;
+      var self = this, st = this.st, m = this.match;
+      var full = !runRes;
+      var winner = full ? st.result.winner : runRes.winner;
+      var handValue = full ? m.value : runRes.pts;
+      var gain = TT.scoreHand(m, winner, full ? null : runRes.pts);
+      this.renderAll();
+      var humanWon = st.players[winner].kind === 'human';
+      if (!this.hot) {
+        if (humanWon) TT.Sfx.win(); else TT.Sfx.lose();
+        this.say(TT.taunt(humanWon ? 'lose' : 'win'));
+      } else TT.Sfx.win();
+      var unlocked = this.hot ? [] : this.app.recordHand({ st: st, me: 0, won: winner === 0, full: full, match: m, matchWon: m.over && m.winner === 0, handValue: handValue, botRan: !!this.botRan, opts: this.opts });
+      this.botRan = false;
+      this.time.delayedCall(full ? 1100 : 300, function () { self.showResult(winner, gain, full, unlocked); });
+    }
+
+    netHtml(p) {
+      var st = this.st, sc = TT.scoreNetwork(st, p), pl = st.players[p], esc = TT.UI.esc;
+      var stuck = pl.status === 'building' && st.result && st.result.stuck[p];
+      var terms = sc.neurons.map(function (n) {
+        return '<span class="term">' + esc(TT.cardLabel(n.card)) + (n.stack > 1 ? '×' + n.stack : '') + ' = ' + n.v + (n.notes.length ? ' <small>(' + esc(n.notes.join(', ')) + ')</small>' : '') + '</span>';
+      }).join('');
+      terms += sc.combos.map(function (c) { return '<span class="term ' + (c.count >= 4 ? 'bad' : 'combo') + '">' + esc(c.label) + '</span>'; }).join('');
+      return '<div class="net p' + p + '"><div class="status">' + esc(stuck ? 'travada' : STATUS[pl.status]) + '</div><h3 style="margin:2px 0 6px;color:' + PCSS[p] + '">' + esc(pl.name) + '</h3>' +
+        '<div class="total">' + sc.total + '</div><div class="terms">' + (terms || '<span class="term">rede vazia</span>') + '</div>' +
+        '<small>dropouts ' + pl.dropouts + ' · mão ' + pl.hand.length + '</small></div>';
+    }
+
+    showResult(winner, gain, full, unlocked) {
+      var self = this, st = this.st, m = this.match, esc = TT.UI.esc;
+      var wname = st.players[winner].name;
+      var title = this.hot ? wname + ' vence a mão' : winner === 0 ? 'Você venceu a mão!' : wname + ' venceu a mão';
+      var reason = full ? 'Critério: ' + st.result.reason + '.' : st.players[1 - winner].name + ' correu do truco.';
+      var html = '<div class="sheet"><h2>' + esc(title) + '</h2><p>' + esc(reason) + '</p>';
+      if (full) html += '<div class="result-grid">' + this.netHtml(0) + this.netHtml(1) + '</div>';
+      if (m.target > 1) {
+        html += '<div class="tentos">+' + gain + (gain === 1 ? ' tento' : ' tentos') + ' para ' + esc(wname) + ' · placar <span class="big">' + m.tentos[0] + ' × ' + m.tentos[1] + '</span> (até ' + m.target + ')</div>';
+        if (m.over) html += '<p><b>' + esc(st.players[m.winner].name) + ' venceu a partida!</b></p>';
+      }
+      if (unlocked.length) {
+        html += '<h3>Conquistas desbloqueadas</h3><div class="unlocks">' + unlocked.map(function (a) {
+          return '<div class="unlock"><span class="chip" style="background:' + TT.TIERS[a.tier].color + ';color:#24140a">' + TT.TIERS[a.tier].name + '</span>' + esc(a.name) + ' · <small>' + esc(a.desc) + '</small></div>';
+        }).join('') + '</div>';
+      }
+      var matchOver = m.over || m.target <= 1;
+      html += '<div class="row end" style="margin-top:16px"><button class="btn ghost" id="r-menu">Menu</button>' +
+        '<button class="btn wine" id="r-next">' + (matchOver ? 'Nova partida' : 'Próxima mão') + '</button></div></div>';
+      var dlg = TT.UI.open(html);
+      dlg.el.querySelector('#r-menu').addEventListener('click', function () { dlg.close(); self.app.toMenu(); });
+      dlg.el.querySelector('#r-next').addEventListener('click', function () {
+        dlg.close();
+        if (matchOver) self.match = TT.newMatch(self.opts.target); else TT.nextHand(self.match);
+        self.startHand();
+      });
+    }
+  }
+
+  TT.GameScene = GameScene;
+})();
+
+</script>
+<script>
+/* Ponto de entrada: estado do aplicativo, conquistas e configuração do Phaser. */
+var TT = (globalThis.TT = globalThis.TT || {});
+
+TT.App = {
+  store: TT.Store.load(),
+  sessionSeen: {},
+  opts: null,
+  game: null,
+
+  init: function () {
+    this.opts = Object.assign({ bot: 'guloso', deck: 'classico', terrain: 'neutro', starter: 'revela-volta', target: 12 }, this.store.opts || {});
+    TT.Sfx.setMuted(!!this.store.muted);
+  },
+  persist: function () { TT.Store.save(this.store); },
+  saveOpts: function () { this.store.opts = this.opts; this.persist(); },
+  toggleSound: function () {
+    this.store.muted = !TT.Sfx.isMuted();
+    TT.Sfx.setMuted(this.store.muted);
+    this.persist();
+  },
+  play: function () {
+    TT.UI.closeAll();
+    this.game.scene.stop('Menu');
+    this.game.scene.start('Game');
+  },
+  toMenu: function () {
+    TT.UI.closeAll();
+    this.game.scene.stop('Game');
+    this.game.scene.start('Menu');
+  },
+
+  /* Registra o fim de uma mão contra bot e devolve as conquistas novas */
+  recordHand: function (ctx) {
+    var s = this.store;
+    var pl = ctx.st.players[ctx.me];
+    s.hands++;
+    s.dropouts += pl.dropouts;
+    if (ctx.won) {
+      s.wins++;
+      if (ctx.full && pl.actionsUsed === 0) s.zenWins++;
+      if (ctx.full) { s.terrains[ctx.st.cfg.terrain] = true; s.decks[ctx.st.cfg.deck] = true; }
+    }
+    ctx.stats = s;
+    var partialOk = { correu: 1, campeao: 1, maquina: 1, primeira: 1, dez: 1, cinquenta: 1, gato10: 1, gato100: 1, biblio: 1, truco: 1, doze: 1, cartografo: 1, colecionador: 1 };
+    var fresh = [];
+    TT.ACHIEVEMENTS.forEach(function (a) {
+      if (s.unlocked[a.id]) return;
+      if (!ctx.full && !partialOk[a.id]) return;
+      var ok = false;
+      try { ok = !!a.test(ctx); } catch (e) { ok = false; }
+      if (ok) { s.unlocked[a.id] = Date.now(); fresh.push(a); }
+    });
+    this.persist();
+    if (fresh.length) TT.Sfx.badge();
+    return fresh;
+  },
+
+  checkMetaAchievements: function () {
+    var s = this.store;
+    var a = TT.ACHIEVEMENTS.find(function (x) { return x.id === 'biblio'; });
+    if (!s.unlocked.biblio && s.codexRead >= TT.CODEX.length) {
+      s.unlocked.biblio = Date.now();
+      this.persist();
+      TT.UI.toast('Conquista: ' + a.name, a.desc, 'badge');
+      TT.Sfx.badge();
+    }
+  },
+};
+
+TT.boot = function () {
+  TT.App.init();
+  TT.App.game = new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: 'game',
+    width: TT.W,
+    height: TT.H,
+    backgroundColor: '#06180f',
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+    render: { antialias: true, roundPixels: false },
+    input: { windowEvents: false }, /* cliques nos painéis HTML não vazam para o canvas */
+    scene: [TT.BootScene, TT.MenuScene, TT.GameScene],
+  });
+  globalThis.__TT_GAME__ = TT.App.game;
+};
+
+TT.boot();
+
+</script>
+<!-- /build:body -->
+</body>
+</html>
