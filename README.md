@@ -39,7 +39,9 @@ src/core/truco.js          tentos, TRUCO/SEIS/NOVE/DOZE, mão de onze
 src/core/content.js        Grimório (conceitos), conquistas, textos das cartas, provocações dos bots
 src/ui/cardArt.js          arte procedural das cartas em canvas (nenhuma imagem externa)
 src/ui/audio.js            efeitos sonoros sintetizados (WebAudio)
-src/ui/overlay.js          painéis HTML sobre o canvas
+src/ui/overlay.js          painéis HTML sobre o canvas (menu, regras, grimório, conquistas, sobre)
+src/ui/icons.js            ícones SVG das conquistas e moldura medieval do retrato
+src/assets/professor.js    retrato do professor (JPEG embutido)
 src/scenes/BootMenu.js     carregamento de fontes/texturas e fundo animado do menu
 src/scenes/GameScene.js    a mesa: tabuleiro, mãos, placar, truco, animações
 tools/simulate.js          simulações em massa
@@ -95,5 +97,7 @@ modo online (o estado é serializável), tutorial guiado e um laboratório de si
 ## Licença
 
 Distribuído sob a [GPL-3.0](https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file). Código-fonte: https://github.com/welyngton/truco-de-turing
+
+Autores: Welyngton José Vinicius Dal Prá
 
 Regras originais: Peng Yaohao - FPO-UNB - 2026-2

@@ -56,10 +56,13 @@ TT.UI = (function () {
       '<p>Monte uma rede neural carta por carta, da entrada à saída. Tune seus neurônios, aplique overfit no adversário, fuja do vanishing gradient e, quando sentir a mão boa, grite TRUCO.</p>' +
       '<div class="legend"><span><i class="dot" style="background:var(--blue)"></i><b>Azul</b> é a sua rede</span><span><i class="dot" style="background:var(--orange)"></i><b>Laranja</b> é a do adversário</span></div>' +
       '<div class="menu-actions">' +
-      '<button class="btn wine" id="m-play" autofocus>Jogar</button>' +
+      '<button class="btn wine play" id="m-play" autofocus>Jogar</button>' +
+      '<div class="menu-more">' +
       '<button class="btn" id="m-rules">Como jogar</button>' +
       '<button class="btn" id="m-codex">Grimório</button>' +
       '<button class="btn" id="m-ach">Conquistas</button>' +
+      '<button class="btn" id="m-about">Sobre</button>' +
+      '</div>' +
       '</div>' +
       '<div class="credits">Regras originais: prof. Peng Yaohao (FPO 2026/2, PPCA/UnB). Feito com Phaser. Código aberto sob a licença <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>.</div>' +
       '</section>' +
@@ -93,6 +96,7 @@ TT.UI = (function () {
     el.querySelector('#m-rules').addEventListener('click', function () { read(); rules(app); });
     el.querySelector('#m-codex').addEventListener('click', function () { read(); codex(app); });
     el.querySelector('#m-ach').addEventListener('click', function () { read(); achievements(app); });
+    el.querySelector('#m-about').addEventListener('click', function () { read(); about(); });
     return m;
   }
 
@@ -157,16 +161,57 @@ TT.UI = (function () {
   }
 
   /* ---------- Conquistas ---------- */
+  function medal(a, on) {
+    var t = TT.TIERS[a.tier];
+    return '<div class="medal" style="--tier:' + t.color + '">' + (TT.ACH_ICONS[a.id] || '') + (on ? '' : '<span class="lock">' + TT.LOCK_ICON + '</span>') + '</div>';
+  }
   function achievements(app) {
     var store = app.store;
     var got = TT.ACHIEVEMENTS.filter(function (a) { return store.unlocked[a.id]; }).length;
-    var html = '<div class="sheet"><button class="close-x" data-close aria-label="Fechar">×</button>' +
-      '<h2>Conquistas</h2><p>' + got + ' de ' + TT.ACHIEVEMENTS.length + ' desbloqueadas · ' + store.wins + ' mãos vencidas · ' + store.dropouts + ' dropouts. Contam nas partidas contra bots.</p>' +
+    var html = '<div class="sheet wide"><button class="close-x" data-close aria-label="Fechar">\u00d7</button>' +
+      '<div class="ach-layout">' +
+      '<aside class="guild"><div class="portrait" id="ach-portrait" role="img" aria-label="Retrato do prof. Peng Yaohao em moldura medieval"></div>' +
+      '<p class="guild-note">Guardião do salão das conquistas. Cada medalha aqui foi conquistada contra os oponentes da mesa.</p></aside>' +
+      '<div class="ach-main"><h2>Conquistas</h2><p class="ach-stats"><b>' + got + '</b> de ' + TT.ACHIEVEMENTS.length + ' desbloqueadas \u00b7 ' + store.wins + ' mãos vencidas \u00b7 ' + store.dropouts + ' dropouts</p>' +
       '<div class="ach-grid">' + TT.ACHIEVEMENTS.map(function (a) {
         var t = TT.TIERS[a.tier];
         var on = store.unlocked[a.id];
-        return '<div class="ach' + (on ? '' : ' locked') + '"><div class="medal" style="background:' + t.color + '">' + (on ? '✓' : '?') + '</div><div><span class="tier">' + t.name + '</span><b>' + esc(a.name) + '</b><small>' + esc(a.desc) + '</small></div></div>';
-      }).join('') + '</div></div>';
+        return '<div class="ach' + (on ? '' : ' locked') + '">' + medal(a, on) + '<div><span class="tier">' + t.name + '</span><b>' + esc(a.name) + '</b><small>' + esc(a.desc) + '</small></div></div>';
+      }).join('') + '</div><p class="ach-foot">Contam nas partidas contra os oponentes do computador.</p></div></div></div>';
+    var m = open(html, { dismissable: true });
+    if (TT.PROFESSOR_PHOTO && TT.drawPortraitFrame) {
+      TT.drawPortraitFrame(TT.PROFESSOR_PHOTO, Math.min(3, Math.max(2, globalThis.devicePixelRatio || 1)), 'Prof. Peng Yaohao', 'Grão-mestre da guilda', function (c) {
+        var slot = m.el.querySelector('#ach-portrait');
+        if (slot) slot.appendChild(c);
+      });
+    }
+    return m;
+  }
+
+  /* ---------- Sobre ---------- */
+  function about() {
+    var html = '<div class="sheet about"><button class="close-x" data-close aria-label="Fechar">\u00d7</button>' +
+      '<h2>Sobre o Truco de Turing</h2>' +
+      '<p>Um jogo de cartas para navegador que ensina redes neurais jogando. Cada carta é um neurônio, cada mão é uma rede construída da entrada à saída, e cada ação com as cartas (tunagem, overfit, dropout, early stop, transfer learning) é um conceito do treino de modelos. Por cima de tudo, o truco: tentos, pedidos de TRUCO, SEIS, NOVE e DOZE, e blefe.</p>' +
+      '<h3>A disciplina</h3>' +
+      '<p>Trabalho do tema 4 da disciplina FPO, semestre 2026/2, na Universidade de Brasília, com o prof. Peng Yaohao. O tema pede um jogo indie para ensinar conceitos de machine learning e redes neurais, a partir de uma premissa: um jogo educativo precisa, antes de tudo, ser um jogo divertido. Se o jogo for divertido e o docente tiver competência suficiente, ele pode se tornar educativo.</p>' +
+      '<h3>A especificação</h3>' +
+      '<ul>' +
+      '<li>Mesa com um baralho de 52 cartas: 3 neurônios na entrada, 5 camadas ocultas de 5 neurônios e 4 na saída. Cada jogador recebe 5 cartas; as 10 restantes vão para o limbo, como ruído.</li>' +
+      '<li>Os jogadores se alternam ativando neurônios para ligar a entrada à saída. Vence a rede de maior soma: 2 a 10 pelo valor, Ás 11, figuras 0, com pares e trios de figuras vizinhas valendo bônus e quadras zerando a rede (vanishing gradient).</li>' +
+      '<li>Ações com a mão: tunagem, overfit, early stop, stack overflow, dropout (o GatoNet) e transfer learning. Entrada e saída são imunes.</li>' +
+      '<li>Desempates em cascata e três formas de decidir quem começa.</li>' +
+      '<li>Extensões propostas: baralhos com efeitos (truco, fraternidade, yin-yang, Power BI), terrenos (montanha, pântano, oceano), coringas e conquistas em graduações de bronze a antimatéria.</li>' +
+      '<li>Inspirações citadas: TensorFlow Playground, Balatro, Magic: The Gathering e Geometry Dash.</li>' +
+      '</ul>' +
+      '<p>Esta versão implementa todas as regras, os baralhos e os terrenos da especificação, além da camada de truco e de três oponentes. As leituras adotadas onde o texto deixa margem estão no README do projeto.</p>' +
+      '<h3>O professor</h3>' +
+      '<p><b>Peng Yaohao</b> é professor da Universidade de Brasília, mestre e doutor pela UnB na área de Finanças e Métodos Quantitativos. Pesquisa aprendizado de máquina, modelos não lineares e econometria financeira, com trabalhos sobre previsão de volatilidade e de preços de ações e um estudo empírico sobre não linearidade e overfitting em machine learning com dados da COVID-19.</p>' +
+      '<h3>O autor</h3>' +
+      '<p><b>Welyngton José Vinicius Dal Prá</b> idealizou e desenvolveu esta versão do jogo. É gerente de TI no Centro de Excelência em Engenharia de Software do Banco do Brasil, onde lidera a área Web e Qualidade, e pesquisador do laboratório L@titude da UnB.</p>' +
+      '<h3>Créditos e licença</h3>' +
+      '<p>Código aberto sob a licença <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>, no repositório <a href="https://github.com/welyngton/truco-de-turing" target="_blank" rel="noopener">github.com/welyngton/truco-de-turing</a>. Feito com Phaser 3; toda a arte das cartas é gerada por código; fontes Cinzel e Spectral.</p>' +
+      '<div class="row end" style="margin-top:14px"><button class="btn" data-close>Fechar</button></div></div>';
     return open(html, { dismissable: true });
   }
 
@@ -181,5 +226,5 @@ TT.UI = (function () {
     return m;
   }
 
-  return { open: open, closeAll: closeAll, toast: toast, menu: menu, rules: rules, codex: codex, achievements: achievements, confirm: confirm, esc: esc };
+  return { open: open, closeAll: closeAll, toast: toast, menu: menu, rules: rules, codex: codex, achievements: achievements, about: about, medal: medal, confirm: confirm, esc: esc };
 })();

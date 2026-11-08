@@ -1006,7 +1006,7 @@ var TT = (globalThis.TT = globalThis.TT || {});
       }
       if (unlocked.length) {
         html += '<h3>Conquistas desbloqueadas</h3><div class="unlocks">' + unlocked.map(function (a) {
-          return '<div class="unlock"><span class="chip" style="background:' + TT.TIERS[a.tier].color + ';color:#24140a">' + TT.TIERS[a.tier].name + '</span>' + esc(a.name) + ' · <small>' + esc(a.desc) + '</small></div>';
+          return '<div class="unlock">' + TT.UI.medal(a, true) + '<div><span class="chip" style="background:' + TT.TIERS[a.tier].color + ';color:#24140a">' + TT.TIERS[a.tier].name + '</span> ' + esc(a.name) + '<br><small>' + esc(a.desc) + '</small></div></div>';
         }).join('') + '</div>';
       }
       var matchOver = m.over || m.target <= 1;
