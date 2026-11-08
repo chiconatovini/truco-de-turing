@@ -8,6 +8,9 @@ let contexto = null;
 let mudo = false;
 
 /** Cria (ou retoma) o contexto de áudio. Devolve null se o navegador não tiver WebAudio. */
+export function contextoDeAudio() { return audio(); }
+
+/** Contexto de áudio compartilhado com a música (interface/musica.js). */
 function audio() {
   if (!contexto) {
     const Contexto = globalThis.AudioContext || globalThis.webkitAudioContext;
@@ -83,6 +86,38 @@ export const Som = {
     nota(base * 2, 0.45 + f * 0.06, 'sawtooth', 0.05, 0.3);
   },
   vitoria() { [523, 659, 784, 1047].forEach((f, i) => nota(f, 0.22, 'triangle', 0.09, i * 0.1)); },
+  /**
+   * Fanfarra de vitória da mão, no espírito dos fins de fase dos jogos de 8 bits dos anos 80
+   * (melodia original): escalas rápidas em onda quadrada subindo por três acordes, um rufar e o
+   * acorde final sustentado com o baixo.
+   */
+  fanfarra() {
+    const passo = 0.075;
+    const subidas = [[392, 523, 659, 784], [440, 554, 659, 880], [494, 622, 740, 988]]; /* Dó, Lá, Si */
+    subidas.forEach((acorde, k) => {
+      acorde.forEach((f, i) => nota(f, 0.12, 'square', 0.07, (k * 5 + i) * passo));
+      nota(acorde[0] / 2, 0.3, 'triangle', 0.12, k * 5 * passo);
+    });
+    const fim = 15 * passo;
+    for (let i = 0; i < 6; i++) ruido(0.05, 0.12, fim + i * 0.045, 2500);          /* rufar */
+    [1047, 1319, 1568, 2093].forEach((f) => nota(f, 1.1, 'square', 0.045, fim + 0.3)); /* acorde final */
+    nota(262, 1.1, 'triangle', 0.16, fim + 0.3);
+    nota(131, 1.2, 'sawtooth', 0.06, fim + 0.3);
+    [1568, 2093].forEach((f, i) => nota(f, 0.08, 'square', 0.05, fim + 1.45 + i * 0.09)); /* floreio */
+  },
+  /** Vitória da partida: a fanfarra seguida de um hino mais longo, com tambores. */
+  campeao() {
+    Som.fanfarra();
+    const t0 = 2.0, tempo = 0.24;
+    const melodia = [523, 659, 784, 1047, 988, 784, 880, 1047, 1175, 1319, 1175, 1568];
+    melodia.forEach((f, i) => {
+      nota(f, tempo * 1.6, 'square', 0.055, t0 + i * tempo);
+      if (i % 2 === 0) { nota(70, 0.25, 'sine', 0.22, t0 + i * tempo, 40); ruido(0.12, 0.18, t0 + i * tempo, 700); }
+    });
+    [523, 659, 784, 1047].forEach((f) => nota(f, 1.8, 'sawtooth', 0.04, t0 + melodia.length * tempo));
+    nota(131, 2, 'triangle', 0.18, t0 + melodia.length * tempo);
+    ruido(1.4, 0.2, t0 + melodia.length * tempo, 6000); /* prato */
+  },
   derrota() { [392, 330, 262].forEach((f, i) => nota(f, 0.3, 'triangle', 0.08, i * 0.14)); },
   medalha() { [880, 1175].forEach((f, i) => nota(f, 0.18, 'sine', 0.08, i * 0.09)); },
 };

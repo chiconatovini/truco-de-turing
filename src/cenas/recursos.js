@@ -139,3 +139,15 @@ export function texturaDeInspecao(cena, carta, baralho) {
 export function liberarCartasDaMao(cena) {
   for (const k of cena.textures.getTextureKeys()) if (k.startsWith('carta-mao:')) cena.textures.remove(k);
 }
+
+/**
+ * Converte um retângulo do mundo do jogo (centro x, y e tamanho l × a) em pixels da página,
+ * para posicionar elementos HTML (como as dicas flutuantes) sobre o canvas.
+ */
+export function retanguloNaTela(cena, x, y, l, a) {
+  const canvas = cena.sys.game.canvas, caixa = canvas.getBoundingClientRect(), camera = cena.cameras.main;
+  const kx = caixa.width / canvas.width, ky = caixa.height / canvas.height;
+  const px = (wx) => caixa.left + (wx - camera.worldView.x) * camera.zoom * kx;
+  const py = (wy) => caixa.top + (wy - camera.worldView.y) * camera.zoom * ky;
+  return { x: px(x - l / 2), y: py(y - a / 2), l: px(x + l / 2) - px(x - l / 2), a: py(y + a / 2) - py(y - a / 2) };
+}

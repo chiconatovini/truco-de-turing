@@ -8,6 +8,7 @@ import { carregarProgresso, salvarProgresso } from './conteudo/progresso.js';
 import { CONQUISTAS, VALEM_SEM_MAO_COMPLETA } from './conteudo/conquistas.js';
 import { VERBETES } from './conteudo/grimorio.js';
 import { Som } from './interface/som.js';
+import { Musica } from './interface/musica.js';
 import { fecharTodos, mostrarAviso } from './interface/paineis.js';
 
 /** Opções usadas na primeira visita. */
@@ -22,6 +23,8 @@ export const Aplicacao = {
   verbetesAvisados: {},
   /** Instância do Phaser.Game (definida em principal.js). */
   jogo: null,
+  /** Dicas ligadas nesta sessão (mãos jogadas com dicas não valem conquistas). */
+  dicasLigadas: false,
 
   /** Carrega opções e preferência de som. */
   iniciar() {
@@ -40,6 +43,16 @@ export const Aplicacao = {
     this.progresso.mudo = !Som.estaMudo();
     Som.definirMudo(this.progresso.mudo);
     this.salvar();
+  },
+
+  /**
+   * Liga ou desliga a música de fundo e lembra a escolha.
+   * @param {string} [terreno] Terreno da mesa atual, para já começar a música certa.
+   */
+  alternarMusica(terreno) {
+    this.progresso.musica = !this.progresso.musica;
+    this.salvar();
+    if (this.progresso.musica && terreno) Musica.tocar(terreno); else Musica.parar();
   },
 
   /** Sai do menu e abre a mesa. */

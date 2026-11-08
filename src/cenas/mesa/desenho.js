@@ -31,7 +31,7 @@ export const metodosDeDesenho = {
 
   /** Mostra a dica do turno no rodapé do painel esquerdo. */
   mostrarDica(texto) {
-    ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, PAINEL_ESQ.y + PAINEL_ESQ.a - ESQ.dica - 10, 10.5);
+    ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, ESQ.botoes - 22 - ESQ.dica, 10);
   },
 
   /** Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. */
@@ -128,7 +128,13 @@ export const metodosDeDesenho = {
     this.atualizarBotoes();
     this.atualizarRegistro();
     this.desenharCurva();
-    this.mostrarDica(this.dicaDoCursor || this.textoDaDica());
+    this.mostrarDica(this.dicaDoCursor || this.textoComSugestao());
+  },
+
+  /** Dica do turno e, com as dicas ligadas, a sugestão de jogada. */
+  textoComSugestao() {
+    const sugestao = this.textoDaSugestao();
+    return this.textoDaDica() + (sugestao ? '\n\u2605 Sugestão: ' + sugestao : '');
   },
 
   /**

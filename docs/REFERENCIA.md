@@ -13,6 +13,7 @@ Estado da aplicação fora da partida: opções do menu, progresso salvo, conqui
 | `salvar()` | método | Grava o progresso. |
 | `salvarOpcoes()` | método | Grava as escolhas do menu para a próxima visita. |
 | `alternarSom()` | método | Liga ou desliga o som e lembra a escolha. |
+| `alternarMusica(terreno)` | método | Liga ou desliga a música de fundo e lembra a escolha. |
 | `jogar()` | método | Sai do menu e abre a mesa. |
 | `irParaMenu()` | método | Volta da mesa para o menu. |
 | `modoImersivo()` | método | Em celulares e tablets: tela cheia e trava na horizontal, onde o navegador permite (Chrome no Android). No iPhone isso não existe; ali vale o aviso para girar o aparelho. |
@@ -210,7 +211,7 @@ Cena do menu: fundo animado (uma rede neural pulsando e cartas flutuando) atrás
 
 ## `src/cenas/mesa/CenaMesa.js`
 
-Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos do Grimório | | resultado.js | fim da mão, tentos, conquistas e tela de resultado | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
+Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos do Grimório | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -225,13 +226,14 @@ Parte da CenaMesa: elementos fixos da tela (molduras dos painéis, colunas das c
 |---|---|---|
 | `COR_ROTULO` | constante | Cor do rótulo de cada variante de botão. |
 | `desenharCenarioFixo()` | método | Molduras dos painéis laterais, divisórias e colunas das camadas com seus nomes. |
-| `criarBotao(x, y, l, a, rotulo, acao, opcoes = {})` | método | Cria um botão com textura própria e rótulo que se ajusta à largura. O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`. |
+| `criarBotao(x, y, l, a, rotulo, acao, opcoes = {})` | método | Cria um botão com textura própria e rótulo que se ajusta à largura. O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`. Com `opcoes.dica`, o botão mostra uma dica flutuante (modo "dicas" ligado): ao passar o mouse, ou, no celular, ao segurar o botão apertado. Soltar depois de segurar não executa a ação, para que dê para ler a dica sem jogar sem querer. A ação roda ao soltar o toque/clique. |
 | `criarPaineis()` | método | Cria os textos, imagens e botões dos painéis. Ficam em `this.painel`. |
 | `criarTexto(x, y, s, estilo)` | método | Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. |
 | `criarPainelEsquerdo(p)` | método | Painel esquerdo: inspeção, limbo e cemitério (como pilhas), terreno e dica do turno. |
 | `criarPlacar(p)` | método | Placar (painel direito): título da mão e um bloco por jogador com avatar, nome, nível, situação, detalhes, tentos e soma da rede. O bloco de cima é o adversário de quem está vendo. |
 | `criarBotoesDeAcao(p)` | método | Botão de truco (logo acima das ações) e botões de ação e de sistema. |
 | `atualizarBotaoSom()` | método | Rótulo do botão de som conforme a preferência. |
+| `atualizarChaves()` | método | Rótulos das chaves de dicas e de música. |
 
 ## `src/cenas/mesa/desenho.js`
 
@@ -245,6 +247,7 @@ Parte da CenaMesa: desenhar o estado da mão na tela. Neurônios, mãos, placar,
 | `desenharMaos()` | método | Desenha a mão do jogador de baixo (aberta) e a do de cima (versos). |
 | `notaDaCartaDaMao(carta)` | método | Nota da inspeção para uma carta da mão: onde ela pode ser usada agora. |
 | `atualizarPaineis()` | método | Atualiza os textos e botões dos painéis. |
+| `textoComSugestao()` | método | Dica do turno e, com as dicas ligadas, a sugestão de jogada. |
 | `atualizarPilha(pilha, nome, quantidade, texturaDoTopo)` | método | Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas empilhadas por baixo quando há mais de uma, o contador e o rótulo. |
 | `atualizarBlocoDoJogador(b, j)` | método | Bloco de placar de um jogador: avatar, nome, nível, situação, detalhes, tentos e soma. |
 | `estaNaVez(j)` | método | O jogador `j` está na vez (e a mão está em andamento)? |
@@ -256,6 +259,23 @@ Parte da CenaMesa: desenhar o estado da mão na tela. Neurônios, mãos, placar,
 | `valorSelecionado()` | método | Valor (A, 2…K) das cartas selecionadas na mão. |
 | `calcularAlvos()` | método | Calcula quais neurônios podem ser clicados agora e com que efeito (em `this.alvos`). |
 | `desenharConexoesEAlvos(tempo)` | método | Desenho contínuo (a cada quadro): contorno e conexões de cada rede, com espessura proporcional ao valor, pulsos de "sinal" percorrendo as ligações e o contorno pulsante dos alvos. |
+
+## `src/cenas/mesa/dicas.js`
+
+Parte da CenaMesa: o modo "dicas". Com as dicas ligadas, o jogador recebe: - uma **sugestão de jogada** a cada vez (calculada pela mesma busca gulosa do Gradiente Guloso), marcada com uma estrela no neurônio e nas cartas da mão e escrita na dica do turno; - **dicas flutuantes** no estilo do Grimório nos botões de ação (Dropout, Transfer, Passar e TRUCO): ao passar o mouse ou, no celular, ao segurar o botão. Elas explicam a ação, o conceito de ML por trás e o que vale fazer agora (no truco, a chance estimada de vencer a mão); - a chance de vitória também na caixa de resposta ao truco. Em troca, a mão jogada com dicas (ligadas em algum momento) não vale conquistas nem conta nas estatísticas. O aviso aparece ao ligar.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `SIMULACOES_DA_DICA` | constante | Simulações usadas para estimar a chance de vitória mostrada nas dicas. |
+| `conceitoCurto(id)` | função | Primeira frase do conceito de um verbete (para a linha "conceito" das dicas). |
+| `alternarDicas()` | método | Botão "Ativar dicas": avisa sobre as conquistas antes de ligar; desliga direto. |
+| `calcularSugestao()` | método | Calcula a sugestão para o humano da vez (guardada em `this.sugestao`). |
+| `textoDaSugestao()` | método | Frase da sugestão para a dica do turno. |
+| `desenharSugestao(g, tempo)` | método | Estrela pulsante no neurônio e nas cartas sugeridas (desenhada a cada quadro). |
+| `mostrarDicaDoBotao(chave, x, y, l, a)` | método | Mostra a dica do botão `chave` ao lado do retângulo (x, y, l, a) do mundo do jogo. |
+| `esconderDicaDoBotao()` | método | Esconde a dica flutuante. |
+| `conteudoDaDica(chave)` | método | Texto da dica de cada botão: o que faz, o que vale fazer agora e o conceito de ML. |
+| `dicaDaRespostaAoTruco(quem)` | método | Linha com a chance estimada, para a caixa de resposta ao truco (só com dicas ligadas). |
 
 ## `src/cenas/mesa/efeitos.js`
 
@@ -328,9 +348,13 @@ Parte da CenaMesa: fim da mão. Marca os tentos, registra conquistas e mostra a 
 
 | Nome | Tipo | Descrição |
 |---|---|---|
+| `TROFEU` | constante | Troféu desenhado em SVG para a tela de vitória. |
 | `encerrarMao(corrida)` | método | Encerra a mão. truco, ou null quando a mão foi jogada até o fim. |
+| `comemorar(nivel, nome)` | método | Comemoração da vitória: fanfarra, clarão dourado, faixa grande, fogos e chuva de confete. |
+| `faixaDeVitoria(titulo, subtitulo, duracao)` | método | Faixa dourada de vitória com título e subtítulo, que cresce e pulsa. |
+| `chuvaDeConfete(duracao)` | método | Confete colorido caindo do alto da tela. |
 | `htmlDaRede(j)` | método | HTML com a soma detalhada da rede do jogador `j`. |
-| `mostrarResultado(vencedor, ganho, completa, novas)` | método | Tela de resultado: vencedor, critério, redes, placar de tentos e conquistas novas. |
+| `mostrarResultado()` | método | Tela de resultado: vencedor, critério, redes, placar de tentos, conquistas novas e o botão de revisão da mão. Usa `this.ultimoResultado` (guardado em `encerrarMao`), para poder reabrir depois da revisão. |
 
 ## `src/cenas/mesa/truco.js`
 
@@ -358,6 +382,7 @@ Parte da CenaMesa: o fluxo da mão. Começar a mão, executar jogadas, decidir q
 | `criarNeuronios()` | método | Cria uma imagem clicável para cada neurônio, com a animação de distribuição. |
 | `executarJogada(jogada)` | método | Aplica uma jogada (de qualquer jogador), anima os eventos e segue o fluxo. |
 | `avancar()` | método | Decide o próximo passo: fim da mão, escolha de quem começa, vez do humano ou do oponente. |
+| `anotarNaLinhaDoTempo(jogada, eventos, texto)` | método | Guarda um passo da mão para a revisão didática do fim (interface/telas/revisao.js): quem jogou, o que aconteceu (texto do registro e tipos de evento) e as somas depois da jogada. |
 | `avancarNoInicio()` | método | Fase de início: oponentes escolhem a carta; humanos escolhem um de cada vez. |
 | `passarAparelho(j, continuar)` | método | Modo de dois jogadores: esconde a mão e pede para passar o aparelho. |
 | `vezDoOponente()` | método | Vez do oponente do computador: talvez pede truco, depois escolhe e executa a jogada. `this.notaDoOponente` substitui a linha de nível no painel ("pensando…", resultado da simulação). |
@@ -380,6 +405,7 @@ Recursos compartilhados pelas cenas do Phaser: texto nítido, câmera ajustada �
 | `criarTexturaDeInspecao(cena)` | função (exportada) | Cria a textura única da inspeção, redesenhada a cada carta mostrada. |
 | `texturaDeInspecao(cena, carta, baralho)` | função (exportada) | Desenha a carta na textura da inspeção e devolve a chave dela. |
 | `liberarCartasDaMao(cena)` | função (exportada) | Libera as cartas da mão da mão anterior (memória de vídeo é limitada em celulares). |
+| `retanguloNaTela(cena, x, y, l, a)` | função (exportada) | Converte um retângulo do mundo do jogo (centro x, y e tamanho l × a) em pixels da página, para posicionar elementos HTML (como as dicas flutuantes) sobre o canvas. |
 
 ## `src/configuracao.js`
 
@@ -446,6 +472,26 @@ Menu principal: apresentação do jogo, botões das telas e configuração da me
 | `atualizarDicas()` | função | Atualiza descrições e miniaturas conforme as escolhas. |
 | `lerEscolhas()` | função | Guarda as escolhas atuais na aplicação. |
 
+## `src/interface/musica.js`
+
+Música de fundo sintetizada com WebAudio, uma para cada terreno: | Terreno | Estilo | Andamento | |----------|--------------------------------|-----------| | neutro | blues com balanço (shuffle) em Mi | 92 bpm | | oceano | valsa lenta em Sol, com ondas | 66 bpm (3/4) | | montanha | épica em Lá menor, com tambores | 88 bpm | | pantano | sombria e gótica em Ré menor, órgão e sino | 56 bpm | Cada música é um laço de compassos com acordes, baixo, acompanhamento, melodia e percussão. A melodia é sorteada por compasso com uma semente fixa, então o laço sempre se repete igual. Um agendador olha 0,4 s à frente e marca as notas no relógio do WebAudio (sem atrasos).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `VOLUME` | constante | Volume geral da música (baixo, para não brigar com os efeitos). |
+| `ANTECEDENCIA` | constante | Quanto tempo à frente as notas são agendadas, em segundos. |
+| `hz` | constante | Frequência de uma nota MIDI (69 = Lá 440 Hz). |
+| `sorteador(semente)` | função | Gerador reprodutível (mesmo compasso, mesma melodia). |
+| `voz(saida, tempo, midi, duracao, { forma = 'triangle', volume = 0.1, ataque = 0.01, liberacao = 0.15, filtro = 0, vibrato = 0, desafinar = 0 } = {})` | função | Toca uma nota com envelope (ataque, sustentação, liberação), filtro passa-baixa opcional e vibrato opcional. |
+| `chiado(saida, tempo, duracao, { volume = 0.05, filtro = 8000, tipo = 'highpass', ataque = 0.002 } = {})` | função | Ruído filtrado: chimbal, prato, ondas do mar. |
+| `tambor(saida, tempo, { volume = 0.35, de = 110, para = 42, duracao = 0.45 } = {})` | função | Tambor grave (bumbo, taiko): seno que despenca de frequência. |
+| `sino(saida, tempo, midi, volume = 0.06)` | função | Sino: parciais inarmônicas que somem devagar. |
+| `agendar()` | função | Agenda as notas que caem nos próximos ANTECEDENCIA segundos. |
+| `Musica` | constante (exportada) | Música de fundo: tocar a do terreno, parar, ligar e desligar. |
+| `tocar(terreno)` | método | Começa (ou troca para) a música do terreno, com entrada suave. |
+| `parar()` | método | Para a música com saída suave. |
+| `tocando()` | método | Está tocando? |
+
 ## `src/interface/paineis.js`
 
 Base dos painéis HTML sobrepostos ao canvas: abrir e fechar telas, avisos rápidos e caixas de confirmação. As telas específicas (menu, regras, grimório…) usam estas funções. Os painéis vivem em `#paineis` e os avisos em `#avisos` (ver index.html).
@@ -457,6 +503,8 @@ Base dos painéis HTML sobrepostos ao canvas: abrir e fechar telas, avisos rápi
 | `fecharTodos()` | função (exportada) | Fecha todas as telas abertas. |
 | `mostrarAviso(titulo, texto, tipo, duracaoMs = 5200)` | função (exportada) | Mostra um aviso rápido no topo da tela (só um por vez). |
 | `confirmar(titulo, texto, botoes, opcoes = {})` | função (exportada) | Caixa de confirmação com botões. |
+| `mostrarDicaFlutuante(titulo, html, alvo)` | função (exportada) | Mostra uma dica no estilo do Grimório ao lado de um elemento da mesa (botão, carta). Fica à esquerda do retângulo quando há espaço; senão, acima ou abaixo. |
+| `esconderDicaFlutuante()` | função (exportada) | Esconde a dica flutuante, se houver. |
 
 ## `src/interface/som.js`
 
@@ -464,11 +512,14 @@ Efeitos sonoros sintetizados com WebAudio (nenhum arquivo de áudio). O navegado
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `audio()` | função | Cria (ou retoma) o contexto de áudio. Devolve null se o navegador não tiver WebAudio. |
+| `contextoDeAudio()` | função (exportada) | Cria (ou retoma) o contexto de áudio. Devolve null se o navegador não tiver WebAudio. |
+| `audio()` | função | Contexto de áudio compartilhado com a música (interface/musica.js). |
 | `nota(frequencia, duracao, forma, volume, atraso, deslize)` | função | Toca uma nota curta. |
 | `ruido(duracao, volume, atraso, filtro)` | função | Toca um chiado filtrado (cartas, impactos). |
 | `Som` | constante (exportada) | Efeitos sonoros do jogo, um por acontecimento. |
 | `truco(forca = 1)` | método | Grito de truco: tapa na mesa (baque grave e estalo), depois a fanfarra do pedido. |
+| `fanfarra()` | método | Fanfarra de vitória da mão, no espírito dos fins de fase dos jogos de 8 bits dos anos 80 (melodia original): escalas rápidas em onda quadrada subindo por três acordes, um rufar e o acorde final sustentado com o baixo. |
+| `campeao()` | método | Vitória da partida: a fanfarra seguida de um hino mais longo, com tambores. |
 
 ## `src/interface/telas/conquistas.js`
 
@@ -498,6 +549,24 @@ Tela "Como jogar": resumo das regras, ações, desempates, truco, baralhos e ter
 |---|---|---|
 | `listaDeExtensoes()` | função | Lista "nome: resumo" de baralhos e terrenos (o terreno neutro fica de fora). |
 | `abrirRegras(app, aoFechar)` | função (exportada) | Abre a tela de regras. Na primeira partida ela abre sozinha; ao fechar, chama `aoFechar`. |
+
+## `src/interface/telas/revisao.js`
+
+Tela de revisão didática do fim da mão (e da partida). Mostra, a partir da linha do tempo guardada pela mesa (cenas/mesa/turnos.js): - um resumo com os momentos-chave (maior salto, golpe mais duro, a virada) e o que cada um fez; - a curva de treino das duas redes, passo a passo, com marcas nas ações importantes; - a linha do tempo comentada, ligando cada ação ao conceito de redes neurais do Grimório; - na partida com várias mãos, o placar mão a mão.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `COR` | constante | Cor das redes. |
+| `MARCAS` | constante | Cor e rótulo de cada tipo de acontecimento marcado na curva. |
+| `tipoDoPasso(passo)` | função | Tipo principal de um passo: o evento mais marcante, ou o tipo da jogada. |
+| `VERBETE_DO_TIPO` | constante | Verbete do Grimório ligado a cada tipo de passo. |
+| `variacoes(passos)` | função | Diferença das somas em relação ao passo anterior. |
+| `momentosChave(passos, nomes)` | função | Momentos-chave da mão, em frases curtas. |
+| `contagens(passos)` | função | Quantas vezes cada jogador fez cada tipo de ação. |
+| `graficoDaCurva(passos, nomes)` | função | Gráfico SVG da curva de treino com as marcas das ações. |
+| `linhaDoTempoHtml(passos, nomes)` | função | Linha do tempo comentada: cada passo, a variação das somas e o conceito (na primeira vez). |
+| `tabelaDaPartida(historico, nomes)` | função | Placar mão a mão da partida. |
+| `abrirRevisao({ mao, linhaDoTempo, partida, historicoDaPartida, numeroDaMao, aoFechar })` | função (exportada) | Abre a revisão. |
 
 ## `src/interface/telas/sobre.js`
 

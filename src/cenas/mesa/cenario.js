@@ -45,7 +45,11 @@ export const metodosDoCenario = {
   /**
    * Cria um botão com textura própria e rótulo que se ajusta à largura.
    * O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`.
-   * @param {{variante?: 'ouro'|'vinho'|'pedra', tamanho?: number}} [opcoes]
+   *
+   * Com `opcoes.dica`, o botão mostra uma dica flutuante (modo "dicas" ligado): ao passar o mouse,
+   * ou, no celular, ao segurar o botão apertado. Soltar depois de segurar não executa a ação,
+   * para que dê para ler a dica sem jogar sem querer. A ação roda ao soltar o toque/clique.
+   * @param {{variante?: 'ouro'|'vinho'|'pedra', tamanho?: number, dica?: string}} [opcoes]
    */
   criarBotao(x, y, l, a, rotulo, acao, opcoes = {}) {
     const variante = opcoes.variante || 'ouro';
@@ -63,9 +67,28 @@ export const metodosDoCenario = {
     botao.setInteractive({ useHandCursor: true });
     botao.habilitado = true;
     const pintar = (estado) => fundo.setTexture(textura(estado)).setDisplaySize(l + MARGEM_BOTAO * 2, a + MARGEM_BOTAO * 2);
-    botao.on('pointerover', () => { if (botao.habilitado) pintar('foco'); });
-    botao.on('pointerout', () => pintar(botao.habilitado ? 'normal' : 'inativo'));
-    botao.on('pointerdown', () => { if (botao.habilitado) { Som.selecionar(); acao(); } });
+    const temDica = () => opcoes.dica && this.app.dicasLigadas;
+    const mostrarDica = () => this.mostrarDicaDoBotao(opcoes.dica, x, y, l, a);
+    let segurando = null, segurou = false;
+    botao.on('pointerover', (ponteiro) => {
+      if (botao.habilitado) pintar('foco');
+      if (temDica() && !ponteiro.wasTouch) mostrarDica();
+    });
+    botao.on('pointerout', () => {
+      pintar(botao.habilitado ? 'normal' : 'inativo');
+      clearTimeout(segurando);
+      if (!segurou) this.esconderDicaDoBotao();
+    });
+    botao.on('pointerdown', () => {
+      segurou = false;
+      clearTimeout(segurando);
+      if (temDica()) segurando = setTimeout(() => { segurou = true; mostrarDica(); }, 450);
+    });
+    botao.on('pointerup', () => {
+      clearTimeout(segurando);
+      if (segurou) { segurou = false; setTimeout(() => this.esconderDicaDoBotao(), 2200); return; }
+      if (botao.habilitado) { Som.selecionar(); acao(); }
+    });
     botao.definirRotulo = (s) => { ajustarLinha(texto, s, tamanho, l - 18, 9); return botao; };
     botao.habilitar = (sim) => {
       if (botao.habilitado === sim) return botao;
@@ -85,6 +108,7 @@ export const metodosDoCenario = {
     this.criarPlacar(p);
     this.criarBotoesDeAcao(p);
     this.atualizarBotaoSom();
+    this.atualizarChaves();
   },
 
   /** Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. */
@@ -126,6 +150,14 @@ export const metodosDoCenario = {
       this.inspecionar('terreno-' + this.opcoes.terreno, t.nome + ': ' + t.resumo);
     });
     p.dica = this.criarTexto(PAINEL_ESQ.x + 14, ESQ.dica, '', { fontSize: '13.5px', color: '#efe3c6', wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
+
+    /* chaves de dicas e música, no rodapé do painel esquerdo */
+    const lb = (PAINEL_ESQ.l - 28 - 8) / 2, pedra = { tamanho: 12, variante: 'pedra' };
+    p.botaoDicas = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, 32, 'Ativar dicas', () => this.alternarDicas(), pedra);
+    p.botaoMusica = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, 32, 'Música', () => {
+      this.app.alternarMusica(this.opcoes.terreno);
+      this.atualizarChaves();
+    }, pedra);
 
     /* balão de fala do oponente (aponta para o avatar dele no placar) */
     p.balao = this.add.container(800, 40).setDepth(30).setVisible(false);
@@ -169,11 +201,11 @@ export const metodosDoCenario = {
   /** Botão de truco (logo acima das ações) e botões de ação e de sistema. */
   criarBotoesDeAcao(p) {
     const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-    p.truco = this.criarBotao(rc, DIR.truco, rl, 44, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 20 });
+    p.truco = this.criarBotao(rc, DIR.truco, rl, 44, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 20, dica: 'truco' });
     const bl = (rl - 8) / 2, c1 = rx + bl / 2, c2 = rx + rl - bl / 2;
-    p.botaoDropout = this.criarBotao(c1, 596, bl, 36, 'Dropout', () => this.alternarDropout());
-    p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, 'Transfer', () => this.fazerTransfer());
-    p.botaoPassar = this.criarBotao(c1, 638, bl, 36, 'Passar a vez', () => this.passarAVez());
+    p.botaoDropout = this.criarBotao(c1, 596, bl, 36, 'Dropout', () => this.alternarDropout(), { dica: 'dropout' });
+    p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, 'Transfer', () => this.fazerTransfer(), { dica: 'transfer' });
+    p.botaoPassar = this.criarBotao(c1, 638, bl, 36, 'Passar a vez', () => this.passarAVez(), { dica: 'passar' });
     p.botaoRegras = this.criarBotao(c2, 638, bl, 36, 'Regras', () => abrirRegras(null));
     const larguraPequena = (rl - 12) / 3;
     const pedra = { tamanho: 12, variante: 'pedra' };
@@ -185,5 +217,11 @@ export const metodosDoCenario = {
   /** Rótulo do botão de som conforme a preferência. */
   atualizarBotaoSom() {
     this.painel.botaoSom.definirRotulo(Som.estaMudo() ? 'Som: não' : 'Som: sim');
+  },
+
+  /** Rótulos das chaves de dicas e de música. */
+  atualizarChaves() {
+    this.painel.botaoDicas.definirRotulo(this.app.dicasLigadas ? 'Dicas ligadas' : 'Ativar dicas');
+    this.painel.botaoMusica.definirRotulo(this.app.progresso.musica ? 'Música: sim' : 'Música: não');
   },
 };

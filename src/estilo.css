@@ -254,6 +254,63 @@ html, body { overscroll-behavior: none; }
 .aviso.medalha-aviso { border-color: var(--latao); background: #2b1608; color: #f6dc8f; }
 .aviso.medalha-aviso b { color: var(--latao); }
 
+/* ---------- Vitória: tela de resultado em festa ---------- */
+.folha.vitoria {
+  border-color: var(--latao);
+  box-shadow: 0 0 0 3px rgba(217, 178, 96, 0.55), 0 0 60px rgba(246, 220, 143, 0.45), 0 30px 80px rgba(0, 0, 0, 0.6);
+  animation: surgir 0.3s ease-out, brilhar-vitoria 2.4s ease-in-out infinite;
+}
+.folha.vitoria h2 {
+  font-size: clamp(26px, 4vw, 38px); text-align: center;
+  background: linear-gradient(180deg, #fff1b8 0%, #e7b23a 45%, #8a5a10 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(58, 36, 6, 0.6));
+}
+.folha.vitoria > p:first-of-type { text-align: center; }
+.folha.campeao h2 { font-size: clamp(28px, 4.6vw, 44px); }
+.trofeu { display: flex; justify-content: center; margin: -4px 0 2px; animation: pulo-trofeu 1.2s ease-in-out infinite; }
+.folha.campeao .trofeu svg { width: 96px; height: 96px; }
+.sem-conquistas { font-style: italic; color: #7a6a4c; font-size: 14px; }
+@keyframes brilhar-vitoria { 50% { box-shadow: 0 0 0 3px rgba(217, 178, 96, 0.85), 0 0 90px rgba(246, 220, 143, 0.7), 0 30px 80px rgba(0, 0, 0, 0.6); } }
+@keyframes pulo-trofeu { 50% { transform: translateY(-6px) rotate(-3deg); } }
+
+/* ---------- Revisão da mão ---------- */
+.revisao .introducao { margin-top: 0; }
+.revisao .resumo { padding-left: 18px; }
+.revisao .resumo li { margin: 4px 0; }
+.revisao .resumo li[style] { list-style: none; margin-left: -18px; padding-left: 10px; border-left: 4px solid var(--cor); }
+.curva-svg { width: 100%; height: auto; background: #f7efdb; border: 1px solid #cdb98e; border-radius: 10px; }
+.curva-svg .grade { stroke: rgba(60, 40, 20, 0.15); }
+.curva-svg .eixo { font: 11px var(--fonte-texto); fill: #7a6a4c; }
+.curva-svg .linha-truco { stroke: var(--vinho); stroke-width: 2; stroke-dasharray: 5 4; }
+.curva-svg .marca text { font: 700 9.5px var(--fonte-texto); fill: #fff; pointer-events: none; }
+.curva-svg .marca { cursor: help; }
+.curva-legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 13px; }
+.curva-legenda i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+.curva-legenda i.redonda { width: 11px; height: 11px; border-radius: 50%; }
+.dica-grafico { font-size: 13px; font-style: italic; color: #7a6a4c; }
+.linha-do-tempo { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.linha-do-tempo li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; padding: 7px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.45); border-left: 4px solid var(--cor); font-size: 14.5px; }
+.linha-do-tempo .numero { font: 700 13px var(--fonte-titulo); color: var(--cor); text-align: center; padding-top: 2px; }
+.linha-do-tempo .tipo { display: inline-block; color: #fff; font: 700 10.5px var(--fonte-titulo); letter-spacing: 0.04em; padding: 2px 7px; border-radius: 99px; vertical-align: 1px; }
+.linha-do-tempo .variacoes { white-space: nowrap; }
+.linha-do-tempo .variacao { display: inline-block; font-weight: 700; font-size: 12.5px; padding: 0 6px; border-radius: 6px; margin-left: 4px; color: var(--cor); background: rgba(0, 0, 0, 0.05); }
+.linha-do-tempo .variacao.desce { text-decoration: underline wavy rgba(208, 40, 60, 0.6); }
+.conceito-passo { margin-top: 5px; font-size: 13px; font-style: italic; color: #4b3a26; }
+.tabela-partida { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.tabela-partida th, .tabela-partida td { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(60, 40, 20, 0.15); }
+.tabela-partida th { font: 700 11px var(--fonte-titulo); letter-spacing: 0.06em; color: #6b1a22; }
+
+/* Dica flutuante dos botões da mesa (modo "dicas"), no estilo dos avisos do Grimório */
+.dica-flutuante {
+  position: fixed; z-index: 12; width: min(300px, calc(100vw - 16px)); pointer-events: none;
+  background: var(--pergaminho); color: var(--tinta); border: 2px solid #0d0a08; border-radius: 10px;
+  padding: 9px 13px 10px; box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55); font-family: var(--fonte-texto); font-size: 13.5px; line-height: 1.38;
+  animation: subir 0.18s ease-out;
+}
+.dica-flutuante b { font-family: var(--fonte-titulo); font-size: 13.5px; display: block; color: #6b1a22; letter-spacing: 0.04em; margin-bottom: 2px; }
+.dica-flutuante .agora { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(60, 40, 20, 0.35); font-weight: 600; }
+.dica-flutuante .conceito { display: block; margin-top: 4px; font-style: italic; color: #4b3a26; font-size: 12.5px; }
+
 /* Aviso de rotação: só durante a partida, em celulares na vertical */
 #girar {
   position: fixed; inset: 0; z-index: 20; display: none; place-items: center;
@@ -298,5 +355,5 @@ html, body { overscroll-behavior: none; }
   .grito-truco .grito { font-size: 46px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .camada, .folha, .aviso { animation: none; }
+  .camada, .folha, .aviso, .trofeu, .folha.vitoria { animation: none; }
 }

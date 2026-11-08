@@ -86,10 +86,11 @@ src/
   recursos/
     retratoProfessor.js       foto do professor embutida (data URI)
   interface/
-    som.js                    efeitos sonoros sintetizados (WebAudio)
+    som.js                    efeitos sonoros sintetizados (WebAudio), fanfarras de vitória
+    musica.js                 música de fundo por terreno (blues, valsa, épica, gótica)
     paineis.js                abrir/fechar painéis, avisos e confirmações
     menu.js                   menu inicial e configuração da mesa
-    telas/                    regras, grimório, conquistas, sobre
+    telas/                    regras, grimório, conquistas, sobre e revisão da mão
   cenas/
     recursos.js               câmera, texto nítido, fundo e texturas sob demanda
     CenaCarregamento.js       espera fontes e gera texturas fixas
@@ -202,7 +203,8 @@ copiados para o protótipo com `Object.assign` no fim de `CenaMesa.js`. Dentro d
 | `turnos.js` | fluxo da mão: `iniciarMao`, `executarJogada`, `avancar`, vez do oponente, troca de aparelho |
 | `truco.js` | pedir, anunciar e responder truco |
 | `efeitos.js` | animação de cada evento, faíscas, faixas, balão de fala e avisos do Grimório |
-| `resultado.js` | fim da mão, tentos, conquistas e tela de resultado |
+| `resultado.js` | fim da mão, tentos, conquistas, comemoração da vitória e tela de resultado |
+| `dicas.js` | modo dicas: sugestão de jogada (busca gulosa) e dicas flutuantes dos botões |
 
 O ciclo de uma jogada:
 
@@ -221,6 +223,21 @@ Estado da cena: `this.partida` (tentos), `this.mao` (mão atual), `this.quemVe` 
 −1 durante a troca de aparelho), `this.modo` (`'livre'`, `'inicio'`, `'dropout'`, `'pagarDropout'`),
 `this.selecao` (cartas escolhidas), `this.alvos` (neurônios clicáveis), `this.ocupada` (bloqueia
 cliques durante animações) e `this.encerrada`.
+
+### 5.1 Dicas, revisão e música
+
+- **Dicas** (`dicas.js`): a chave "Ativar dicas" fica em `Aplicacao.dicasLigadas` (só na sessão).
+  Ligada, calcula a cada vez do humano uma sugestão com `jogadaGulosa` e mostra dicas flutuantes nos
+  botões que recebem `opcoes.dica` em `criarBotao` (mouse: ao passar; toque: segurar 0,45 s, e soltar
+  depois de segurar não executa a ação). A mão fica marcada em `this.dicasNaMao` e, no fim, não é
+  registrada em `Aplicacao.registrarMao` (sem conquistas nem estatísticas).
+- **Revisão** (`interface/telas/revisao.js`): cada jogada e cada lance de truco viram um passo em
+  `this.linhaDoTempo` (`anotarNaLinhaDoTempo`, em `turnos.js`), com as somas depois do passo. A revisão
+  desenha a curva em SVG, aponta maior salto, golpe mais duro e virada, e liga cada tipo de passo ao
+  verbete do Grimório. `this.historicoDaPartida` guarda o placar mão a mão.
+- **Música** (`interface/musica.js`): cada terreno tem uma música definida por andamento, acordes por
+  compasso e uma função `tocar` chamada a cada passo. Um agendador marca as notas 0,4 s à frente no
+  relógio do WebAudio. Para uma música nova, acrescente uma entrada em `MUSICAS` com a chave do terreno.
 
 ## 6. Arte e nitidez
 

@@ -18,7 +18,7 @@ export const PAINEL_DIR = { x: 962, y: 8, l: 310, a: 704 };
  */
 export const ESQ = {
   titulo: 26, inspecao: 182, nota: 326, divisoria1: 378,
-  pilhas: 442, pilha: { l: 66, a: 92 }, rotulosPilha: 498, terreno: 518, divisoria2: 566, dica: 578,
+  pilhas: 442, pilha: { l: 66, a: 92 }, rotulosPilha: 498, terreno: 518, divisoria2: 566, dica: 578, botoes: 684,
 };
 
 /**

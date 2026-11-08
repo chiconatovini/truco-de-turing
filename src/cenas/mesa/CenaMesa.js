@@ -12,7 +12,8 @@
  * | turnos.js     | fluxo da mão: iniciar, executar jogada, vez de cada jogador         |
  * | truco.js      | pedir, anunciar e responder truco                                  |
  * | efeitos.js    | animações dos eventos, faíscas, faixas, balão e avisos do Grimório  |
- * | resultado.js  | fim da mão, tentos, conquistas e tela de resultado                  |
+ * | resultado.js  | fim da mão, tentos, conquistas, comemoração e tela de resultado     |
+ * | dicas.js      | modo dicas: sugestão de jogada e dicas flutuantes dos botões        |
  *
  * Estado principal da cena:
  * - `this.partida`: placar de tentos e truco (nucleo/truco.js);
@@ -33,6 +34,9 @@ import { metodosDeTurnos } from './turnos.js';
 import { metodosDoTruco } from './truco.js';
 import { metodosDeEfeitos } from './efeitos.js';
 import { metodosDoResultado } from './resultado.js';
+import { metodosDeDicas } from './dicas.js';
+import { Musica } from '../../interface/musica.js';
+import { esconderDicaFlutuante } from '../../interface/paineis.js';
 
 export class CenaMesa extends Phaser.Scene {
   constructor() { super('Mesa'); }
@@ -58,7 +62,9 @@ export class CenaMesa extends Phaser.Scene {
     this.criarPaineis();
 
     this.input.keyboard?.on('keydown-ESC', () => this.cancelarSelecao());
-    this.events.once('shutdown', () => { this.encerrada = true; });
+    this.events.once('shutdown', () => { this.encerrada = true; esconderDicaFlutuante(); Musica.parar(); });
+    this.historicoDaPartida = [];
+    if (this.app.progresso.musica) Musica.tocar(this.opcoes.terreno);
     const comecar = () => this.iniciarMao();
     if (!this.app.progresso.tutorialVisto) abrirRegras(this.app, comecar);
     else comecar();
@@ -68,10 +74,11 @@ export class CenaMesa extends Phaser.Scene {
   update(tempo) {
     if (!this.mao) return;
     this.desenharConexoesEAlvos(tempo);
+    this.desenharSugestao(this.camadaDestaques, tempo);
     this.desenharDestaqueDaVez(tempo);
   }
 }
 
 Object.assign(CenaMesa.prototype,
   metodosDoCenario, metodosDeDesenho, metodosDeEntrada, metodosDeTurnos,
-  metodosDoTruco, metodosDeEfeitos, metodosDoResultado);
+  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas);

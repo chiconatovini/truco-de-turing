@@ -266,6 +266,63 @@ html, body { overscroll-behavior: none; }
 .aviso.medalha-aviso { border-color: var(--latao); background: #2b1608; color: #f6dc8f; }
 .aviso.medalha-aviso b { color: var(--latao); }
 
+/* ---------- Vitória: tela de resultado em festa ---------- */
+.folha.vitoria {
+  border-color: var(--latao);
+  box-shadow: 0 0 0 3px rgba(217, 178, 96, 0.55), 0 0 60px rgba(246, 220, 143, 0.45), 0 30px 80px rgba(0, 0, 0, 0.6);
+  animation: surgir 0.3s ease-out, brilhar-vitoria 2.4s ease-in-out infinite;
+}
+.folha.vitoria h2 {
+  font-size: clamp(26px, 4vw, 38px); text-align: center;
+  background: linear-gradient(180deg, #fff1b8 0%, #e7b23a 45%, #8a5a10 100%); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 rgba(58, 36, 6, 0.6));
+}
+.folha.vitoria > p:first-of-type { text-align: center; }
+.folha.campeao h2 { font-size: clamp(28px, 4.6vw, 44px); }
+.trofeu { display: flex; justify-content: center; margin: -4px 0 2px; animation: pulo-trofeu 1.2s ease-in-out infinite; }
+.folha.campeao .trofeu svg { width: 96px; height: 96px; }
+.sem-conquistas { font-style: italic; color: #7a6a4c; font-size: 14px; }
+@keyframes brilhar-vitoria { 50% { box-shadow: 0 0 0 3px rgba(217, 178, 96, 0.85), 0 0 90px rgba(246, 220, 143, 0.7), 0 30px 80px rgba(0, 0, 0, 0.6); } }
+@keyframes pulo-trofeu { 50% { transform: translateY(-6px) rotate(-3deg); } }
+
+/* ---------- Revisão da mão ---------- */
+.revisao .introducao { margin-top: 0; }
+.revisao .resumo { padding-left: 18px; }
+.revisao .resumo li { margin: 4px 0; }
+.revisao .resumo li[style] { list-style: none; margin-left: -18px; padding-left: 10px; border-left: 4px solid var(--cor); }
+.curva-svg { width: 100%; height: auto; background: #f7efdb; border: 1px solid #cdb98e; border-radius: 10px; }
+.curva-svg .grade { stroke: rgba(60, 40, 20, 0.15); }
+.curva-svg .eixo { font: 11px var(--fonte-texto); fill: #7a6a4c; }
+.curva-svg .linha-truco { stroke: var(--vinho); stroke-width: 2; stroke-dasharray: 5 4; }
+.curva-svg .marca text { font: 700 9.5px var(--fonte-texto); fill: #fff; pointer-events: none; }
+.curva-svg .marca { cursor: help; }
+.curva-legenda { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 13px; }
+.curva-legenda i { display: inline-block; width: 18px; height: 4px; border-radius: 2px; vertical-align: middle; margin-right: 5px; }
+.curva-legenda i.redonda { width: 11px; height: 11px; border-radius: 50%; }
+.dica-grafico { font-size: 13px; font-style: italic; color: #7a6a4c; }
+.linha-do-tempo { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.linha-do-tempo li { display: grid; grid-template-columns: 30px 1fr; gap: 10px; align-items: start; padding: 7px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.45); border-left: 4px solid var(--cor); font-size: 14.5px; }
+.linha-do-tempo .numero { font: 700 13px var(--fonte-titulo); color: var(--cor); text-align: center; padding-top: 2px; }
+.linha-do-tempo .tipo { display: inline-block; color: #fff; font: 700 10.5px var(--fonte-titulo); letter-spacing: 0.04em; padding: 2px 7px; border-radius: 99px; vertical-align: 1px; }
+.linha-do-tempo .variacoes { white-space: nowrap; }
+.linha-do-tempo .variacao { display: inline-block; font-weight: 700; font-size: 12.5px; padding: 0 6px; border-radius: 6px; margin-left: 4px; color: var(--cor); background: rgba(0, 0, 0, 0.05); }
+.linha-do-tempo .variacao.desce { text-decoration: underline wavy rgba(208, 40, 60, 0.6); }
+.conceito-passo { margin-top: 5px; font-size: 13px; font-style: italic; color: #4b3a26; }
+.tabela-partida { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.tabela-partida th, .tabela-partida td { text-align: left; padding: 6px 8px; border-bottom: 1px solid rgba(60, 40, 20, 0.15); }
+.tabela-partida th { font: 700 11px var(--fonte-titulo); letter-spacing: 0.06em; color: #6b1a22; }
+
+/* Dica flutuante dos botões da mesa (modo "dicas"), no estilo dos avisos do Grimório */
+.dica-flutuante {
+  position: fixed; z-index: 12; width: min(300px, calc(100vw - 16px)); pointer-events: none;
+  background: var(--pergaminho); color: var(--tinta); border: 2px solid #0d0a08; border-radius: 10px;
+  padding: 9px 13px 10px; box-shadow: 0 12px 34px rgba(0, 0, 0, 0.55); font-family: var(--fonte-texto); font-size: 13.5px; line-height: 1.38;
+  animation: subir 0.18s ease-out;
+}
+.dica-flutuante b { font-family: var(--fonte-titulo); font-size: 13.5px; display: block; color: #6b1a22; letter-spacing: 0.04em; margin-bottom: 2px; }
+.dica-flutuante .agora { display: block; margin-top: 6px; padding-top: 6px; border-top: 1px dashed rgba(60, 40, 20, 0.35); font-weight: 600; }
+.dica-flutuante .conceito { display: block; margin-top: 4px; font-style: italic; color: #4b3a26; font-size: 12.5px; }
+
 /* Aviso de rotação: só durante a partida, em celulares na vertical */
 #girar {
   position: fixed; inset: 0; z-index: 20; display: none; place-items: center;
@@ -310,7 +367,7 @@ html, body { overscroll-behavior: none; }
   .grito-truco .grito { font-size: 46px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .camada, .folha, .aviso { animation: none; }
+  .camada, .folha, .aviso, .trofeu, .folha.vitoria { animation: none; }
 }
 
 </style>
@@ -381,6 +438,7 @@ html, body { overscroll-behavior: none; }
       baralhos: {},
       desbloqueadas: {},
       mudo: false,
+      musica: false,
       tutorialVisto: false,
       opcoes: null
     };
@@ -779,6 +837,9 @@ html, body { overscroll-behavior: none; }
   // src/interface/som.js
   var contexto = null;
   var mudo = false;
+  function contextoDeAudio() {
+    return audio();
+  }
   function audio() {
     if (!contexto) {
       const Contexto = globalThis.AudioContext || globalThis.webkitAudioContext;
@@ -874,11 +935,290 @@ html, body { overscroll-behavior: none; }
     vitoria() {
       [523, 659, 784, 1047].forEach((f, i) => nota(f, 0.22, "triangle", 0.09, i * 0.1));
     },
+    /**
+     * Fanfarra de vitória da mão, no espírito dos fins de fase dos jogos de 8 bits dos anos 80
+     * (melodia original): escalas rápidas em onda quadrada subindo por três acordes, um rufar e o
+     * acorde final sustentado com o baixo.
+     */
+    fanfarra() {
+      const passo = 0.075;
+      const subidas = [[392, 523, 659, 784], [440, 554, 659, 880], [494, 622, 740, 988]];
+      subidas.forEach((acorde, k) => {
+        acorde.forEach((f, i) => nota(f, 0.12, "square", 0.07, (k * 5 + i) * passo));
+        nota(acorde[0] / 2, 0.3, "triangle", 0.12, k * 5 * passo);
+      });
+      const fim = 15 * passo;
+      for (let i = 0; i < 6; i++) ruido(0.05, 0.12, fim + i * 0.045, 2500);
+      [1047, 1319, 1568, 2093].forEach((f) => nota(f, 1.1, "square", 0.045, fim + 0.3));
+      nota(262, 1.1, "triangle", 0.16, fim + 0.3);
+      nota(131, 1.2, "sawtooth", 0.06, fim + 0.3);
+      [1568, 2093].forEach((f, i) => nota(f, 0.08, "square", 0.05, fim + 1.45 + i * 0.09));
+    },
+    /** Vitória da partida: a fanfarra seguida de um hino mais longo, com tambores. */
+    campeao() {
+      Som.fanfarra();
+      const t0 = 2, tempo = 0.24;
+      const melodia = [523, 659, 784, 1047, 988, 784, 880, 1047, 1175, 1319, 1175, 1568];
+      melodia.forEach((f, i) => {
+        nota(f, tempo * 1.6, "square", 0.055, t0 + i * tempo);
+        if (i % 2 === 0) {
+          nota(70, 0.25, "sine", 0.22, t0 + i * tempo, 40);
+          ruido(0.12, 0.18, t0 + i * tempo, 700);
+        }
+      });
+      [523, 659, 784, 1047].forEach((f) => nota(f, 1.8, "sawtooth", 0.04, t0 + melodia.length * tempo));
+      nota(131, 2, "triangle", 0.18, t0 + melodia.length * tempo);
+      ruido(1.4, 0.2, t0 + melodia.length * tempo, 6e3);
+    },
     derrota() {
       [392, 330, 262].forEach((f, i) => nota(f, 0.3, "triangle", 0.08, i * 0.14));
     },
     medalha() {
       [880, 1175].forEach((f, i) => nota(f, 0.18, "sine", 0.08, i * 0.09));
+    }
+  };
+
+  // src/interface/musica.js
+  var VOLUME = 0.55;
+  var ANTECEDENCIA = 0.4;
+  var hz = (midi) => 440 * Math.pow(2, (midi - 69) / 12);
+  function sorteador(semente) {
+    let a = semente >>> 0;
+    return () => {
+      a = a + 1831565813 >>> 0;
+      let t = a;
+      t = Math.imul(t ^ t >>> 15, t | 1);
+      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function voz(saida, tempo, midi, duracao, { forma = "triangle", volume = 0.1, ataque = 0.01, liberacao = 0.15, filtro = 0, vibrato = 0, desafinar = 0 } = {}) {
+    const a = saida.context;
+    const osc = a.createOscillator(), ganho = a.createGain();
+    osc.type = forma;
+    osc.frequency.setValueAtTime(hz(midi), tempo);
+    osc.detune.setValueAtTime(desafinar, tempo);
+    let no = osc;
+    if (filtro) {
+      const f = a.createBiquadFilter();
+      f.type = "lowpass";
+      f.frequency.value = filtro;
+      f.Q.value = 0.7;
+      osc.connect(f);
+      no = f;
+    }
+    if (vibrato) {
+      const lfo = a.createOscillator(), profundidade = a.createGain();
+      lfo.frequency.value = 5;
+      profundidade.gain.value = vibrato;
+      lfo.connect(profundidade);
+      profundidade.connect(osc.detune);
+      lfo.start(tempo);
+      lfo.stop(tempo + duracao + liberacao + 0.05);
+    }
+    ganho.gain.setValueAtTime(1e-4, tempo);
+    ganho.gain.exponentialRampToValueAtTime(volume, tempo + ataque);
+    ganho.gain.setValueAtTime(volume, tempo + Math.max(ataque, duracao - 0.02));
+    ganho.gain.exponentialRampToValueAtTime(1e-4, tempo + duracao + liberacao);
+    no.connect(ganho);
+    ganho.connect(saida);
+    osc.start(tempo);
+    osc.stop(tempo + duracao + liberacao + 0.05);
+  }
+  function chiado(saida, tempo, duracao, { volume = 0.05, filtro = 8e3, tipo = "highpass", ataque = 2e-3 } = {}) {
+    const a = saida.context;
+    const buffer = a.createBuffer(1, Math.max(1, Math.floor(a.sampleRate * duracao)), a.sampleRate);
+    const dados = buffer.getChannelData(0);
+    for (let i = 0; i < dados.length; i++) dados[i] = Math.random() * 2 - 1;
+    const fonte = a.createBufferSource();
+    fonte.buffer = buffer;
+    const f = a.createBiquadFilter();
+    f.type = tipo;
+    f.frequency.value = filtro;
+    const ganho = a.createGain();
+    ganho.gain.setValueAtTime(1e-4, tempo);
+    ganho.gain.exponentialRampToValueAtTime(volume, tempo + ataque);
+    ganho.gain.exponentialRampToValueAtTime(1e-4, tempo + duracao);
+    fonte.connect(f);
+    f.connect(ganho);
+    ganho.connect(saida);
+    fonte.start(tempo);
+    fonte.stop(tempo + duracao + 0.02);
+  }
+  function tambor(saida, tempo, { volume = 0.35, de = 110, para = 42, duracao = 0.45 } = {}) {
+    const a = saida.context;
+    const osc = a.createOscillator(), ganho = a.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(de, tempo);
+    osc.frequency.exponentialRampToValueAtTime(para, tempo + duracao * 0.8);
+    ganho.gain.setValueAtTime(volume, tempo);
+    ganho.gain.exponentialRampToValueAtTime(1e-4, tempo + duracao);
+    osc.connect(ganho);
+    ganho.connect(saida);
+    osc.start(tempo);
+    osc.stop(tempo + duracao + 0.05);
+  }
+  function sino(saida, tempo, midi, volume = 0.06) {
+    for (const [razao, peso, dur] of [[1, 1, 3.5], [2.76, 0.5, 2.2], [5.4, 0.25, 1.2], [0.5, 0.4, 4]]) {
+      const a = saida.context, osc = a.createOscillator(), ganho = a.createGain();
+      osc.type = "sine";
+      osc.frequency.value = hz(midi) * razao;
+      ganho.gain.setValueAtTime(1e-4, tempo);
+      ganho.gain.exponentialRampToValueAtTime(volume * peso, tempo + 0.01);
+      ganho.gain.exponentialRampToValueAtTime(1e-4, tempo + dur);
+      osc.connect(ganho);
+      ganho.connect(saida);
+      osc.start(tempo);
+      osc.stop(tempo + dur + 0.05);
+    }
+  }
+  var MUSICAS = {
+    /* Blues em Mi, 12 compassos, com baixo "boogie" e balanço */
+    neutro: {
+      bpm: 92,
+      tempos: 4,
+      subdivisao: 2,
+      balanco: 0.33,
+      acordes: [40, 40, 40, 40, 45, 45, 40, 40, 47, 45, 40, 47].map((r) => [r, r + 4, r + 7, r + 10]),
+      tocar(s, t, compasso, passo, acorde, sortear2, d) {
+        const r = acorde[0];
+        const boogie = [0, 4, 7, 9, 10, 9, 7, 4];
+        voz(s, t, r + boogie[passo], d * 0.9, { forma: "triangle", volume: 0.13, liberacao: 0.05 });
+        if (passo === 2 || passo === 6) {
+          for (const n of acorde.slice(1)) voz(s, t, n + 12, d * 0.6, { forma: "square", volume: 0.018, filtro: 1800, liberacao: 0.08 });
+        }
+        if (passo % 2 === 1) chiado(s, t, 0.05, { volume: 0.025, filtro: 7e3 });
+        if (passo === 0 || passo === 4) tambor(s, t, { volume: 0.12, de: 90, para: 50, duracao: 0.25 });
+        if (compasso % 2 === 1 && passo % 2 === 0 && sortear2() < 0.7) {
+          const blues = [0, 3, 5, 6, 7, 10, 12];
+          const nota2 = 64 + blues[Math.floor(sortear2() * blues.length)];
+          voz(s, t, nota2, d * (sortear2() < 0.3 ? 2 : 1), { forma: "sawtooth", volume: 0.03, filtro: 2200, vibrato: 12, liberacao: 0.12 });
+        }
+      }
+    },
+    /* Valsa lenta em Sol, compasso 3/4: baixo no 1, acordes no 2 e no 3, melodia cantada e o mar ao fundo */
+    oceano: {
+      bpm: 66,
+      tempos: 3,
+      subdivisao: 1,
+      balanco: 0,
+      acordes: [[43, 55, 59, 62], [40, 55, 59, 64], [36, 55, 60, 64], [38, 54, 57, 62], [43, 55, 59, 62], [47, 54, 59, 62], [36, 55, 60, 64], [38, 54, 57, 60]],
+      tocar(s, t, compasso, passo, acorde, sortear2, d) {
+        if (passo === 0) {
+          voz(s, t, acorde[0], d * 1.2, { forma: "sine", volume: 0.2, ataque: 0.02, liberacao: 0.5 });
+          if (compasso % 2 === 0) chiado(s, t, d * 5, { volume: 0.025, filtro: 600, tipo: "lowpass", ataque: d * 2.2 });
+        } else {
+          for (const n of acorde.slice(1)) voz(s, t, n, d * 0.8, { forma: "triangle", volume: 0.035, ataque: 0.03, liberacao: 0.3 });
+        }
+        if (passo === 0 || passo === 2 && sortear2() < 0.45) {
+          const escolhidas = acorde.slice(1).map((n) => n + 12);
+          const nota2 = escolhidas[Math.floor(sortear2() * escolhidas.length)];
+          voz(s, t, nota2, passo === 0 ? d * 1.9 : d * 0.9, { forma: "sine", volume: 0.07, ataque: 0.06, liberacao: 0.6, vibrato: 8 });
+        }
+      }
+    },
+    /* Épica em Lá menor: tambores taiko, cordas em ostinato e metais em notas longas */
+    montanha: {
+      bpm: 88,
+      tempos: 4,
+      subdivisao: 2,
+      balanco: 0,
+      acordes: [[45, 57, 60, 64], [41, 57, 60, 65], [48, 55, 60, 64], [43, 55, 59, 62], [45, 57, 60, 64], [41, 57, 60, 65], [43, 55, 59, 62], [40, 56, 59, 64]],
+      tocar(s, t, compasso, passo, acorde, sortear2, d) {
+        const r = acorde[0];
+        voz(s, t, (passo % 2 ? r + 7 : r) + 12, d * 0.85, { forma: "sawtooth", volume: 0.04, filtro: 900, liberacao: 0.06 });
+        if ([0, 4, 5].includes(passo)) tambor(s, t, { volume: passo === 0 ? 0.4 : 0.28, de: 120, para: 40, duracao: 0.6 });
+        if (compasso % 4 === 3 && passo >= 6) {
+          tambor(s, t, { volume: 0.25, de: 180, para: 80, duracao: 0.2 });
+          tambor(s, t + d / 2, { volume: 0.25, de: 180, para: 80, duracao: 0.2 });
+        }
+        if (passo === 0) {
+          for (const n of acorde.slice(1)) voz(s, t, n, d * 7.5, { forma: "sawtooth", volume: 0.022, filtro: 1400, ataque: 0.25, liberacao: 0.4 });
+          voz(s, t, r - 12, d * 7.5, { forma: "triangle", volume: 0.16, ataque: 0.05, liberacao: 0.3 });
+        }
+        if ((passo === 0 || passo === 4) && sortear2() < 0.85) {
+          const nota2 = acorde[1 + Math.floor(sortear2() * 3)] + 12;
+          voz(s, t, nota2, d * (passo === 0 ? 3.5 : 3), { forma: "square", volume: 0.03, filtro: 2600, ataque: 0.04, liberacao: 0.2, vibrato: 6 });
+        }
+        if (compasso % 8 === 0 && passo === 0) chiado(s, t, 2.2, { volume: 0.05, filtro: 5e3 });
+      }
+    },
+    /* Sombria e gótica em Ré menor harmônico: órgão, sino a cada dois compassos e um lamento */
+    pantano: {
+      bpm: 56,
+      tempos: 4,
+      subdivisao: 1,
+      balanco: 0,
+      acordes: [[38, 50, 53, 57], [34, 50, 53, 58], [31, 50, 55, 58], [33, 49, 52, 57], [38, 50, 53, 57], [34, 50, 53, 58], [36, 48, 52, 55], [33, 49, 52, 57]],
+      tocar(s, t, compasso, passo, acorde, sortear2, d) {
+        if (passo === 0) {
+          for (const n of acorde.slice(1)) {
+            for (const [oitava, vol] of [[0, 0.03], [12, 0.012], [19, 6e-3]]) voz(s, t, n + oitava, d * 3.8, { forma: "sine", volume: vol, ataque: 0.4, liberacao: 0.8, desafinar: oitava ? 4 : 0 });
+          }
+          voz(s, t, acorde[0], d * 3.9, { forma: "sawtooth", volume: 0.04, filtro: 300, ataque: 0.5, liberacao: 0.8 });
+          if (compasso % 2 === 0) sino(s, t, 62, 0.05);
+        }
+        if ((passo === 1 || passo === 3) && sortear2() < 0.6) {
+          const escala = [62, 64, 65, 67, 69, 70, 73, 74];
+          const nota2 = escala[Math.floor(sortear2() * escala.length)];
+          voz(s, t, nota2, d * 1.8, { forma: "triangle", volume: 0.05, ataque: 0.15, liberacao: 0.9, vibrato: 14 });
+        }
+        if (passo === 2 && sortear2() < 0.3) tambor(s, t, { volume: 0.18, de: 70, para: 35, duracao: 1.2 });
+      }
+    }
+  };
+  var atual = null;
+  var temporizador = null;
+  function agendar() {
+    if (!atual) return;
+    const a = atual.saida.context, m = atual.musica;
+    const duracaoDoTempo = 60 / m.bpm, d = duracaoDoTempo / m.subdivisao;
+    const passosPorCompasso = m.tempos * m.subdivisao;
+    if (atual.proximo < a.currentTime) atual.proximo = a.currentTime + 0.05;
+    while (atual.proximo < a.currentTime + ANTECEDENCIA) {
+      const compasso = atual.compasso % m.acordes.length;
+      const sortear2 = sorteador(compasso * 7919 + atual.passo * 31 + 1);
+      const atraso = m.balanco && atual.passo % 2 === 1 ? d * m.balanco : 0;
+      m.tocar(atual.saida, atual.proximo + atraso, compasso, atual.passo, m.acordes[compasso], sortear2, d);
+      atual.proximo += d;
+      atual.passo++;
+      if (atual.passo >= passosPorCompasso) {
+        atual.passo = 0;
+        atual.compasso++;
+      }
+    }
+  }
+  var Musica = {
+    /** Começa (ou troca para) a música do terreno, com entrada suave. */
+    tocar(terreno) {
+      const a = contextoDeAudio();
+      if (!a) return;
+      const musica = MUSICAS[terreno] || MUSICAS.neutro;
+      if (atual && atual.musica === musica) return;
+      this.parar();
+      const saida = a.createGain();
+      saida.gain.setValueAtTime(1e-4, a.currentTime);
+      saida.gain.exponentialRampToValueAtTime(VOLUME, a.currentTime + 1.5);
+      saida.connect(a.destination);
+      atual = { musica, saida, compasso: 0, passo: 0, proximo: a.currentTime + 0.1 };
+      agendar();
+      temporizador = setInterval(agendar, 100);
+    },
+    /** Para a música com saída suave. */
+    parar() {
+      if (temporizador) clearInterval(temporizador);
+      temporizador = null;
+      if (!atual) return;
+      const { saida } = atual, a = saida.context;
+      saida.gain.cancelScheduledValues(a.currentTime);
+      saida.gain.setValueAtTime(Math.max(1e-4, saida.gain.value), a.currentTime);
+      saida.gain.exponentialRampToValueAtTime(1e-4, a.currentTime + 0.6);
+      setTimeout(() => saida.disconnect(), 900);
+      atual = null;
+    },
+    /** Está tocando? */
+    tocando() {
+      return !!atual;
     }
   };
 
@@ -936,6 +1276,35 @@ html, body { overscroll-behavior: none; }
     });
     return painel;
   }
+  var dicaFlutuante = null;
+  function mostrarDicaFlutuante(titulo, html, alvo) {
+    esconderDicaFlutuante();
+    const caixa = document.createElement("div");
+    caixa.className = "dica-flutuante";
+    caixa.setAttribute("role", "tooltip");
+    caixa.innerHTML = "<b>" + escaparHtml(titulo) + "</b>" + html;
+    document.body.appendChild(caixa);
+    const l = caixa.offsetWidth, a = caixa.offsetHeight, margem = 10;
+    const largura = innerWidth, altura = innerHeight;
+    let x, y;
+    if (alvo.x - l - margem > 8) {
+      x = alvo.x - l - margem;
+      y = alvo.y + alvo.a / 2 - a / 2;
+    } else if (alvo.y - a - margem > 8) {
+      x = alvo.x + alvo.l / 2 - l / 2;
+      y = alvo.y - a - margem;
+    } else {
+      x = alvo.x + alvo.l / 2 - l / 2;
+      y = alvo.y + alvo.a + margem;
+    }
+    caixa.style.left = Math.max(8, Math.min(largura - l - 8, x)) + "px";
+    caixa.style.top = Math.max(8, Math.min(altura - a - 8, y)) + "px";
+    dicaFlutuante = caixa;
+  }
+  function esconderDicaFlutuante() {
+    if (dicaFlutuante) dicaFlutuante.remove();
+    dicaFlutuante = null;
+  }
 
   // src/aplicacao.js
   var OPCOES_PADRAO = { oponente: "guloso", baralho: "classico", terreno: "neutro", inicio: "revela-volta", alvo: 12 };
@@ -948,6 +1317,8 @@ html, body { overscroll-behavior: none; }
     verbetesAvisados: {},
     /** Instância do Phaser.Game (definida em principal.js). */
     jogo: null,
+    /** Dicas ligadas nesta sessão (mãos jogadas com dicas não valem conquistas). */
+    dicasLigadas: false,
     /** Carrega opções e preferência de som. */
     iniciar() {
       this.opcoes = { ...OPCOES_PADRAO, ...this.progresso.opcoes || {} };
@@ -967,6 +1338,16 @@ html, body { overscroll-behavior: none; }
       this.progresso.mudo = !Som.estaMudo();
       Som.definirMudo(this.progresso.mudo);
       this.salvar();
+    },
+    /**
+     * Liga ou desliga a música de fundo e lembra a escolha.
+     * @param {string} [terreno] Terreno da mesa atual, para já começar a música certa.
+     */
+    alternarMusica(terreno) {
+      this.progresso.musica = !this.progresso.musica;
+      this.salvar();
+      if (this.progresso.musica && terreno) Musica.tocar(terreno);
+      else Musica.parar();
     },
     /** Sai do menu e abre a mesa. */
     jogar() {
@@ -3222,6 +3603,13 @@ html, body { overscroll-behavior: none; }
   function liberarCartasDaMao(cena) {
     for (const k of cena.textures.getTextureKeys()) if (k.startsWith("carta-mao:")) cena.textures.remove(k);
   }
+  function retanguloNaTela(cena, x, y, l, a) {
+    const canvas = cena.sys.game.canvas, caixa = canvas.getBoundingClientRect(), camera = cena.cameras.main;
+    const kx = caixa.width / canvas.width, ky = caixa.height / canvas.height;
+    const px = (wx) => caixa.left + (wx - camera.worldView.x) * camera.zoom * kx;
+    const py = (wy) => caixa.top + (wy - camera.worldView.y) * camera.zoom * ky;
+    return { x: px(x - l / 2), y: py(y - a / 2), l: px(x + l / 2) - px(x - l / 2), a: py(y + a / 2) - py(y - a / 2) };
+  }
 
   // src/arte/cartasDeTerreno.js
   function desenharCartaDeTerreno(terreno, S) {
@@ -3965,6 +4353,7 @@ html, body { overscroll-behavior: none; }
   }
 
   // src/nucleo/partida.js
+  var NOME_EFEITO = { tunagem: "Tunagem", overfit: "Overfit", earlystop: "Early stop", stackoverflow: "Stack overflow" };
   function novoJogador(dados, indice) {
     return {
       indice,
@@ -5151,7 +5540,8 @@ html, body { overscroll-behavior: none; }
     rotulosPilha: 498,
     terreno: 518,
     divisoria2: 566,
-    dica: 578
+    dica: 578,
+    botoes: 684
   };
   var DIR = {
     tituloMao: 28,
@@ -5251,7 +5641,11 @@ html, body { overscroll-behavior: none; }
     /**
      * Cria um botão com textura própria e rótulo que se ajusta à largura.
      * O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`.
-     * @param {{variante?: 'ouro'|'vinho'|'pedra', tamanho?: number}} [opcoes]
+     *
+     * Com `opcoes.dica`, o botão mostra uma dica flutuante (modo "dicas" ligado): ao passar o mouse,
+     * ou, no celular, ao segurar o botão apertado. Soltar depois de segurar não executa a ação,
+     * para que dê para ler a dica sem jogar sem querer. A ação roda ao soltar o toque/clique.
+     * @param {{variante?: 'ouro'|'vinho'|'pedra', tamanho?: number, dica?: string}} [opcoes]
      */
     criarBotao(x, y, l, a, rotulo, acao, opcoes = {}) {
       const variante = opcoes.variante || "ouro";
@@ -5269,11 +5663,33 @@ html, body { overscroll-behavior: none; }
       botao.setInteractive({ useHandCursor: true });
       botao.habilitado = true;
       const pintar = (estado) => fundo.setTexture(textura(estado)).setDisplaySize(l + MARGEM_BOTAO * 2, a + MARGEM_BOTAO * 2);
-      botao.on("pointerover", () => {
+      const temDica = () => opcoes.dica && this.app.dicasLigadas;
+      const mostrarDica = () => this.mostrarDicaDoBotao(opcoes.dica, x, y, l, a);
+      let segurando = null, segurou = false;
+      botao.on("pointerover", (ponteiro) => {
         if (botao.habilitado) pintar("foco");
+        if (temDica() && !ponteiro.wasTouch) mostrarDica();
       });
-      botao.on("pointerout", () => pintar(botao.habilitado ? "normal" : "inativo"));
+      botao.on("pointerout", () => {
+        pintar(botao.habilitado ? "normal" : "inativo");
+        clearTimeout(segurando);
+        if (!segurou) this.esconderDicaDoBotao();
+      });
       botao.on("pointerdown", () => {
+        segurou = false;
+        clearTimeout(segurando);
+        if (temDica()) segurando = setTimeout(() => {
+          segurou = true;
+          mostrarDica();
+        }, 450);
+      });
+      botao.on("pointerup", () => {
+        clearTimeout(segurando);
+        if (segurou) {
+          segurou = false;
+          setTimeout(() => this.esconderDicaDoBotao(), 2200);
+          return;
+        }
         if (botao.habilitado) {
           Som.selecionar();
           acao();
@@ -5300,6 +5716,7 @@ html, body { overscroll-behavior: none; }
       this.criarPlacar(p);
       this.criarBotoesDeAcao(p);
       this.atualizarBotaoSom();
+      this.atualizarChaves();
     },
     /** Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. */
     criarTexto(x, y, s, estilo) {
@@ -5345,6 +5762,12 @@ html, body { overscroll-behavior: none; }
         this.inspecionar("terreno-" + this.opcoes.terreno, t.nome + ": " + t.resumo);
       });
       p.dica = this.criarTexto(PAINEL_ESQ.x + 14, ESQ.dica, "", { fontSize: "13.5px", color: "#efe3c6", wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
+      const lb = (PAINEL_ESQ.l - 28 - 8) / 2, pedra = { tamanho: 12, variante: "pedra" };
+      p.botaoDicas = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, 32, "Ativar dicas", () => this.alternarDicas(), pedra);
+      p.botaoMusica = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, 32, "M\xFAsica", () => {
+        this.app.alternarMusica(this.opcoes.terreno);
+        this.atualizarChaves();
+      }, pedra);
       p.balao = this.add.container(800, 40).setDepth(30).setVisible(false);
       p.fundoBalao = this.add.graphics();
       p.textoBalao = this.add.text(0, 0, "", { fontFamily: FONTES.texto, fontStyle: "italic", fontSize: "15px", color: "#24170c", wordWrap: { width: 230 }, align: "center" }).setOrigin(0.5);
@@ -5384,11 +5807,11 @@ html, body { overscroll-behavior: none; }
     /** Botão de truco (logo acima das ações) e botões de ação e de sistema. */
     criarBotoesDeAcao(p) {
       const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-      p.truco = this.criarBotao(rc, DIR.truco, rl, 44, "TRUCO!", () => this.pedirTrucoHumano(), { variante: "vinho", tamanho: 20 });
+      p.truco = this.criarBotao(rc, DIR.truco, rl, 44, "TRUCO!", () => this.pedirTrucoHumano(), { variante: "vinho", tamanho: 20, dica: "truco" });
       const bl = (rl - 8) / 2, c1 = rx + bl / 2, c2 = rx + rl - bl / 2;
-      p.botaoDropout = this.criarBotao(c1, 596, bl, 36, "Dropout", () => this.alternarDropout());
-      p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, "Transfer", () => this.fazerTransfer());
-      p.botaoPassar = this.criarBotao(c1, 638, bl, 36, "Passar a vez", () => this.passarAVez());
+      p.botaoDropout = this.criarBotao(c1, 596, bl, 36, "Dropout", () => this.alternarDropout(), { dica: "dropout" });
+      p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, "Transfer", () => this.fazerTransfer(), { dica: "transfer" });
+      p.botaoPassar = this.criarBotao(c1, 638, bl, 36, "Passar a vez", () => this.passarAVez(), { dica: "passar" });
       p.botaoRegras = this.criarBotao(c2, 638, bl, 36, "Regras", () => abrirRegras(null));
       const larguraPequena = (rl - 12) / 3;
       const pedra = { tamanho: 12, variante: "pedra" };
@@ -5402,6 +5825,11 @@ html, body { overscroll-behavior: none; }
     /** Rótulo do botão de som conforme a preferência. */
     atualizarBotaoSom() {
       this.painel.botaoSom.definirRotulo(Som.estaMudo() ? "Som: n\xE3o" : "Som: sim");
+    },
+    /** Rótulos das chaves de dicas e de música. */
+    atualizarChaves() {
+      this.painel.botaoDicas.definirRotulo(this.app.dicasLigadas ? "Dicas ligadas" : "Ativar dicas");
+      this.painel.botaoMusica.definirRotulo(this.app.progresso.musica ? "M\xFAsica: sim" : "M\xFAsica: n\xE3o");
     }
   };
 
@@ -5414,7 +5842,7 @@ html, body { overscroll-behavior: none; }
     },
     /** Mostra a dica do turno no rodapé do painel esquerdo. */
     mostrarDica(texto) {
-      ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, PAINEL_ESQ.y + PAINEL_ESQ.a - ESQ.dica - 10, 10.5);
+      ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, ESQ.botoes - 22 - ESQ.dica, 10);
     },
     /** Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. */
     redesenhar() {
@@ -5513,7 +5941,12 @@ html, body { overscroll-behavior: none; }
       this.atualizarBotoes();
       this.atualizarRegistro();
       this.desenharCurva();
-      this.mostrarDica(this.dicaDoCursor || this.textoDaDica());
+      this.mostrarDica(this.dicaDoCursor || this.textoComSugestao());
+    },
+    /** Dica do turno e, com as dicas ligadas, a sugestão de jogada. */
+    textoComSugestao() {
+      const sugestao = this.textoDaSugestao();
+      return this.textoDaDica() + (sugestao ? "\n\u2605 Sugest\xE3o: " + sugestao : "");
     },
     /**
      * Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas
@@ -5777,7 +6210,7 @@ html, body { overscroll-behavior: none; }
       const mao = this.mao, n = mao.neuronios[id], baralho = mao.config.baralho;
       if (!entrando) {
         this.dicaDoCursor = null;
-        this.mostrarDica(this.textoDaDica());
+        this.mostrarDica(this.textoComSugestao());
         return;
       }
       if (n.removido) return;
@@ -5928,6 +6361,10 @@ html, body { overscroll-behavior: none; }
       this.vanishingAvisado = [false, false];
       this.trucoConsideradoNoTurno = -1;
       this.oponenteCorreu = false;
+      this.sugestao = null;
+      this.dicasNaMao = this.app.dicasLigadas;
+      this.linhaDoTempo = [];
+      this.linhasRegistradas = 0;
       for (const objeto of this.objetosDoTabuleiro || []) objeto.destroy();
       for (const c of this.cartasDaMao || []) c.destroy();
       for (const c of this.cartasDoAdversario || []) c.destroy();
@@ -5978,10 +6415,12 @@ html, body { overscroll-behavior: none; }
         return;
       }
       this.selecao = [];
+      this.sugestao = null;
       if (this.modo !== "inicio") this.modo = "livre";
       const eventos = this.mao.eventos.splice(0);
       this.ocupada = true;
       this.redesenhar();
+      this.anotarNaLinhaDoTempo(jogada, eventos);
       const espera = this.animarEventos(eventos, jogada);
       this.time.delayedCall(espera, () => this.avancar());
     },
@@ -6010,7 +6449,30 @@ html, body { overscroll-behavior: none; }
         this.time.delayedCall(900, () => this.executarJogada({ tipo: "passar", jogador: vez }));
         return;
       }
+      this.calcularSugestao();
       this.redesenhar();
+    },
+    /**
+     * Guarda um passo da mão para a revisão didática do fim (interface/telas/revisao.js):
+     * quem jogou, o que aconteceu (texto do registro e tipos de evento) e as somas depois da jogada.
+     * @param {object|null} jogada Jogada aplicada, ou null para acontecimentos de fora das regras (truco).
+     * @param {object[]} eventos Eventos emitidos, ou `[{ tipo }]` para o truco.
+     * @param {string} [texto] Descrição; por padrão, as linhas novas do registro da mão.
+     */
+    anotarNaLinhaDoTempo(jogada, eventos, texto) {
+      const mao = this.mao;
+      const novas = mao.registro.slice(this.linhasRegistradas || 0);
+      this.linhasRegistradas = mao.registro.length;
+      const tipos = eventos.map((e) => e.tipo).filter((t) => t !== "fim");
+      if (jogada && jogada.tipo === "inicio" && !tipos.includes("inicio")) return;
+      this.linhaDoTempo.push({
+        numero: this.linhaDoTempo.length + 1,
+        jogador: jogada ? jogada.jogador : eventos[0].jogador,
+        tipo: jogada ? jogada.tipo : eventos[0].tipo,
+        eventos: tipos,
+        texto: texto || novas.join(" "),
+        somas: this.pontuacoes.map((p) => p.total)
+      });
     },
     /** Fase de início: oponentes escolhem a carta; humanos escolhem um de cada vez. */
     avancarNoInicio() {
@@ -6089,6 +6551,7 @@ html, body { overscroll-behavior: none; }
       this.avisarVerbete("truco");
       this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[j], 72);
       if (this.mao.jogadores[j].tipo === "oponente") this.falar(provocar("truco"));
+      this.anotarNaLinhaDoTempo(null, [{ tipo: "truco", jogador: j }], this.mao.jogadores[j].nome + " pediu " + GRITO_TRUCO[this.partida.pedido.para].replace("!", "") + ".");
       this.ocupada = true;
       this.redesenhar();
       this.time.delayedCall(900, () => this.pedirResposta());
@@ -6113,7 +6576,7 @@ html, body { overscroll-behavior: none; }
       if (podeAumentar) botoes.push({ rotulo: "Pedir " + GRITO_TRUCO[proximoValor(pedido.para)], acao: () => this.aplicarResposta(quem, "aumentar") });
       confirmar(
         GRITO_TRUCO[pedido.para],
-        escaparHtml((this.doisHumanos ? jogador.nome + ", responda. " : "") + "Se aceitar, a m\xE3o vale " + pedido.para + " tentos. Se correr, " + quemPediu + " leva " + partida.valor + " agora."),
+        escaparHtml((this.doisHumanos ? jogador.nome + ", responda. " : "") + "Se aceitar, a m\xE3o vale " + pedido.para + " tentos. Se correr, " + quemPediu + " leva " + partida.valor + " agora.") + this.dicaDaRespostaAoTruco(quem),
         botoes,
         { grito: true, topo: '<div class="quem">' + escaparHtml(quemPediu) + " pediu</div>" }
       );
@@ -6124,6 +6587,9 @@ html, body { overscroll-behavior: none; }
      */
     aplicarResposta(quem, resposta) {
       const resultado = responderTruco(this.partida, quem, resposta);
+      const nome = this.mao.jogadores[quem].nome;
+      const texto = { correr: nome + " correu do truco.", aceitar: nome + " aceitou: a m\xE3o vale " + this.partida.valor + ".", aumentar: nome + " pediu mais." }[resposta];
+      this.anotarNaLinhaDoTempo(null, [{ tipo: "truco", jogador: quem }], texto);
       if (resposta === "correr") {
         this.faixa(this.mao.jogadores[quem].nome + " correu!", "#efe3c6", 40);
         if (this.mao.jogadores[quem].tipo === "oponente") this.oponenteCorreu = true;
@@ -6429,7 +6895,141 @@ html, body { overscroll-behavior: none; }
     }
   };
 
+  // src/interface/telas/revisao.js
+  var COR = [CORES_CSS.j0, CORES_CSS.j1];
+  var MARCAS = {
+    tunagem: { cor: "#3f9e4c", rotulo: "Tunagem" },
+    overfit: { cor: "#e07b1a", rotulo: "Overfit" },
+    earlystop: { cor: "#d0283c", rotulo: "Early stop" },
+    stackoverflow: { cor: "#c02ca8", rotulo: "Stack overflow" },
+    dropout: { cor: "#1f9bb8", rotulo: "Dropout" },
+    transfer: { cor: "#3a8f8b", rotulo: "Transfer learning" },
+    truco: { cor: "#7a1626", rotulo: "Truco" },
+    completa: { cor: "#b8860b", rotulo: "Rede completa" }
+  };
+  function tipoDoPasso(passo) {
+    for (const t of ["stackoverflow", "earlystop", "overfit", "tunagem", "dropout", "transfer", "truco", "completa"]) {
+      if (passo.eventos.includes(t) || passo.tipo === t) return t;
+    }
+    return passo.tipo === "ativar" ? "ativacao" : passo.tipo;
+  }
+  var VERBETE_DO_TIPO = {
+    ativacao: "forward",
+    tunagem: "tunagem",
+    overfit: "overfit",
+    earlystop: "earlystop",
+    stackoverflow: "stackoverflow",
+    dropout: "dropout",
+    transfer: "transfer",
+    truco: "truco",
+    completa: "camadas",
+    inicio: "neuronio"
+  };
+  function variacoes(passos) {
+    return passos.map((p, i) => {
+      const antes = i ? passos[i - 1].somas : [0, 0];
+      return [p.somas[0] - antes[0], p.somas[1] - antes[1]];
+    });
+  }
+  function momentosChave(passos, nomes) {
+    const deltas = variacoes(passos);
+    const frases = [];
+    let maior = null, pior = null, virada = null, lider = 0;
+    passos.forEach((p, i) => {
+      for (const j of [0, 1]) {
+        if (!maior || deltas[i][j] > maior.d) maior = { i, j, d: deltas[i][j] };
+        if (!pior || deltas[i][j] < pior.d) pior = { i, j, d: deltas[i][j] };
+      }
+      const agora = Math.sign(p.somas[0] - p.somas[1]);
+      if (agora !== 0 && agora !== lider) {
+        if (lider !== 0) virada = i;
+        lider = agora;
+      }
+    });
+    if (maior && maior.d > 0) frases.push("<b>Maior salto:</b> passo " + passos[maior.i].numero + ", +" + maior.d + " para " + escaparHtml(nomes[maior.j]) + ". " + escaparHtml(passos[maior.i].texto));
+    if (pior && pior.d < 0) frases.push("<b>Golpe mais duro:</b> passo " + passos[pior.i].numero + ", " + pior.d + " para " + escaparHtml(nomes[pior.j]) + ". " + escaparHtml(passos[pior.i].texto));
+    if (virada != null) frases.push("<b>A virada:</b> no passo " + passos[virada].numero + " a lideran\xE7a trocou de lado. " + escaparHtml(passos[virada].texto));
+    return frases;
+  }
+  function contagens(passos) {
+    const conta = [{}, {}];
+    for (const p of passos) {
+      const t = tipoDoPasso(p);
+      if (p.jogador === 0 || p.jogador === 1) conta[p.jogador][t] = (conta[p.jogador][t] || 0) + 1;
+    }
+    return conta;
+  }
+  function graficoDaCurva(passos, nomes) {
+    const L = 680, A = 250, m = { e: 40, d: 14, c: 16, b: 30 };
+    const pontos = [{ somas: [0, 0] }, ...passos];
+    const maximo = Math.max(20, Math.ceil(Math.max(...pontos.flatMap((p) => p.somas)) / 20) * 20);
+    const minimo = Math.min(0, Math.floor(Math.min(...pontos.flatMap((p) => p.somas)) / 20) * 20);
+    const x = (i) => m.e + i / Math.max(1, pontos.length - 1) * (L - m.e - m.d);
+    const y = (v) => m.c + (1 - (v - minimo) / (maximo - minimo)) * (A - m.c - m.b);
+    let svg2 = '<svg class="curva-svg" viewBox="0 0 ' + L + " " + A + '" role="img" aria-label="Curva de treino: soma de cada rede a cada passo">';
+    for (let k = 0; k <= 4; k++) {
+      const v = Math.round(minimo + (maximo - minimo) * k / 4);
+      svg2 += '<line x1="' + m.e + '" x2="' + (L - m.d) + '" y1="' + y(v) + '" y2="' + y(v) + '" class="grade"/><text x="' + (m.e - 6) + '" y="' + (y(v) + 4) + '" class="eixo" text-anchor="end">' + v + "</text>";
+    }
+    svg2 += '<text x="' + L / 2 + '" y="' + (A - 6) + '" class="eixo" text-anchor="middle">passos da m\xE3o</text>';
+    passos.forEach((p, i) => {
+      if (tipoDoPasso(p) === "truco") svg2 += '<line x1="' + x(i + 1) + '" x2="' + x(i + 1) + '" y1="' + m.c + '" y2="' + (A - m.b) + '" class="linha-truco"><title>' + escaparHtml(p.texto) + "</title></line>";
+    });
+    for (const j of [0, 1]) {
+      svg2 += '<polyline fill="none" stroke="' + COR[j] + '" stroke-width="3" stroke-linejoin="round" points="' + pontos.map((p, i) => x(i) + "," + y(p.somas[j])).join(" ") + '"/>';
+    }
+    const deltas = variacoes(passos);
+    passos.forEach((p, i) => {
+      const t = tipoDoPasso(p), marca = MARCAS[t];
+      if (!marca || t === "truco") return;
+      const autor = p.jogador === 1 ? 1 : 0;
+      const ataque = ["overfit", "earlystop", "stackoverflow"].includes(t);
+      const j = ataque && !(deltas[i][autor] < 0 && deltas[i][1 - autor] >= 0) ? 1 - autor : autor;
+      svg2 += '<g class="marca"><circle cx="' + x(i + 1) + '" cy="' + y(p.somas[j]) + '" r="8" fill="' + marca.cor + '" stroke="#fff" stroke-width="1.5"/><text x="' + x(i + 1) + '" y="' + (y(p.somas[j]) + 3.5) + '" text-anchor="middle">' + p.numero + "</text><title>" + escaparHtml(p.numero + ". " + p.texto) + "</title></g>";
+    });
+    svg2 += "</svg>";
+    const legenda2 = '<div class="curva-legenda">' + nomes.map((n, j) => '<span><i style="background:' + COR[j] + '"></i>' + escaparHtml(n) + "</span>").join("") + Object.values(MARCAS).map((mk) => '<span><i class="redonda" style="background:' + mk.cor + '"></i>' + mk.rotulo + "</span>").join("") + "</div>";
+    return svg2 + legenda2;
+  }
+  function linhaDoTempoHtml(passos, nomes) {
+    const deltas = variacoes(passos), explicados = /* @__PURE__ */ new Set();
+    return '<ol class="linha-do-tempo">' + passos.map((p, i) => {
+      const t = tipoDoPasso(p), marca = MARCAS[t];
+      const j = p.jogador === 1 ? 1 : 0;
+      const chips = [0, 1].filter((k) => deltas[i][k] !== 0).map((k) => '<span class="variacao ' + (deltas[i][k] > 0 ? "sobe" : "desce") + '" style="--cor:' + COR[k] + '">' + (deltas[i][k] > 0 ? "+" : "") + deltas[i][k] + " " + escaparHtml(nomes[k]) + "</span>").join("");
+      let conceito = "";
+      const verbete = VERBETES.find((v) => v.id === VERBETE_DO_TIPO[t]);
+      if (verbete && !explicados.has(verbete.id)) {
+        explicados.add(verbete.id);
+        conceito = '<div class="conceito-passo"><b>' + escaparHtml(verbete.titulo) + ":</b> " + escaparHtml(verbete.conceito) + "</div>";
+      }
+      return '<li style="--cor:' + COR[j] + '"><span class="numero">' + p.numero + "</span><div>" + (marca ? '<span class="tipo" style="background:' + marca.cor + '">' + marca.rotulo + "</span> " : "") + escaparHtml(p.texto) + (chips ? ' <span class="variacoes">' + chips + "</span>" : "") + conceito + "</div></li>";
+    }).join("") + "</ol>";
+  }
+  function tabelaDaPartida(historico, nomes) {
+    return '<table class="tabela-partida"><thead><tr><th>M\xE3o</th><th>Vencedor</th><th>Como</th><th>Tentos ganhos</th><th>Placar</th></tr></thead><tbody>' + historico.map((h) => "<tr><td>" + h.numero + '</td><td style="color:' + COR[h.vencedor] + ';font-weight:700">' + escaparHtml(nomes[h.vencedor]) + "</td><td>" + (h.completa ? "rede " + h.somas[0] + " \xD7 " + h.somas[1] : "correram do truco") + "</td><td>+" + h.ganho + "</td><td>" + h.tentos[0] + " \xD7 " + h.tentos[1] + "</td></tr>").join("") + "</tbody></table>";
+  }
+  function abrirRevisao({ mao, linhaDoTempo, partida, historicoDaPartida, numeroDaMao, aoFechar }) {
+    const nomes = mao.jogadores.map((j) => j.nome);
+    const passos = linhaDoTempo.filter((p) => p.tipo !== "inicio" || p.eventos.includes("inicio"));
+    const conta = contagens(passos);
+    const linha = (j) => {
+      const c = conta[j];
+      const ataques = (c.overfit || 0) + (c.earlystop || 0) + (c.stackoverflow || 0);
+      const qtd = (n, singular, plural) => n + " " + (n === 1 ? singular : plural);
+      return '<li style="--cor:' + COR[j] + '"><b>' + escaparHtml(nomes[j]) + "</b>: " + qtd(c.ativacao || 0, "ativa\xE7\xE3o", "ativa\xE7\xF5es") + ", " + qtd(c.tunagem || 0, "tunagem", "tunagens") + ", " + qtd(ataques, "ataque", "ataques") + ", " + qtd(c.dropout || 0, "dropout", "dropouts") + (c.truco ? ", " + qtd(c.truco, "lance de truco", "lances de truco") : "") + ". Soma final: <b>" + (passos.length ? passos[passos.length - 1].somas[j] : 0) + "</b>.</li>";
+    };
+    const momentos = momentosChave(passos, nomes);
+    let html = '<div class="folha larga revisao"><button class="fechar-x" data-fechar aria-label="Fechar">\xD7</button><h2>Revis\xE3o da m\xE3o ' + numeroDaMao + '</h2><p class="introducao">Como num treino de rede neural, acompanhe a <b>curva de treino</b> (a soma de cada rede a cada passo) e veja o que cada a\xE7\xE3o fez com ela.' + (mao.config.terreno !== "neutro" ? " Terreno " + escaparHtml(TERRENOS[mao.config.terreno].nome) + ": " + escaparHtml(TERRENOS[mao.config.terreno].resumo) + " Por isso algumas somas mudam sem a\xE7\xE3o direta." : "") + '</p><h3>Em resumo</h3><ul class="resumo">' + linha(0) + linha(1) + momentos.map((f) => "<li>" + f + "</li>").join("") + (mao.resultado ? "<li><b>Crit\xE9rio de vit\xF3ria:</b> " + escaparHtml(mao.resultado.motivo) + ".</li>" : "") + "</ul><h3>Curva de treino</h3>" + (passos.length ? graficoDaCurva(passos, nomes) : "<p>Nenhuma jogada registrada.</p>") + '<p class="dica-grafico">Passe o mouse (ou toque) nas marcas numeradas para ver o que aconteceu. Linhas tracejadas vinho s\xE3o pedidos de truco.</p><h3>Passo a passo</h3>' + linhaDoTempoHtml(passos, nomes);
+    if (historicoDaPartida.length > 1 || partida.alvo > 1) {
+      html += "<h3>A partida, m\xE3o a m\xE3o</h3>" + tabelaDaPartida(historicoDaPartida, nomes) + (partida.encerrada ? "<p><b>" + escaparHtml(nomes[partida.vencedor]) + "</b> venceu a partida por " + partida.tentos[0] + " \xD7 " + partida.tentos[1] + ".</p>" : "");
+    }
+    html += '<div class="linha fim" style="margin-top:16px"><button class="botao vinho" data-fechar>Voltar ao resultado</button></div></div>';
+    abrirPainel(html, { aoFechar });
+  }
+
   // src/cenas/mesa/resultado.js
+  var TROFEU = '<svg viewBox="0 0 64 64" width="72" height="72"><defs><linearGradient id="ouro-trofeu" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset=".45" stop-color="#e7b23a"/><stop offset="1" stop-color="#8a5a10"/></linearGradient></defs><path d="M18 8h28v10c0 10-6 17-14 17S18 28 18 18z" fill="url(#ouro-trofeu)" stroke="#3a2406" stroke-width="2"/><path d="M18 12H9c0 9 5 14 11 15M46 12h9c0 9-5 14-11 15" fill="none" stroke="#c99a3a" stroke-width="3"/><path d="M28 35h8v9h-8z" fill="#c99a3a" stroke="#3a2406" stroke-width="2"/><path d="M20 44h24v7H20z" fill="url(#ouro-trofeu)" stroke="#3a2406" stroke-width="2"/><path d="M16 51h32v6H16z" fill="#6b1a22" stroke="#3a2406" stroke-width="2"/><path d="M32 14l2.4 5 5.5.6-4.1 3.8 1.1 5.4L32 26l-4.9 2.8 1.1-5.4-4.1-3.8 5.5-.6z" fill="#fff6d0"/></svg>';
   var metodosDoResultado = {
     /**
      * Encerra a mão.
@@ -6440,20 +7040,24 @@ html, body { overscroll-behavior: none; }
       if (this.encerrada) return;
       this.encerrada = true;
       this.ocupada = true;
+      this.sugestao = null;
       const mao = this.mao, partida = this.partida;
       const completa = !corrida;
       const vencedor = completa ? mao.resultado.vencedor : corrida.vencedor;
       const valorDaMao = completa ? partida.valor : corrida.pontos;
       const ganho = marcarTentos(partida, vencedor, completa ? null : corrida.pontos);
       this.redesenhar();
-      const humanoVenceu = mao.jogadores[vencedor].tipo === "humano";
-      if (this.doisHumanos) Som.vitoria();
-      else {
-        if (humanoVenceu) Som.vitoria();
-        else Som.derrota();
-        this.falar(provocar(humanoVenceu ? "perdeu" : "venceu"));
-      }
-      const novas = this.doisHumanos ? [] : this.app.registrarMao({
+      this.historicoDaPartida.push({
+        numero: partida.numeroMao + 1,
+        vencedor,
+        ganho,
+        valor: valorDaMao,
+        completa,
+        somas: this.pontuacoes.map((p) => p.total),
+        tentos: partida.tentos.slice()
+      });
+      const valeConquistas = !this.doisHumanos && !this.dicasNaMao;
+      const novas = valeConquistas ? this.app.registrarMao({
         mao,
         eu: 0,
         venceu: vencedor === 0,
@@ -6463,9 +7067,110 @@ html, body { overscroll-behavior: none; }
         valorDaMao,
         oponenteCorreu: this.oponenteCorreu,
         opcoes: this.opcoes
-      });
+      }) : [];
       this.oponenteCorreu = false;
-      this.time.delayedCall(completa ? 1100 : 300, () => this.mostrarResultado(vencedor, ganho, completa, novas));
+      const humanoVenceu = mao.jogadores[vencedor].tipo === "humano";
+      const venceuAPartida = humanoVenceu && partida.encerrada && partida.alvo > 1;
+      let espera = completa ? 1100 : 300;
+      if (humanoVenceu) espera = this.comemorar(venceuAPartida ? "partida" : "mao", mao.jogadores[vencedor].nome);
+      else {
+        Som.derrota();
+        this.falar(provocar("venceu"));
+      }
+      if (humanoVenceu && !this.doisHumanos) this.time.delayedCall(400, () => this.falar(provocar("perdeu")));
+      this.ultimoResultado = { vencedor, ganho, completa, novas, valeConquistas, humanoVenceu };
+      this.time.delayedCall(espera, () => this.mostrarResultado());
+    },
+    /**
+     * Comemoração da vitória: fanfarra, clarão dourado, faixa grande, fogos e chuva de confete.
+     * @param {'mao'|'partida'} nivel A vitória da partida é maior e mais longa.
+     * @returns {number} Milissegundos até abrir a tela de resultado.
+     */
+    comemorar(nivel, nome) {
+      const partida = nivel === "partida";
+      if (partida) Som.campeao();
+      else Som.fanfarra();
+      const camera = this.cameras.main;
+      camera.flash(350, 255, 225, 140);
+      camera.shake(300, 6e-3);
+      const titulo = partida ? "CAMPE\xC3O DA PARTIDA!" : "VIT\xD3RIA!";
+      const subtitulo = this.doisHumanos ? nome + " venceu" + (partida ? " a partida" : " a m\xE3o") : partida ? "Voc\xEA venceu a partida" : "Voc\xEA venceu a m\xE3o";
+      this.faixaDeVitoria(titulo, subtitulo, partida ? 3200 : 2100);
+      const fogos = partida ? 14 : 7, cores = [16178319, 4891615, 16093986, 8380554, 16740273, 16777215];
+      for (let i = 0; i < fogos; i++) {
+        this.time.delayedCall(150 + i * (partida ? 220 : 240), () => {
+          const x = Phaser.Math.Between(330, 900), y = Phaser.Math.Between(110, 420);
+          this.explodir(x, y, cores[i % cores.length], partida ? 46 : 34);
+        });
+      }
+      this.chuvaDeConfete(partida ? 3e3 : 1800);
+      return partida ? 3600 : 2400;
+    },
+    /** Faixa dourada de vitória com título e subtítulo, que cresce e pulsa. */
+    faixaDeVitoria(titulo, subtitulo, duracao) {
+      const cx = 610, cy = 300;
+      const fundo = this.add.graphics().setDepth(39).setAlpha(0);
+      fundo.fillStyle(854536, 0.78);
+      fundo.fillRoundedRect(cx - 340, cy - 78, 680, 168, 18);
+      fundo.lineStyle(4, 14266976, 1);
+      fundo.strokeRoundedRect(cx - 340, cy - 78, 680, 168, 18);
+      fundo.lineStyle(1.5, 16178319, 0.6);
+      fundo.strokeRoundedRect(cx - 332, cy - 70, 664, 152, 14);
+      const t = this.add.text(cx, cy - 8, titulo, {
+        fontFamily: "Cinzel, Georgia, serif",
+        fontStyle: "900",
+        fontSize: "76px",
+        color: "#f6dc8f",
+        stroke: "#5a3a08",
+        strokeThickness: 10
+      }).setOrigin(0.5).setDepth(40).setScale(0.3).setAlpha(0);
+      if (t.width > 640) t.setFontSize(76 * 640 / t.width);
+      const sub = this.add.text(cx, cy + 58, subtitulo, { fontFamily: "Cinzel, Georgia, serif", fontStyle: "700", fontSize: "24px", color: "#efe3c6" }).setOrigin(0.5).setDepth(40).setAlpha(0);
+      this.tweens.add({ targets: fundo, alpha: 1, duration: 200 });
+      this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 420, ease: "Back.out" });
+      this.tweens.add({ targets: sub, alpha: 1, duration: 300, delay: 300 });
+      this.tweens.add({ targets: t, scale: 1.06, duration: 380, yoyo: true, repeat: -1, delay: 450, ease: "Sine.inOut" });
+      this.time.delayedCall(duracao, () => this.tweens.add({
+        targets: [fundo, t, sub],
+        alpha: 0,
+        duration: 350,
+        onComplete: () => {
+          fundo.destroy();
+          t.destroy();
+          sub.destroy();
+        }
+      }));
+    },
+    /** Confete colorido caindo do alto da tela. */
+    chuvaDeConfete(duracao) {
+      const cores = ["#f6dc8f", "#4aa3df", "#f59322", "#7fe08a", "#ff6fb1", "#ffffff"];
+      const chaves = cores.map((cor) => {
+        const chave = "confete-" + cor;
+        if (!this.textures.exists(chave)) {
+          const c = document.createElement("canvas");
+          c.width = 12;
+          c.height = 20;
+          const ctx = c.getContext("2d");
+          ctx.fillStyle = cor;
+          ctx.fillRect(0, 0, 12, 20);
+          this.textures.addCanvas(chave, c);
+        }
+        return chave;
+      });
+      for (const chave of chaves) {
+        const emissor = this.add.particles(0, -20, chave, {
+          x: { min: 260, max: 960 },
+          speedY: { min: 140, max: 260 },
+          speedX: { min: -60, max: 60 },
+          rotate: { min: 0, max: 360 },
+          scale: { min: 0.35, max: 0.7 },
+          lifespan: 3200,
+          frequency: 70,
+          quantity: 1
+        }).setDepth(38);
+        this.time.delayedCall(duracao, () => emissor.stop());
+        this.time.delayedCall(duracao + 3400, () => emissor.destroy());
+      }
     },
     /** HTML com a soma detalhada da rede do jogador `j`. */
     htmlDaRede(j) {
@@ -6475,17 +7180,23 @@ html, body { overscroll-behavior: none; }
       termos += pontuacao.combos.map((c) => '<span class="termo ' + (c.quantidade >= 4 ? "ruim" : "combo") + '">' + escaparHtml(c.rotulo) + "</span>").join("");
       return '<div class="rede j' + j + '"><div class="situacao">' + escaparHtml(travada ? "travada" : NOME_SITUACAO[jogador.situacao]) + '</div><h3 style="margin:2px 0 6px;color:' + COR_JOGADOR_CSS[j] + '">' + escaparHtml(jogador.nome) + '</h3><div class="total">' + pontuacao.total + '</div><div class="termos">' + (termos || '<span class="termo">rede vazia</span>') + "</div><small>dropouts " + jogador.dropouts + " \xB7 m\xE3o " + jogador.mao.length + "</small></div>";
     },
-    /** Tela de resultado: vencedor, critério, redes, placar de tentos e conquistas novas. */
-    mostrarResultado(vencedor, ganho, completa, novas) {
+    /**
+     * Tela de resultado: vencedor, critério, redes, placar de tentos, conquistas novas e o botão de
+     * revisão da mão. Usa `this.ultimoResultado` (guardado em `encerrarMao`), para poder reabrir
+     * depois da revisão.
+     */
+    mostrarResultado() {
+      const { vencedor, ganho, completa, novas, valeConquistas, humanoVenceu } = this.ultimoResultado;
       const mao = this.mao, partida = this.partida;
       const nome = mao.jogadores[vencedor].nome;
       const titulo = this.doisHumanos ? nome + " vence a m\xE3o" : vencedor === 0 ? "Voc\xEA venceu a m\xE3o!" : nome + " venceu a m\xE3o";
       const motivo = completa ? "Crit\xE9rio: " + mao.resultado.motivo + "." : mao.jogadores[1 - vencedor].nome + " correu do truco.";
-      let html = '<div class="folha"><h2>' + escaparHtml(titulo) + "</h2><p>" + escaparHtml(motivo) + "</p>";
+      const campeao = partida.alvo > 1 && partida.encerrada && mao.jogadores[partida.vencedor].tipo === "humano";
+      let html = '<div class="folha' + (humanoVenceu ? " vitoria" : "") + (campeao ? " campeao" : "") + '">' + (humanoVenceu ? '<div class="trofeu" aria-hidden="true">' + TROFEU + "</div>" : "") + "<h2>" + escaparHtml(campeao ? this.doisHumanos ? nome + " \xE9 campe\xE3o da partida!" : "Voc\xEA \xE9 campe\xE3o da partida!" : titulo) + "</h2><p>" + escaparHtml(motivo) + "</p>";
       if (completa) html += '<div class="resultado-grade">' + this.htmlDaRede(0) + this.htmlDaRede(1) + "</div>";
       if (partida.alvo > 1) {
         html += '<div class="tentos">+' + ganho + (ganho === 1 ? " tento" : " tentos") + " para " + escaparHtml(nome) + ' \xB7 placar <span class="grande">' + partida.tentos[0] + " \xD7 " + partida.tentos[1] + "</span> (at\xE9 " + partida.alvo + ")</div>";
-        if (partida.encerrada) html += "<p><b>" + escaparHtml(mao.jogadores[partida.vencedor].nome) + " venceu a partida!</b></p>";
+        if (partida.encerrada && !campeao) html += "<p><b>" + escaparHtml(mao.jogadores[partida.vencedor].nome) + " venceu a partida!</b></p>";
       }
       if (novas.length) {
         html += '<h3>Conquistas desbloqueadas</h3><div class="desbloqueios">' + novas.map((c) => {
@@ -6493,19 +7204,199 @@ html, body { overscroll-behavior: none; }
           return '<div class="desbloqueio">' + medalhaHtml(c, true) + '<div><span class="selo" style="background:' + graduacao.cor + ';color:#24140a">' + graduacao.nome + "</span> " + escaparHtml(c.nome) + "<br><small>" + escaparHtml(c.descricao) + "</small></div></div>";
         }).join("") + "</div>";
       }
+      if (!valeConquistas && !this.doisHumanos) html += '<p class="sem-conquistas">M\xE3o jogada com dicas: n\xE3o vale conquistas nem conta nas estat\xEDsticas.</p>';
       const partidaAcabou = partida.encerrada || partida.alvo <= 1;
-      html += '<div class="linha fim" style="margin-top:16px"><button class="botao discreto" id="r-menu">Menu</button><button class="botao vinho" id="r-proxima">' + (partidaAcabou ? "Nova partida" : "Pr\xF3xima m\xE3o") + "</button></div></div>";
+      html += '<div class="linha fim" style="margin-top:16px"><button class="botao discreto" id="r-menu">Menu</button><button class="botao" id="r-revisar">Revisar ' + (partidaAcabou && this.historicoDaPartida.length > 1 ? "a partida" : "a m\xE3o") + '</button><button class="botao vinho" id="r-proxima">' + (partidaAcabou ? "Nova partida" : "Pr\xF3xima m\xE3o") + "</button></div></div>";
       const painel = abrirPainel(html);
       painel.elemento.querySelector("#r-menu").addEventListener("click", () => {
         painel.fechar();
         this.app.irParaMenu();
       });
+      painel.elemento.querySelector("#r-revisar").addEventListener("click", () => {
+        painel.fechar();
+        abrirRevisao({
+          mao,
+          linhaDoTempo: this.linhaDoTempo,
+          partida,
+          historicoDaPartida: this.historicoDaPartida,
+          numeroDaMao: partida.numeroMao + 1,
+          aoFechar: () => this.mostrarResultado()
+        });
+      });
       painel.elemento.querySelector("#r-proxima").addEventListener("click", () => {
         painel.fechar();
-        if (partidaAcabou) this.partida = novaPartida(this.opcoes.alvo);
-        else proximaMao(this.partida);
+        if (partidaAcabou) {
+          this.partida = novaPartida(this.opcoes.alvo);
+          this.historicoDaPartida = [];
+        } else proximaMao(this.partida);
         this.iniciarMao();
       });
+    }
+  };
+
+  // src/cenas/mesa/dicas.js
+  var SIMULACOES_DA_DICA = 40;
+  function conceitoCurto(id) {
+    const verbete = VERBETES.find((v) => v.id === id);
+    return verbete ? verbete.conceito.split(/(?<=\.)\s/)[0] : "";
+  }
+  var metodosDeDicas = {
+    /** Botão "Ativar dicas": avisa sobre as conquistas antes de ligar; desliga direto. */
+    alternarDicas() {
+      if (this.app.dicasLigadas) {
+        this.app.dicasLigadas = false;
+        this.sugestao = null;
+        esconderDicaFlutuante();
+        this.atualizarChaves();
+        if (this.mao) this.redesenhar();
+        return;
+      }
+      confirmar(
+        "Ativar dicas?",
+        "Com as dicas ligadas voc\xEA v\xEA uma <b>sugest\xE3o de jogada</b> a cada vez e explica\xE7\xF5es nos bot\xF5es de a\xE7\xE3o (passe o mouse ou, no celular, segure o bot\xE3o apertado).<br><br><b>Aten\xE7\xE3o:</b> as m\xE3os jogadas com dicas <b>n\xE3o valem conquistas</b> nem contam nas estat\xEDsticas. A m\xE3o atual j\xE1 fica marcada, mesmo que voc\xEA desligue as dicas depois.",
+        [
+          { rotulo: "Agora n\xE3o", classe: "discreto" },
+          { rotulo: "Ativar dicas", classe: "vinho", acao: () => {
+            this.app.dicasLigadas = true;
+            this.dicasNaMao = true;
+            this.atualizarChaves();
+            this.calcularSugestao();
+            if (this.mao) this.redesenhar();
+            mostrarAviso("Dicas ligadas", "Esta m\xE3o n\xE3o vale conquistas. Segure um bot\xE3o de a\xE7\xE3o (ou passe o mouse) para ver a dica dele.", null, 4500);
+          } }
+        ]
+      );
+    },
+    /* ------------------------------------------------------------------ sugestão de jogada */
+    /** Calcula a sugestão para o humano da vez (guardada em `this.sugestao`). */
+    calcularSugestao() {
+      this.sugestao = null;
+      if (!this.app.dicasLigadas || !this.mao || !this.ehVezDoHumano()) return;
+      try {
+        const jogada = jogadaGulosa(this.mao, this.quemVe);
+        if (jogada.tipo === "dropout" && jogada.n > 1) jogada.n = 1;
+        this.sugestao = jogada;
+      } catch (e) {
+        this.sugestao = null;
+      }
+    },
+    /** Frase da sugestão para a dica do turno. */
+    textoDaSugestao() {
+      const s = this.sugestao, mao = this.mao;
+      if (!s || !this.app.dicasLigadas || !this.ehVezDoHumano()) return "";
+      const n = s.neuronio ? mao.neuronios[s.neuronio] : null;
+      if (s.tipo === "ativar") {
+        return "ative o neur\xF4nio marcado com \u2605 na camada " + nomeCamada(n.camada) + (n.conhecido ? " (\xE9 um " + rotuloCarta(n.cartas[0]) + ")" : "") + ".";
+      }
+      if (s.tipo === "empilhar") {
+        const efeito = efeitoDoEmpilhamento(mao, this.quemVe, n, s.cartas.length);
+        const cartas = s.cartas.map((id) => rotuloCarta(mao.jogadores[this.quemVe].mao.find((c) => c.id === id))).join(" ");
+        return NOME_EFEITO[efeito.tipo] + ": coloque " + cartas + " sobre " + rotuloCarta(n.cartas[0]) + (efeito.proprio ? " da sua rede." : " do advers\xE1rio.");
+      }
+      if (s.tipo === "dropout") return "fa\xE7a dropout de 1 camada: a rede est\xE1 num caminho fraco.";
+      if (s.tipo === "transfer") return "fa\xE7a transfer learning e renove a m\xE3o.";
+      if (s.tipo === "passar") return "passe a vez.";
+      return "";
+    },
+    /** Estrela pulsante no neurônio e nas cartas sugeridas (desenhada a cada quadro). */
+    desenharSugestao(g, tempo) {
+      const s = this.sugestao;
+      if (!s || !this.app.dicasLigadas || !this.ehVezDoHumano()) return;
+      const brilho2 = 0.6 + 0.4 * Math.sin(tempo / 200);
+      const estrela = (x, y, r) => {
+        const pontos = [];
+        for (let i = 0; i < 10; i++) {
+          const ang = -Math.PI / 2 + i * Math.PI / 5, raio = i % 2 ? r * 0.45 : r;
+          pontos.push({ x: x + Math.cos(ang) * raio, y: y + Math.sin(ang) * raio });
+        }
+        g.fillStyle(16773544, brilho2);
+        g.fillPoints(pontos, true);
+        g.lineStyle(1.5, 5913096, 1);
+        g.strokePoints(pontos, true);
+      };
+      if (s.neuronio) {
+        const n = this.mao.neuronios[s.neuronio];
+        const x = colunaX(n.camada), y = linhaY(n.camada, n.posicao);
+        g.lineStyle(3, 16773544, brilho2);
+        g.strokeRoundedRect(x - 39, y - 51, 78, 103, 10);
+        estrela(x + 30, y - 42, 11);
+      }
+      for (const imagem of this.cartasDaMao) {
+        if (s.cartas && s.cartas.includes(imagem.idCarta) && s.tipo !== "transfer") estrela(imagem.x + 40, imagem.y - 60, 10);
+      }
+    },
+    /* ------------------------------------------------------------------ dicas flutuantes */
+    /** Mostra a dica do botão `chave` ao lado do retângulo (x, y, l, a) do mundo do jogo. */
+    mostrarDicaDoBotao(chave, x, y, l, a) {
+      if (!this.mao) return;
+      const { titulo, corpo, agora, conceito } = this.conteudoDaDica(chave);
+      const html = escaparHtml(corpo) + (agora ? '<span class="agora">' + escaparHtml(agora) + "</span>" : "") + (conceito ? '<span class="conceito">' + escaparHtml(conceito) + "</span>" : "");
+      mostrarDicaFlutuante(titulo, html, retanguloNaTela(this, x, y, l, a));
+    },
+    /** Esconde a dica flutuante. */
+    esconderDicaDoBotao() {
+      esconderDicaFlutuante();
+    },
+    /**
+     * Texto da dica de cada botão: o que faz, o que vale fazer agora e o conceito de ML.
+     * @param {'dropout'|'transfer'|'passar'|'truco'} chave
+     */
+    conteudoDaDica(chave) {
+      const mao = this.mao, eu = this.quemVe >= 0 ? this.quemVe : 0, jogador = mao.jogadores[eu];
+      const minhaVez = this.ehVezDoHumano();
+      const naoEhAVez = "Agora: espere a sua vez.";
+      if (chave === "dropout") {
+        const n = camadasDesfaziveis(mao, eu);
+        return {
+          titulo: "Grim\xF3rio \xB7 Dropout (GatoNet)",
+          corpo: "Desvira os \xFAltimos neur\xF4nios ocultos da sua rede, at\xE9 a camada que voc\xEA escolher. Custa 1 carta da m\xE3o por camada e n\xE3o gasta o turno.",
+          agora: !minhaVez ? naoEhAVez : n === 0 ? "Agora: indispon\xEDvel, n\xE3o h\xE1 neur\xF4nio oculto para desfazer." : "Agora: d\xE1 para desfazer at\xE9 " + Math.min(n, jogador.mao.length) + " camada(s). Vale a pena quando a rede pegou neur\xF4nios fracos ou est\xE1 perto de formar uma quadra de figuras.",
+          conceito: conceitoCurto("dropout")
+        };
+      }
+      if (chave === "transfer") {
+        const valor = valorParaTransfer(mao, eu);
+        const conta = {};
+        for (const c of jogador.mao) conta[c.valor] = (conta[c.valor] || 0) + 1;
+        const maior = Object.entries(conta).sort((a, b) => b[1] - a[1])[0];
+        return {
+          titulo: "Grim\xF3rio \xB7 Transfer learning",
+          corpo: "Troca quatro cartas de mesmo valor da m\xE3o por cartas do limbo. Uma vez por m\xE3o; gasta o turno.",
+          agora: jogador.transferUsado ? "Agora: voc\xEA j\xE1 usou o transfer nesta m\xE3o." : valor ? "Agora: voc\xEA tem quatro " + valor + ". Troque se eles n\xE3o servem para tunar nem atacar." : "Agora: precisa de quatro cartas iguais; seu maior grupo \xE9 " + (maior ? maior[1] + "\xD7 " + maior[0] : "nenhum") + ".",
+          conceito: conceitoCurto("transfer")
+        };
+      }
+      if (chave === "passar") {
+        const livres = alvosDeAtivacao(mao, eu).length;
+        return {
+          titulo: "Passar a vez",
+          corpo: "S\xF3 \xE9 permitido quando n\xE3o h\xE1 neur\xF4nio livre para ativar: sua rede chegou ao fim ou ficou travada. Se todos passarem em sequ\xEAncia, a m\xE3o termina.",
+          agora: !minhaVez ? naoEhAVez : podePassar(mao, eu) ? "Agora: pode passar. Antes, veja se algum ataque com as cartas da m\xE3o ainda vale a pena." : "Agora: ainda h\xE1 " + livres + " neur\xF4nio(s) livre(s) para ativar, ent\xE3o n\xE3o d\xE1 para passar.",
+          conceito: conceitoCurto("camadas")
+        };
+      }
+      const partida = this.partida, proximo = proximoValor(partida.valor);
+      let agora;
+      if (partida.alvo <= 1) agora = "Agora: partida de m\xE3o \xFAnica, sem truco.";
+      else if (ehMaoDeOnze(partida)) agora = "Agora: m\xE3o de onze, ningu\xE9m pode trucar.";
+      else if (!minhaVez || !podeTrucar(partida, eu)) agora = "Agora: indispon\xEDvel (n\xE3o \xE9 sua vez ou voc\xEA foi o \xFAltimo a aumentar).";
+      else {
+        const chance = Math.round(chanceDeVitoria(mao, eu, SIMULACOES_DA_DICA) * 100);
+        agora = "Agora: sua chance estimada de vencer esta m\xE3o \xE9 " + chance + "% (" + SIMULACOES_DA_DICA + " simula\xE7\xF5es de Monte Carlo). " + (chance >= 65 ? "Bom momento para pedir " + GRITO_TRUCO[proximo] : chance >= 40 ? "Arriscado: s\xF3 como blefe." : "Melhor n\xE3o trucar agora.");
+      }
+      return {
+        titulo: "Grim\xF3rio \xB7 Truco",
+        corpo: "Aumenta o valor da m\xE3o: 1 \u2192 3 \u2192 6 \u2192 9 \u2192 12 tentos. Quem recebe o pedido aceita, corre (e entrega o valor atual) ou pede mais.",
+        agora,
+        conceito: conceitoCurto("truco")
+      };
+    },
+    /** Linha com a chance estimada, para a caixa de resposta ao truco (só com dicas ligadas). */
+    dicaDaRespostaAoTruco(quem) {
+      if (!this.app.dicasLigadas || this.mao.jogadores[quem].tipo !== "humano") return "";
+      const chance = Math.round(chanceDeVitoria(this.mao, quem, SIMULACOES_DA_DICA) * 100);
+      const conselho = chance >= 70 ? "d\xE1 para aceitar e at\xE9 pedir mais." : chance >= 35 ? "aceitar \xE9 razo\xE1vel." : "correr limita o preju\xEDzo.";
+      return "<br><br><b>Dica:</b> sua chance estimada de vencer esta m\xE3o \xE9 " + chance + "% (" + SIMULACOES_DA_DICA + " simula\xE7\xF5es); " + conselho;
     }
   };
 
@@ -6534,7 +7425,11 @@ html, body { overscroll-behavior: none; }
       this.input.keyboard?.on("keydown-ESC", () => this.cancelarSelecao());
       this.events.once("shutdown", () => {
         this.encerrada = true;
+        esconderDicaFlutuante();
+        Musica.parar();
       });
+      this.historicoDaPartida = [];
+      if (this.app.progresso.musica) Musica.tocar(this.opcoes.terreno);
       const comecar = () => this.iniciarMao();
       if (!this.app.progresso.tutorialVisto) abrirRegras(this.app, comecar);
       else comecar();
@@ -6543,6 +7438,7 @@ html, body { overscroll-behavior: none; }
     update(tempo) {
       if (!this.mao) return;
       this.desenharConexoesEAlvos(tempo);
+      this.desenharSugestao(this.camadaDestaques, tempo);
       this.desenharDestaqueDaVez(tempo);
     }
   };
@@ -6554,7 +7450,8 @@ html, body { overscroll-behavior: none; }
     metodosDeTurnos,
     metodosDoTruco,
     metodosDeEfeitos,
-    metodosDoResultado
+    metodosDoResultado,
+    metodosDeDicas
   );
 
   // src/principal.js

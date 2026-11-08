@@ -52,6 +52,10 @@ export const metodosDeTurnos = {
     this.vanishingAvisado = [false, false];
     this.trucoConsideradoNoTurno = -1;
     this.oponenteCorreu = false;
+    this.sugestao = null;
+    this.dicasNaMao = this.app.dicasLigadas;
+    this.linhaDoTempo = [];
+    this.linhasRegistradas = 0;
     for (const objeto of this.objetosDoTabuleiro || []) objeto.destroy();
     for (const c of this.cartasDaMao || []) c.destroy();
     for (const c of this.cartasDoAdversario || []) c.destroy();
@@ -108,10 +112,12 @@ export const metodosDeTurnos = {
       return;
     }
     this.selecao = [];
+    this.sugestao = null;
     if (this.modo !== 'inicio') this.modo = 'livre';
     const eventos = this.mao.eventos.splice(0);
     this.ocupada = true;
     this.redesenhar();
+    this.anotarNaLinhaDoTempo(jogada, eventos);
     const espera = this.animarEventos(eventos, jogada);
     this.time.delayedCall(espera, () => this.avancar());
   },
@@ -139,7 +145,31 @@ export const metodosDeTurnos = {
       this.time.delayedCall(900, () => this.executarJogada({ tipo: 'passar', jogador: vez }));
       return;
     }
+    this.calcularSugestao();
     this.redesenhar();
+  },
+
+  /**
+   * Guarda um passo da mão para a revisão didática do fim (interface/telas/revisao.js):
+   * quem jogou, o que aconteceu (texto do registro e tipos de evento) e as somas depois da jogada.
+   * @param {object|null} jogada Jogada aplicada, ou null para acontecimentos de fora das regras (truco).
+   * @param {object[]} eventos Eventos emitidos, ou `[{ tipo }]` para o truco.
+   * @param {string} [texto] Descrição; por padrão, as linhas novas do registro da mão.
+   */
+  anotarNaLinhaDoTempo(jogada, eventos, texto) {
+    const mao = this.mao;
+    const novas = mao.registro.slice(this.linhasRegistradas || 0);
+    this.linhasRegistradas = mao.registro.length;
+    const tipos = eventos.map((e) => e.tipo).filter((t) => t !== 'fim');
+    if (jogada && jogada.tipo === 'inicio' && !tipos.includes('inicio')) return; /* escolha ainda escondida */
+    this.linhaDoTempo.push({
+      numero: this.linhaDoTempo.length + 1,
+      jogador: jogada ? jogada.jogador : eventos[0].jogador,
+      tipo: jogada ? jogada.tipo : eventos[0].tipo,
+      eventos: tipos,
+      texto: texto || novas.join(' '),
+      somas: this.pontuacoes.map((p) => p.total),
+    });
   },
 
   /** Fase de início: oponentes escolhem a carta; humanos escolhem um de cada vez. */

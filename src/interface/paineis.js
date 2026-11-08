@@ -94,3 +94,38 @@ export function confirmar(titulo, texto, botoes, opcoes = {}) {
   });
   return painel;
 }
+
+/* ======================================================================== dica flutuante */
+
+let dicaFlutuante = null;
+
+/**
+ * Mostra uma dica no estilo do Grimório ao lado de um elemento da mesa (botão, carta).
+ * Fica à esquerda do retângulo quando há espaço; senão, acima ou abaixo.
+ * @param {string} titulo
+ * @param {string} html Corpo da dica (já escapado por quem chama).
+ * @param {{x: number, y: number, l: number, a: number}} alvo Retângulo do elemento, em pixels da página.
+ */
+export function mostrarDicaFlutuante(titulo, html, alvo) {
+  esconderDicaFlutuante();
+  const caixa = document.createElement('div');
+  caixa.className = 'dica-flutuante';
+  caixa.setAttribute('role', 'tooltip');
+  caixa.innerHTML = '<b>' + escaparHtml(titulo) + '</b>' + html;
+  document.body.appendChild(caixa);
+  const l = caixa.offsetWidth, a = caixa.offsetHeight, margem = 10;
+  const largura = innerWidth, altura = innerHeight;
+  let x, y;
+  if (alvo.x - l - margem > 8) { x = alvo.x - l - margem; y = alvo.y + alvo.a / 2 - a / 2; }
+  else if (alvo.y - a - margem > 8) { x = alvo.x + alvo.l / 2 - l / 2; y = alvo.y - a - margem; }
+  else { x = alvo.x + alvo.l / 2 - l / 2; y = alvo.y + alvo.a + margem; }
+  caixa.style.left = Math.max(8, Math.min(largura - l - 8, x)) + 'px';
+  caixa.style.top = Math.max(8, Math.min(altura - a - 8, y)) + 'px';
+  dicaFlutuante = caixa;
+}
+
+/** Esconde a dica flutuante, se houver. */
+export function esconderDicaFlutuante() {
+  if (dicaFlutuante) dicaFlutuante.remove();
+  dicaFlutuante = null;
+}
