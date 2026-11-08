@@ -1,0 +1,109 @@
+# Versionamento automático do Truco de Turing.
+#
+# - Em cada pull request para a main: roda os testes, confere o empacotamento e mostra no resumo
+#   do job qual versão o merge vai gerar.
+# - Em cada merge (ou push) na main: sobe a versão (ferramentas/versionar.js), atualiza
+#   src/versao.js (tela "Sobre"), README, CHANGELOG e o arquivo empacotado, faz o commit, cria a
+#   tag vX.Y.Z e publica uma release no GitHub.
+#
+# Que parte da versão sobe: rótulo "versao:maior" ou "versao:menor" no PR, ou o título do PR
+# (feat/nova/novo → menor; "!:" ou BREAKING → maior); nos demais casos, correção (X.Y.Z+1).
+name: Versão
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: versao-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verificar:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run testar
+      - run: npm run build
+      - name: Próxima versão
+        env:
+          TITULO: ${{ github.event.pull_request.title }}
+          ROTULOS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+        run: |
+          VERSAO=$(node ferramentas/versionar.js --simular --tipo auto | tail -n 1)
+          echo "### Este pull request vai gerar a versão **$VERSAO** ao entrar na main" >> "$GITHUB_STEP_SUMMARY"
+
+  versionar:
+    # o commit de versão feito pelo próprio robô não dispara outra versão
+    if: github.event_name == 'push' && github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, '[versao]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run testar
+
+      - name: Descobrir o pull request deste merge
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MENSAGEM: ${{ github.event.head_commit.message }}
+        run: |
+          gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" > pr.json || echo '[]' > pr.json
+          NUMERO=$(node -e "const p=require('./pr.json')[0]; console.log(p ? p.number : '')")
+          echo "numero=$NUMERO" >> "$GITHUB_OUTPUT"
+          node -e "const p=require('./pr.json')[0]; const fs=require('fs');
+            fs.writeFileSync('titulo.txt', p ? p.title : (process.env.MENSAGEM || '').split('\n')[0]);
+            fs.writeFileSync('rotulos.txt', p ? p.labels.map(l => l.name).join(',') : '');"
+          rm pr.json
+
+      - name: Subir a versão
+        id: versao
+        run: |
+          ATUAL=$(node -p "require('./package.json').version")
+          export TITULO="$(cat titulo.txt)" ROTULOS="$(cat rotulos.txt)"
+          rm titulo.txt rotulos.txt
+          if git rev-parse "v$ATUAL" >/dev/null 2>&1; then
+            VERSAO=$(node ferramentas/versionar.js --tipo auto --pr "${{ steps.pr.outputs.numero }}" | tail -n 1)
+          else
+            # a versão atual ainda não foi publicada (primeira versão): publica sem subir
+            VERSAO=$(node ferramentas/versionar.js --atual --pr "${{ steps.pr.outputs.numero }}" | tail -n 1)
+          fi
+          echo "versao=$VERSAO" >> "$GITHUB_OUTPUT"
+
+      - run: npm run build
+      - run: npm run docs
+
+      - name: Commit, tag e envio
+        run: |
+          VERSAO="${{ steps.versao.outputs.versao }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit -m "Versão $VERSAO [versao]"
+          git pull --rebase origin main
+          git tag -a "v$VERSAO" -m "Versão $VERSAO"
+          git push origin HEAD:main --follow-tags
+
+      - name: Release no GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSAO="${{ steps.versao.outputs.versao }}"
+          awk "/^## $VERSAO /{achou=1; next} /^## /{if(achou) exit} achou" CHANGELOG.md > notas.md
+          gh release create "v$VERSAO" --title "Truco de Turing $VERSAO" --notes-file notas.md

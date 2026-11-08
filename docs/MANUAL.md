@@ -102,6 +102,7 @@ ferramentas/
   testar.js                 testes das regras
   simular.js                partidas em massa entre oponentes
   documentar.js             gera docs/REFERENCIA.md
+  versionar.js              sobe a versão (package.json, src/versao.js, README, CHANGELOG)
 docs/
   MANUAL.md                 este manual
   REFERENCIA.md             referência gerada das funções
@@ -272,6 +273,20 @@ npm run docs         # atualiza docs/REFERENCIA.md
 **Publicação gratuita:** o GitHub Pages serve a pasta do repositório como está (o `index.html` carrega
 os módulos de `src/`). Alternativas: enviar `dist/truco-de-turing.html` ao itch.io (projeto HTML),
 Netlify Drop ou Cloudflare Pages.
+
+### Versões
+
+`ferramentas/versionar.js` controla o número da versão (MAIOR.MENOR.CORREÇÃO) em `package.json`,
+`src/versao.js` (mostrada na tela Sobre), na linha entre `<!-- versao -->` e `<!-- /versao -->` do
+README e no `CHANGELOG.md`. O workflow `.github/workflows/versao.yml` o executa:
+
+- em cada **pull request** para a main: testes, empacotamento e a próxima versão no resumo do job;
+- em cada **merge ou push na main**: sobe a versão, refaz `dist/` e `docs/REFERENCIA.md`, faz o commit
+  `Versão X.Y.Z [versao]`, cria a tag `vX.Y.Z` e a release. O commit do robô não gera outra versão.
+
+O tipo vem do pull request: rótulo `versao:maior`/`versao:menor`, ou o título (`feat`, `nova`, `novo` →
+menor; `!:` ou BREAKING → maior); nos demais casos, correção. À mão:
+`node ferramentas/versionar.js --tipo menor --titulo "Descrição"` (ou `--simular` para só ver o número).
 
 ## 8. Como estender
 

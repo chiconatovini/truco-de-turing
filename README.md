@@ -1,5 +1,9 @@
 # Truco de Turing
 
+<!-- versao -->
+**Versão 1.0.0** (2026-11-08) · [histórico de versões](CHANGELOG.md)
+<!-- /versao -->
+
 Jogo de cartas para navegador, feito em **Phaser 3**, para ensinar redes neurais e deep learning jogando.
 Implementa a proposta do prof. Peng Yaohao (FPO 2026/2, PPCA/UnB, trabalho tema 4),
 em card games de fantasia (moldura, tipo, caixa de regras, texto de ambientação, "poder") e no truco
@@ -34,6 +38,20 @@ node ferramentas/simular.js 60 montecarlo guloso truco oceano
   publicar e estender (novo baralho, terreno, oponente, conquista ou verbete).
 - [**Referência**](docs/REFERENCIA.md): todos os módulos e funções, gerada dos comentários com `npm run docs`.
 
+## Versões
+
+Cada merge na `main` gera uma versão nova, automaticamente (GitHub Actions, `.github/workflows/versao.yml`):
+o número sobe, a tela **Sobre** e este README passam a mostrá-lo, o [histórico](CHANGELOG.md) ganha uma
+entrada com o título do pull request, e uma tag `vX.Y.Z` e uma release são publicadas.
+
+| Pull request | Versão |
+|---|---|
+| comum (correção, ajuste) | 1.0.0 → 1.0.1 |
+| título começando com `feat`, `nova` ou `novo`, ou rótulo `versao:menor` | 1.0.0 → 1.1.0 |
+| título com `!:` ou "BREAKING", ou rótulo `versao:maior` | 1.0.0 → 2.0.0 |
+
+Em cada pull request, o resumo da verificação mostra qual versão ele vai gerar.
+
 ## Estrutura
 
 Todo o código está em português do Brasil, em camadas que só dependem das de baixo:
@@ -52,7 +70,8 @@ src/interface/             menu, telas HTML, avisos e som (WebAudio)
 src/cenas/                 cenas do Phaser: carregamento, menu e mesa
 src/cenas/mesa/            a mesa dividida por assunto: cenário, desenho, entrada,
                            turnos, truco, efeitos e resultado
-ferramentas/               empacotar, testar, simular e documentar
+ferramentas/               empacotar, testar, simular, documentar e versionar
+.github/workflows/         versão automática a cada merge na main
 docs/                      manual e referência
 ```
 

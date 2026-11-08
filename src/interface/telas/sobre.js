@@ -1,12 +1,15 @@
 /**
- * @file Tela "Sobre": o jogo, a disciplina, a especificação, o professor, os autores e a licença.
+ * @file Tela "Sobre": versão, o jogo, a disciplina, a especificação, o professor, os autores e a licença.
  */
 import { abrirPainel } from '../paineis.js';
+import { VERSAO, DATA_DA_VERSAO } from '../../versao.js';
 
 /** Abre a tela "Sobre". */
 export function abrirSobre() {
   const html = '<div class="folha sobre"><button class="fechar-x" data-fechar aria-label="Fechar">\u00d7</button>' +
       '<h2>Sobre o Truco de Turing</h2>' +
+      '<p class="versao">Versão ' + VERSAO + ' \u00b7 ' + DATA_DA_VERSAO.split('-').reverse().join('/') +
+      ' \u00b7 <a href="https://github.com/welyngton/truco-de-turing/blob/main/CHANGELOG.md" target="_blank" rel="noopener">histórico de versões</a></p>' +
       '<p>Um jogo de cartas para navegador que ensina redes neurais jogando. Cada carta é um neurônio, cada mão é uma rede construída da entrada à saída, e cada ação com as cartas (tunagem, overfit, dropout, early stop, transfer learning) é um conceito do treino de modelos. Por cima de tudo, o truco: tentos, pedidos de TRUCO, SEIS, NOVE e DOZE, e blefe.</p>' +
       '<h3>A disciplina</h3>' +
       '<p>Trabalho do tema 4 da disciplina FPO, semestre 2026/2, na Universidade de Brasília, com o prof. Peng Yaohao. O tema pede um jogo indie para ensinar conceitos de machine learning e redes neurais, a partir de uma premissa: um jogo educativo precisa, antes de tudo, ser um jogo divertido. Se o jogo for divertido e o docente tiver competência suficiente, ele pode se tornar educativo.</p>' +

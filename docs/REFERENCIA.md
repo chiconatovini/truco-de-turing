@@ -581,7 +581,7 @@ Tela de revisão didática do fim da mão (e da partida). Mostra, a partir da li
 
 ## `src/interface/telas/sobre.js`
 
-Tela "Sobre": o jogo, a disciplina, a especificação, o professor, os autores e a licença.
+Tela "Sobre": versão, o jogo, a disciplina, a especificação, o professor, os autores e a licença.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -761,6 +761,15 @@ Ponto de entrada do jogo: prepara o texto nítido, carrega as opções e cria o 
 
 Foto do prof. Peng Yaohao (360x360, JPEG embutido), enviada pelo autor para o quadro de conquistas.
 
+## `src/versao.js`
+
+Versão do jogo, mostrada na tela "Sobre". Gerado por ferramentas/versionar.js a cada merge na main (GitHub Actions). Não edite à mão.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `VERSAO` | constante (exportada) | Número da versão (MAIOR.MENOR.CORREÇÃO). |
+| `DATA_DA_VERSAO` | constante (exportada) | Data da versão (AAAA-MM-DD). |
+
 ## `ferramentas/documentar.js`
 
 Gera docs/REFERENCIA.md: a lista de módulos e funções do projeto, montada a partir dos comentários JSDoc do código (o `@file` de cada arquivo e o comentário `/** ... *\/` logo acima de cada função, constante ou método). Assim a referência nunca fica desatualizada: basta documentar o código e rodar `npm run docs`.
@@ -787,4 +796,17 @@ Testes das regras do núcleo (sem navegador). Uso: node ferramentas/testar.js
 |---|---|---|
 | `teste(nome, corpo)` | função | Roda um teste e mostra o resultado. |
 | `redeCom(pilhas, opcoes = {})` | função | Monta uma mão e força o caminho do jogador 0 com as cartas dadas (uma lista por camada). |
+
+## `ferramentas/versionar.js`
+
+Versionamento do jogo (versionamento semântico MAIOR.MENOR.CORREÇÃO). Roda no GitHub Actions a cada merge (ou push) na main — ver .github/workflows/versao.yml — e também à mão. Atualiza, de uma vez: - package.json e package-lock.json (`version`); - src/versao.js (mostrada na tela "Sobre"); - README.md (a linha entre os marcadores `<!-- versao -->` e `<!-- /versao -->`); - CHANGELOG.md (uma entrada nova no topo, com o título do pull request). Que parte da versão sobe é decidido pelo pull request (ou pela mensagem do commit, sem PR): - rótulo `versao:maior`, ou título com `!:`/"BREAKING" → MAIOR (2.0.0); - rótulo `versao:menor`, ou título começando com `feat`, `nova` ou `novo` → MENOR (1.1.0); - qualquer outro caso → CORREÇÃO (1.0.1). Uso: node ferramentas/versionar.js --tipo auto --titulo "feat: dicas" --rotulos "versao:menor" --pr 12 node ferramentas/versionar.js --tipo correcao node ferramentas/versionar.js --atual (publica a versão atual sem subir; 1ª versão) node ferramentas/versionar.js --simular ... (só mostra a próxima versão, sem gravar) O título e os rótulos também podem vir das variáveis de ambiente TITULO e ROTULOS (mais seguro no CI). A versão final é impressa na última linha da saída.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `lerArgumentos(lista)` | função | Lê os argumentos `--chave valor` (e `--chave` sozinho como verdadeiro). |
+| `tipoDeMudanca(titulo = '', rotulos = [])` | função (exportada) | Decide que parte da versão sobe. |
+| `proximaVersao(versao, tipo)` | função (exportada) | Soma uma versão: '1.4.2' + 'menor' → '1.5.0'. |
+| `gravarModuloDeVersao(versao, data)` | função | Grava a versão em src/versao.js. |
+| `gravarNoReadme(versao, data)` | função | Troca a linha de versão do README (entre os marcadores). |
+| `gravarNoHistorico(versao, data, titulo, pr, repositorio)` | função | Acrescenta a entrada da versão no topo do CHANGELOG.md. |
 

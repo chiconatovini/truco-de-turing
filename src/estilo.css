@@ -212,6 +212,7 @@ html, body { overscroll-behavior: none; }
 .desbloqueio .medalha > svg { width: 26px; height: 26px; }
 .folha.sobre h3:first-of-type { margin-top: 14px; }
 .folha.sobre a { color: #7a1626; }
+.folha.sobre .versao { margin-top: -6px; font-family: var(--fonte-interface); font-size: 13px; letter-spacing: 0.04em; color: #7a6a4c; }
 .folha.sobre .autores { font-weight: 600; margin-bottom: 0; }
 .folha.sobre .contribuicoes { font-size: 13px; font-style: italic; color: #7a6a4c; margin-top: 10px; }
 

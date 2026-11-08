@@ -8,6 +8,7 @@ import { pontosDaCarta } from '../src/nucleo/baralhos.js';
 import { escolherDicaDeJogo } from '../src/conteudo/dicasDeJogo.js';
 import { determinizar } from '../src/nucleo/oponentes/comum.js';
 import { jogadaAleatoria } from '../src/nucleo/oponentes/estrategias.js';
+import { tipoDeMudanca, proximaVersao } from './versionar.js';
 import { novaPartida, pedirTruco, responderTruco, marcarTentos, podeTrucar, ehMaoDeOnze } from '../src/nucleo/truco.js';
 
 let aprovados = 0;
@@ -102,6 +103,16 @@ teste('dicas usam só informação pública: o que está virado não muda a dica
     }
   }
   assert.ok(verificadas > 500);
+});
+
+teste('versionamento: tipo de mudança e próxima versão', () => {
+  assert.equal(tipoDeMudanca('feat: modo torneio'), 'menor');
+  assert.equal(tipoDeMudanca('Corrige o truco'), 'correcao');
+  assert.equal(tipoDeMudanca('qualquer', ['versao:maior']), 'maior');
+  assert.equal(tipoDeMudanca('feat!: muda as regras'), 'maior');
+  assert.equal(proximaVersao('1.4.2', 'maior'), '2.0.0');
+  assert.equal(proximaVersao('1.4.2', 'menor'), '1.5.0');
+  assert.equal(proximaVersao('1.4.2', 'correcao'), '1.4.3');
 });
 
 console.log(`\n${aprovados} testes aprovados.`);

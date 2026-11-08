@@ -1,0 +1,9 @@
+# Histórico de versões
+
+Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
+
+## 1.0.0 — 2026-11-08
+
+- Primeira versão numerada. Jogo completo segundo a especificação do tema 4 (FPO 2026/2): mesa 3-5-5-5-5-5-4, tunagem, overfit, early stop, stack overflow, dropout, transfer learning e desempates; 5 baralhos e 4 terrenos; truco até 12 tentos; três oponentes (aleatório, guloso e Monte Carlo); 27 conquistas; Grimório.
+- Código modular em português (núcleo de regras, conteúdo, arte, interface e cenas), com manual e referência gerada.
+- Modo dicas (estratégia e conceitos, sem revelar cartas viradas), revisão didática da mão, música por terreno e comemoração de vitória.
