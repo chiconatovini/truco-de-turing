@@ -1,8 +1,7 @@
 # Truco de Turing
 
 Jogo de cartas para navegador, feito em **Phaser 3**, para ensinar redes neurais e deep learning jogando.
-Implementa a proposta do prof. Peng Yaohao (FPO 2026/2, PPCA/UnB, trabalho tema 4), com inspiração no
-[NeuroDeck](https://neurodeck-fpo.web.app/), no [TensorFlow Playground](https://playground.tensorflow.org/),
+Implementa a proposta do prof. Peng Yaohao (FPO 2026/2, PPCA/UnB, trabalho tema 4), com inspiração no [TensorFlow Playground](https://playground.tensorflow.org/),
 em card games de fantasia (moldura, tipo, caixa de regras, texto de ambientação, "poder") e no truco
 (naipes espanhóis, manilhas, pedidos de TRUCO/SEIS/NOVE/DOZE e partida até 12 tentos).
 
@@ -94,4 +93,4 @@ modo online (o estado é serializável), tutorial guiado e um laboratório de si
 
 Distribuído sob a [GPL-3.0](https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file). Código-fonte: https://github.com/welyngton/truco-de-turing
 
-Regras originais: Peng Yaohao. Arte das cartas gerada por código.
+Regras originais: Peng Yaohao - FPO-UNB - 2026-2
