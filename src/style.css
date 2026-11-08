@@ -28,12 +28,18 @@ body {
   font-variant-numeric: lining-nums;
   overflow: hidden;
 }
+/* O Phaser mede o contêiner com getBoundingClientRect (que inclui padding): por isso as áreas
+ * seguras (entalhe, barra de gestos) entram como posição, nunca como padding. */
 #game {
   position: fixed;
-  inset: 0;
-  padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+  top: env(safe-area-inset-top, 0px);
+  right: env(safe-area-inset-right, 0px);
+  bottom: env(safe-area-inset-bottom, 0px);
+  left: env(safe-area-inset-left, 0px);
+  overflow: hidden;
 }
-#game canvas { display: block; }
+#game canvas { display: block; touch-action: none; }
+html, body { overscroll-behavior: none; }
 
 /* ---------- Painéis sobrepostos ---------- */
 #ui { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
@@ -243,11 +249,38 @@ body {
 .toast.badge { border-color: var(--brass); background: #2b1608; color: #f6dc8f; }
 .toast.badge b { color: var(--brass); }
 
+/* Aviso de rotação: só durante a partida, em celulares na vertical */
 #rotate {
-  position: fixed; inset: auto 0 0 0; padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
-  text-align: center; font: 600 14px var(--ui); background: rgba(0, 0, 0, 0.7); color: var(--parchment); z-index: 8; display: none;
+  position: fixed; inset: 0; z-index: 20; display: none; place-items: center;
+  padding: max(16px, env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) max(16px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+  background: radial-gradient(ellipse at 50% 45%, #15503a 0%, #06180f 75%);
+  color: var(--parchment); text-align: center;
 }
-@media (orientation: portrait) and (max-width: 700px) { #rotate { display: block; } }
+.rotate-box { display: grid; gap: 10px; justify-items: center; max-width: 30ch; }
+.rotate-box b { font: 700 24px var(--display); color: #f6dc8f; letter-spacing: 0.04em; }
+.rotate-box span { font: 400 16px var(--body); color: #d6c8a6; line-height: 1.4; }
+.rotate-box .phone { transform-origin: 32px 30px; animation: tilt 2.4s ease-in-out infinite; }
+@keyframes tilt { 0%, 25% { transform: rotate(0deg); } 55%, 85% { transform: rotate(-90deg); } 100% { transform: rotate(0deg); } }
+@media (orientation: portrait) and (max-width: 600px) { body.in-game #rotate { display: grid; } }
+@media (prefers-reduced-motion: reduce) { .rotate-box .phone { animation: none; transform: rotate(-90deg); } }
+
+/* Menu em telas baixas (celular na horizontal) */
+@media (max-height: 520px) and (min-width: 600px) {
+  .overlay { padding-block: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-bottom, 0px)); }
+  .menu { gap: 16px; align-items: start; }
+  .menu-hero { gap: 8px; }
+  .menu-hero h1 { font-size: clamp(30px, 5vw, 48px); }
+  .menu-hero h1 span { margin-bottom: 2px; }
+  .menu-hero p { font-size: 15px; line-height: 1.35; }
+  .menu-actions .btn.play { font-size: 17px; padding: 9px 16px; }
+  .menu-more .btn { font-size: 12px; padding: 7px 4px; }
+  .credits { font-size: 12px; }
+  .menu-panel { padding: 14px 16px; max-height: calc(100dvh - 16px); overflow-y: auto; }
+  .field { margin-bottom: 8px; }
+  .field select { padding: 6px 8px; font-size: 15px; }
+  .field .hint { font-size: 13px; }
+  .sheet { padding: 18px 20px; font-size: 15px; max-height: calc(100dvh - 16px); }
+}
 
 @media (max-width: 760px) {
   .menu { grid-template-columns: minmax(0, 1fr); }

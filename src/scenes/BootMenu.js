@@ -46,12 +46,32 @@ TT.SIZE = { boardW: 62, boardH: 87, handW: 96, handH: 134, prevW: 197, prevH: 27
 
 /* A mesa (1280x720) fica sempre inteira e centralizada; telas mais altas (tablet) ou mais largas
  * (celular) ganham feltro extra em volta, em vez de faixas pretas. */
+/* A câmera acompanha o tamanho real do canvas. O Phaser, no modo EXPAND, não redimensiona a
+ * câmera ao girar o aparelho (compara com o tamanho lógico, não com o expandido); por isso a
+ * conferência é feita aqui, no evento de resize e a cada quadro (custo: uma comparação). */
 TT.setupCamera = function (scene) {
   var cam = scene.cameras.main;
-  var fit = function () { cam.setZoom(TT.RES).centerOn(TT.W / 2, TT.H / 2); };
+  var canvas = scene.sys.game.canvas;
+  var last = '';
+  var fit = function () {
+    var w = canvas.width, h = canvas.height;
+    var key = w + 'x' + h;
+    if (key === last && cam.width === w && cam.height === h) return;
+    last = key;
+    cam.setSize(w, h);
+    var z = Math.min(w / TT.W, h / TT.H);
+    cam.setZoom(z).centerOn(TT.W / 2, TT.H / 2);
+    /* o fundo cobre sempre toda a área visível, em qualquer proporção de tela */
+    if (scene._felt) {
+      var f = Math.max(1, (w / z) / (TT.W * 2), (h / z) / (TT.H * 2)) * 1.02;
+      scene._felt.setDisplaySize(TT.W * 2 * f, TT.H * 2 * f);
+    }
+  };
+  scene._fitCamera = function () { last = ''; fit(); };
   fit();
   scene.scale.on('resize', fit);
-  scene.events.once('shutdown', function () { scene.scale.off('resize', fit); });
+  scene.events.on('update', fit);
+  scene.events.once('shutdown', function () { scene.scale.off('resize', fit); scene.events.off('update', fit); });
 };
 /* Fundo da mesa conforme o terreno (gerado na primeira vez; mantém só o neutro e o atual) */
 TT.tableKey = function (scene, terrain) {
@@ -66,7 +86,9 @@ TT.tableKey = function (scene, terrain) {
   return key;
 };
 TT.addFelt = function (scene, terrain) {
-  return scene.add.image(TT.W / 2, TT.H / 2, TT.tableKey(scene, terrain)).setDisplaySize(TT.W * 2, TT.H * 2).setDepth(-10);
+  scene._felt = scene.add.image(TT.W / 2, TT.H / 2, TT.tableKey(scene, terrain)).setDisplaySize(TT.W * 2, TT.H * 2).setDepth(-10);
+  if (scene._fitCamera) scene._fitCamera();
+  return scene._felt;
 };
 /* Versos conforme o baralho: kind = full | hand | mini */
 TT.backKey = function (scene, kind, deck) {

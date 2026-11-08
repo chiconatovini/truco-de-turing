@@ -20,13 +20,30 @@ TT.App = {
   },
   play: function () {
     TT.UI.closeAll();
+    this.immersive();
+    document.body.classList.add('in-game');
     this.game.scene.stop('Menu');
     this.game.scene.start('Game');
   },
   toMenu: function () {
     TT.UI.closeAll();
+    document.body.classList.remove('in-game');
     this.game.scene.stop('Game');
     this.game.scene.start('Menu');
+  },
+  /* Em celulares e tablets: tela cheia e trava na horizontal, onde o navegador permite
+   * (Chrome no Android). No iPhone isso não existe; ali vale o aviso para girar o aparelho. */
+  immersive: function () {
+    var touch = globalThis.matchMedia && matchMedia('(pointer: coarse)').matches;
+    if (!touch) return;
+    var el = document.documentElement;
+    try {
+      if (!document.fullscreenElement && el.requestFullscreen) {
+        el.requestFullscreen({ navigationUI: 'hide' }).then(function () {
+          if (screen.orientation && screen.orientation.lock) return screen.orientation.lock('landscape');
+        }).catch(function () { /* sem tela cheia: segue normalmente */ });
+      }
+    } catch (e) { /* ignora */ }
   },
 
   /* Registra o fim de uma mão contra bot e devolve as conquistas novas */
