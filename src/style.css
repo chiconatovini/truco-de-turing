@@ -196,6 +196,8 @@ body {
 .unlock .medal > svg { width: 26px; height: 26px; }
 .sheet.about h3:first-of-type { margin-top: 14px; }
 .sheet.about a { color: #7a1626; }
+.sheet.about .authors { font-weight: 600; margin-bottom: 0; }
+.sheet.about .contrib { font-size: 13px; font-style: italic; color: #7a6a4c; margin-top: 10px; }
 
 /* ---------- Fim de mão ---------- */
 .result-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 12px; }

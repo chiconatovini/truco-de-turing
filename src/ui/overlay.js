@@ -207,8 +207,9 @@ TT.UI = (function () {
       '<p>Esta versão implementa todas as regras, os baralhos e os terrenos da especificação, além da camada de truco e de três oponentes. As leituras adotadas onde o texto deixa margem estão no README do projeto.</p>' +
       '<h3>O professor</h3>' +
       '<p><b>Peng Yaohao</b> é professor da Universidade de Brasília, mestre e doutor pela UnB na área de Finanças e Métodos Quantitativos. Pesquisa aprendizado de máquina, modelos não lineares e econometria financeira, com trabalhos sobre previsão de volatilidade e de preços de ações e um estudo empírico sobre não linearidade e overfitting em machine learning com dados da COVID-19.</p>' +
-      '<h3>O autor</h3>' +
-      '<p><b>Welyngton José Vinicius Dal Prá</b> idealizou e desenvolveu esta versão do jogo. É gerente de TI no Centro de Excelência em Engenharia de Software do Banco do Brasil, onde lidera a área Web e Qualidade, e pesquisador do laboratório L@titude da UnB.</p>' +
+      '<h3>Autores</h3>' +
+      '<p class="authors">Welyngton José Vinicius Dal Prá</p>' +
+      '<p class="contrib">Contribuições são bem-vindas: o código está aberto no repositório.</p>' +
       '<h3>Créditos e licença</h3>' +
       '<p>Código aberto sob a licença <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>, no repositório <a href="https://github.com/welyngton/truco-de-turing" target="_blank" rel="noopener">github.com/welyngton/truco-de-turing</a>. Feito com Phaser 3; toda a arte das cartas é gerada por código; fontes Cinzel e Spectral.</p>' +
       '<div class="row end" style="margin-top:14px"><button class="btn" data-close>Fechar</button></div></div>';
