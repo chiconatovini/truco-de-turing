@@ -1,0 +1,267 @@
+/**
+ * @file Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo/partida.js)
+ * em giros de carta, cartas voando, faíscas, faixas de texto, tremidas de câmera, balão de fala do
+ * oponente e avisos do Grimório.
+ */
+import { MUNDO, RESOLUCAO, FONTES, TAMANHO_CARTA } from '../../configuracao.js';
+import { NAIPE, ehFigura } from '../../nucleo/cartas.js';
+import { pontosDaCarta, nomeDaCarta } from '../../nucleo/baralhos.js';
+import { CAMADA_SAIDA } from '../../nucleo/rede.js';
+import { VERBETES } from '../../conteudo/grimorio.js';
+import { provocar } from '../../conteudo/textos.js';
+import { desenharFaisca } from '../../arte/botoes.js';
+import { Som } from '../../interface/som.js';
+import { mostrarAviso } from '../../interface/paineis.js';
+import { texturaDaCartaNaMesa, texturaDaCartaMedia, texturaDeInspecao } from '../recursos.js';
+import { colunaX, linhaY, COR_JOGADOR_CSS } from './layout.js';
+
+/** Cor e título de cada ataque. */
+const ATAQUES = {
+  overfit: { cor: 0xffa24a, titulo: 'OVERFIT!' },
+  earlystop: { cor: 0xff4d5e, titulo: 'EARLY STOP!' },
+  stackoverflow: { cor: 0xff4dd2, titulo: 'STACK OVERFLOW!' },
+};
+
+/** Número de cor 0xRRGGBB para texto CSS. */
+const corCss = (cor) => '#' + cor.toString(16).padStart(6, '0');
+
+export const metodosDeEfeitos = {
+  /** Centro do neurônio na tela. */
+  posicaoDoNeuronio(id) {
+    const n = this.mao.neuronios[id];
+    return { x: colunaX(n.camada), y: linhaY(n.camada, n.posicao) };
+  },
+
+  /** Ponto de onde saem as cartas jogadas por `j` (a mão de baixo ou a de cima). */
+  origemDasCartas(j) {
+    return j === this.jogadorDeBaixo() ? { x: 610, y: 652 } : { x: 560, y: 40 };
+  },
+
+  /**
+   * Anima uma lista de eventos das regras.
+   * @param {object[]} eventos
+   * @param {object} [jogada] Jogada que gerou os eventos (para saber quantas cartas voaram).
+   * @returns {number} Milissegundos até as animações terminarem.
+   */
+  animarEventos(eventos, jogada) {
+    let espera = 350;
+    for (const evento of eventos) {
+      const animar = this['animar_' + evento.tipo];
+      if (animar) espera = Math.max(espera, animar.call(this, evento, jogada) || 0);
+    }
+    espera = Math.max(espera, this.verificarVanishing());
+    if (this.mao.historico.length > 3) this.avisarVerbete('perda');
+    return espera;
+  },
+
+  /** Neurônio revelado: gira a carta e mostra os pontos ganhos. */
+  animar_ativacao(evento) {
+    const mao = this.mao, baralho = mao.config.baralho;
+    const imagem = this.visuais[evento.neuronio].imagem;
+    imagem.scaleX = 0;
+    this.tweens.add({ targets: imagem, scaleX: imagem.escalaBaseX, duration: 200, ease: 'Sine.out' });
+    Som.virarCarta();
+    const { x, y } = this.posicaoDoNeuronio(evento.neuronio);
+    const pontuado = this.pontuacoes[evento.jogador].neuronios.find((n) => n.neuronio.id === evento.neuronio);
+    this.textoFlutuante(x, y - 50, '+' + (pontuado ? pontuado.pontos : 0), COR_JOGADOR_CSS[evento.jogador], 22);
+    this.inspecionar(texturaDeInspecao(this, evento.carta, baralho), mao.jogadores[evento.jogador].nome + ' ativou ' + nomeDaCarta(evento.carta, baralho) + '.');
+    this.avisarVerbete('neuronio');
+    const tamanho = mao.jogadores[evento.jogador].caminho.length;
+    if (tamanho >= 2) this.avisarVerbete('forward');
+    if (tamanho >= 3) this.avisarVerbete('pesos');
+    return 450;
+  },
+
+  /** Tunagem: cartas voam para o neurônio e somam pontos. */
+  animar_tunagem(evento) {
+    const baralho = this.mao.config.baralho;
+    const { x, y } = this.posicaoDoNeuronio(evento.neuronio);
+    const origem = this.origemDasCartas(evento.jogador);
+    evento.cartas.forEach((c, i) => this.voarCarta(c, origem.x, origem.y, x, y, i * 120));
+    const soma = evento.cartas.reduce((t, c) => t + (ehFigura(c) ? 10 : pontosDaCarta(c, baralho)), 0);
+    this.time.delayedCall(320, () => { Som.tunagem(); this.textoFlutuante(x, y - 50, 'Tunagem +' + soma, '#7fe08a', 20); this.explodir(x, y, 0x7fe08a, 14); });
+    this.avisarVerbete('tunagem');
+    return 800;
+  },
+
+  /** Ataques (overfit, early stop, stack overflow): cartas voam, o neurônio treme e some. */
+  animar_ataque(evento, jogada) {
+    const mao = this.mao, baralho = mao.config.baralho;
+    const { x, y } = this.posicaoDoNeuronio(evento.neuronio);
+    const origem = this.origemDasCartas(evento.jogador);
+    const jogadas = jogada && jogada.cartas ? jogada.cartas.length : 1;
+    for (let k = 0; k < jogadas; k++) {
+      const carta = evento.cartas[evento.cartas.length - 1 - k];
+      if (carta) this.voarCarta(carta, origem.x, origem.y, x, y, k * 110);
+    }
+    const fantasma = this.add.image(x, y, texturaDaCartaNaMesa(this, evento.cartas[0], baralho))
+      .setDisplaySize(TAMANHO_CARTA.mesaL, TAMANHO_CARTA.mesaA).setDepth(15);
+    this.tweens.add({ targets: fantasma, x: '+=6', yoyo: true, repeat: 4, duration: 50, delay: 300 });
+    this.tweens.add({
+      targets: fantasma, alpha: 0, displayWidth: TAMANHO_CARTA.mesaL * 1.5, displayHeight: TAMANHO_CARTA.mesaA * 1.5, angle: 25,
+      duration: 500, delay: 560, onComplete: () => fantasma.destroy(),
+    });
+    const { cor, titulo } = ATAQUES[evento.tipo];
+    const explosao = evento.tipo === 'stackoverflow';
+    this.time.delayedCall(420, () => {
+      this.explodir(x, y, cor, explosao ? 50 : 26);
+      if (explosao) { Som.explosao(); this.cameras.main.shake(450, 0.012); }
+      else { Som.golpe(); this.cameras.main.shake(220, evento.tipo === 'earlystop' ? 0.007 : 0.003); }
+      this.faixa(titulo + (evento.proprio ? ' (na própria rede)' : ''), corCss(cor), explosao ? 58 : 50);
+    });
+    if (!evento.proprio) {
+      if (mao.jogadores[evento.jogador].tipo === 'oponente') this.falar(provocar(evento.tipo));
+      else if (mao.jogadores[evento.dono].tipo === 'oponente') this.falar(provocar(evento.tipo === 'overfit' ? 'sofreuOverfit' : 'sofreuParada'));
+    }
+    this.avisarVerbete(evento.tipo);
+    if (evento.tipo !== 'overfit') this.avisarVerbete('overfit');
+    return 1250;
+  },
+  animar_overfit(evento, jogada) { return this.animar_ataque(evento, jogada); },
+  animar_earlystop(evento, jogada) { return this.animar_ataque(evento, jogada); },
+  animar_stackoverflow(evento, jogada) { return this.animar_ataque(evento, jogada); },
+
+  /** Dropout: os neurônios desfeitos giram de volta para o verso. */
+  animar_dropout(evento) {
+    evento.neuronios.forEach((id, i) => {
+      const imagem = this.visuais[id].imagem;
+      imagem.scaleX = 0;
+      this.tweens.add({ targets: imagem, scaleX: imagem.escalaBaseX, duration: 220, delay: i * 120 });
+    });
+    Som.dropout();
+    this.faixa('GatoNet! Dropout ×' + evento.neuronios.length, '#6fe7ff', 40);
+    this.avisarVerbete('dropout');
+    return 700;
+  },
+
+  /** Transfer learning. */
+  animar_transfer() {
+    Som.medalha();
+    this.faixa('TRANSFER LEARNING', '#9fe3e0', 46);
+    this.avisarVerbete('transfer');
+    this.avisarVerbete('ruido');
+    return 1000;
+  },
+
+  /** Rede chegou à camada de saída. */
+  animar_completa(evento) {
+    Som.medalha();
+    this.textoFlutuante(colunaX(CAMADA_SAIDA), 590, 'Rede completa!', COR_JOGADOR_CSS[evento.jogador], 22);
+    return 600;
+  },
+
+  /** Terreno oceano: o vento mudou de naipe. */
+  animar_vento(evento) {
+    const naipe = NAIPE[evento.naipe];
+    this.textoFlutuante(610, 120, 'O vento virou: ' + naipe.simbolo + ' ' + naipe.nome + ' vale dobro', '#bfe7f4', 20);
+    return 0;
+  },
+
+  /** Baralho Power BI: as cartas da mão foram trocadas. */
+  animar_powerbi(evento) {
+    mostrarAviso('Power BI', this.mao.jogadores[evento.jogador].nome + ' atualizou o dashboard: as cartas da mão mudaram.', null, 3500);
+    return 0;
+  },
+
+  /** Alguém passou a vez. */
+  animar_passe(evento) {
+    const embaixo = evento.jogador === this.jogadorDeBaixo();
+    this.textoFlutuante(embaixo ? 610 : 560, embaixo ? 570 : 90, this.mao.jogadores[evento.jogador].nome + ' passou', '#efe3c6', 18);
+    return 0;
+  },
+
+  /** Quem começa: mostra as cartas reveladas (ou anuncia o sorteio). */
+  animar_inicio(evento) {
+    const mao = this.mao, baralho = mao.config.baralho;
+    const nome = mao.jogadores[evento.jogador].nome, cor = COR_JOGADOR_CSS[evento.jogador];
+    if (!evento.cartas) {
+      this.faixa(nome + ' começa (sorteio)', cor, 36);
+      return 900;
+    }
+    evento.cartas.forEach((carta, i) => {
+      const imagem = this.add.image(520 + i * 180, 330, texturaDaCartaMedia(this, carta, baralho)).setDisplaySize(120, 168).setDepth(25).setAlpha(0);
+      this.tweens.add({ targets: imagem, alpha: 1, duration: 200 });
+      const rotulo = this.add.text(520 + i * 180, 430, mao.jogadores[i].nome, { fontFamily: FONTES.titulo, fontStyle: '700', fontSize: '16px', color: COR_JOGADOR_CSS[i] }).setOrigin(0.5).setDepth(25);
+      this.time.delayedCall(1700, () => this.tweens.add({ targets: [imagem, rotulo], alpha: 0, duration: 300, onComplete: () => { imagem.destroy(); rotulo.destroy(); } }));
+    });
+    this.time.delayedCall(700, () => this.faixa(nome + ' começa' + (evento.empate ? ' (empate: sorteio)' : ''), cor, 36));
+    return 2100;
+  },
+
+  /** Avisa quando uma rede acaba de formar uma quadra de figuras (vanishing gradient). */
+  verificarVanishing() {
+    let espera = 0;
+    this.mao.jogadores.forEach((_, j) => {
+      const pontuacao = this.pontuacoes[j];
+      if (pontuacao.vanishing && !this.vanishingAvisado[j]) {
+        this.vanishingAvisado[j] = true;
+        this.time.delayedCall(500, () => { Som.explosao(); this.faixa('VANISHING GRADIENT', '#ff6b7a', 52); this.falar(provocar('vanishing')); });
+        this.avisarVerbete('vanishing');
+        espera = 1400;
+      } else if (!pontuacao.vanishing) this.vanishingAvisado[j] = false;
+      if (pontuacao.combos.length) this.avisarVerbete('vanishing');
+    });
+    return espera;
+  },
+
+  /* ------------------------------------------------------------------ efeitos básicos */
+
+  /** Uma carta voa de (x0, y0) até (x1, y1) e some. */
+  voarCarta(carta, x0, y0, x1, y1, atraso = 0) {
+    const imagem = this.add.image(x0, y0, texturaDaCartaNaMesa(this, carta, this.mao.config.baralho)).setDisplaySize(72, 101).setDepth(16);
+    this.tweens.add({
+      targets: imagem, x: x1 + 8, y: y1 - 8, displayWidth: TAMANHO_CARTA.mesaL, displayHeight: TAMANHO_CARTA.mesaA, angle: 8,
+      duration: 320, delay: atraso, ease: 'Cubic.out', onComplete: () => imagem.destroy(),
+    });
+  },
+
+  /** Explosão de `quantidade` faíscas da cor dada. A faísca colorida é uma textura própria (Canvas não tem tint). */
+  explodir(x, y, cor, quantidade) {
+    const hex = corCss(cor), chave = 'faisca-' + hex;
+    const densidade = Math.min(RESOLUCAO, 2);
+    if (!this.textures.exists(chave)) this.textures.addCanvas(chave, desenharFaisca(densidade, hex));
+    const emissor = this.add.particles(x, y, chave, {
+      speed: { min: 80, max: 260 }, lifespan: 650, scale: { start: 13 / (32 * densidade), end: 0 }, blendMode: 'ADD', emitting: false,
+    }).setDepth(18);
+    emissor.explode(quantidade);
+    this.time.delayedCall(900, () => emissor.destroy());
+  },
+
+  /** Texto que sobe e desaparece. */
+  textoFlutuante(x, y, texto, cor = '#fff', tamanho = 20) {
+    const t = this.add.text(x, y, texto, { fontFamily: FONTES.titulo, fontStyle: '900', fontSize: tamanho + 'px', color: cor, stroke: '#0d0a08', strokeThickness: 5 }).setOrigin(0.5).setDepth(20);
+    this.tweens.add({ targets: t, y: y - 36, alpha: 0, duration: 1200, ease: 'Cubic.out', onComplete: () => t.destroy() });
+  },
+
+  /** Faixa grande no centro do tabuleiro (gritos de truco, ataques). */
+  faixa(texto, cor = '#f6dc8f', tamanho = 48) {
+    const t = this.add.text(610, MUNDO.altura * 0.46, texto, { fontFamily: FONTES.titulo, fontStyle: '900', fontSize: tamanho + 'px', color: cor, stroke: '#0d0a08', strokeThickness: 8, align: 'center' })
+      .setOrigin(0.5).setDepth(40).setScale(0.6).setAlpha(0);
+    this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 220, ease: 'Back.out' });
+    this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, duration: 380, delay: 1050, onComplete: () => t.destroy() });
+  },
+
+  /** Balão de fala do oponente, ao lado do avatar. */
+  falar(texto) {
+    if (!texto) return;
+    const p = this.painel, g = p.fundoBalao;
+    p.textoBalao.setText(texto);
+    const l = Math.min(250, p.textoBalao.width + 28), a = p.textoBalao.height + 18;
+    g.clear();
+    g.fillStyle(0xefe3c6, 1); g.fillRoundedRect(-l / 2, -a / 2, l, a, 10);
+    g.fillTriangle(-l / 2 + 10, -4, -l / 2 - 12, -10, -l / 2 + 10, 8);
+    g.lineStyle(2, 0x0d0a08, 1); g.strokeRoundedRect(-l / 2, -a / 2, l, a, 10);
+    p.balao.setPosition(Math.min(950 - l / 2, 690 + l / 2), 40).setVisible(true).setAlpha(1);
+    this.tweens.killTweensOf(p.balao);
+    this.tweens.add({ targets: p.balao, alpha: 0, delay: 2600, duration: 400, onComplete: () => p.balao.setVisible(false) });
+  },
+
+  /** Mostra uma vez por sessão o resumo do verbete do Grimório ligado ao que aconteceu. */
+  avisarVerbete(id) {
+    const avisados = this.app.verbetesAvisados;
+    if (avisados[id]) return;
+    avisados[id] = true;
+    const verbete = VERBETES.find((v) => v.id === id);
+    if (verbete) mostrarAviso('Grimório · ' + verbete.titulo, verbete.noJogo, null, 6500);
+  },
+};

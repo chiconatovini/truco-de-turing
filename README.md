@@ -7,48 +7,56 @@ em card games de fantasia (moldura, tipo, caixa de regras, texto de ambientaçã
 
 ## Como rodar
 
-Sem build: sirva a pasta e abra no navegador.
+O código usa módulos ES; sirva a pasta por http e abra no navegador.
 
 ```bash
+npm install          # esbuild (empacotador)
 npm start            # http://localhost:8080  (ou: python3 -m http.server 8080)
 ```
 
-Arquivo único (CSS e JS embutidos, Phaser via CDN):
+Arquivo único (CSS e JS embutidos, Phaser via CDN), que abre até com duplo clique:
 
 ```bash
 npm run build        # gera dist/truco-de-turing.html
 ```
 
-Laboratório de Monte Carlo em Node (bots jogando entre si, sem interface):
+Testes das regras e laboratório de Monte Carlo em Node (oponentes jogando entre si, sem interface):
 
 ```bash
-node tools/simulate.js 500 guloso aleatorio classico neutro
-node tools/simulate.js 60 montecarlo guloso truco oceano
+npm run testar
+node ferramentas/simular.js 500 guloso aleatorio classico neutro
+node ferramentas/simular.js 60 montecarlo guloso truco oceano
 ```
+
+## Documentação
+
+- [**Manual do código**](docs/MANUAL.md): arquitetura, convenções, fluxo de uma jogada, como rodar,
+  publicar e estender (novo baralho, terreno, oponente, conquista ou verbete).
+- [**Referência**](docs/REFERENCIA.md): todos os módulos e funções, gerada dos comentários com `npm run docs`.
 
 ## Estrutura
 
+Todo o código está em português do Brasil, em camadas que só dependem das de baixo:
+
 ```
-index.html                 página e ordem dos scripts
-src/style.css              mesa, painéis HTML (menu, regras, grimório, conquistas)
-src/core/rules.js          baralhos, terrenos, valores, RNG com semente
-src/core/scoring.js        soma da rede: combos de figuras, tunagem, terrenos, fraternidade
-src/core/game.js           estado, jogadas legais, aplicação de jogadas, desempates
-src/core/bots.js           Zé do Ruído (aleatório), Gradiente Guloso (guloso), Mestre Monte Carlo (determinização + rollouts)
-src/core/truco.js          tentos, TRUCO/SEIS/NOVE/DOZE, mão de onze
-src/core/content.js        Grimório (conceitos), conquistas, textos das cartas, provocações dos bots
-src/ui/cardArt.js          arte procedural das cartas em canvas (nenhuma imagem externa)
-src/ui/audio.js            efeitos sonoros sintetizados (WebAudio)
-src/ui/overlay.js          painéis HTML sobre o canvas (menu, regras, grimório, conquistas, sobre)
-src/ui/icons.js            ícones SVG das conquistas e moldura medieval do retrato
-src/assets/professor.js    retrato do professor (JPEG embutido)
-src/scenes/BootMenu.js     carregamento de fontes/texturas e fundo animado do menu
-src/scenes/GameScene.js    a mesa: tabuleiro, mãos, placar, truco, animações
-tools/simulate.js          simulações em massa
-tools/build.js             empacota tudo em um HTML
+index.html                 página de desenvolvimento
+src/principal.js           ponto de entrada: cria o Phaser.Game
+src/aplicacao.js           opções, progresso, conquistas e navegação menu ⇄ mesa
+src/configuracao.js        mundo 1280x720, cores, fontes, resolução
+src/estilo.css             painéis HTML (menu, regras, grimório, conquistas, sobre)
+src/nucleo/                regras puras (sem Phaser): cartas, baralhos, terrenos, rede,
+                           pontuação, partida, truco e oponentes
+src/conteudo/              Grimório, conquistas, textos e progresso salvo
+src/arte/                  arte procedural em canvas: cartas, versos, mesas, avatares, ícones
+src/interface/             menu, telas HTML, avisos e som (WebAudio)
+src/cenas/                 cenas do Phaser: carregamento, menu e mesa
+src/cenas/mesa/            a mesa dividida por assunto: cenário, desenho, entrada,
+                           turnos, truco, efeitos e resultado
+ferramentas/               empacotar, testar, simular e documentar
+docs/                      manual e referência
 ```
 
-O motor (`src/core`) não depende do Phaser: roda no navegador e no Node, o que permite testar regras
+O núcleo (`src/nucleo`) não depende do Phaser: roda no navegador e no Node, o que permite testar regras
 e balanceamento com milhares de partidas.
 
 ## Regras implementadas
@@ -91,7 +99,7 @@ explosão de gradientes, vanishing gradient, transfer learning, ruído, Monte Ca
 
 ## Ideias de extensão
 
-Mais de 2 jogadores e múltiplos baralhos (o motor já itera sobre `players`), coringas com efeitos,
+Mais de 2 jogadores e múltiplos baralhos (o motor já itera sobre `jogadores`), coringas com efeitos,
 modo online (o estado é serializável), tutorial guiado e um laboratório de simulação na interface.
 
 ## Licença

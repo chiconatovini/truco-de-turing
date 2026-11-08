@@ -3,42 +3,29 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<!-- build:head -->
+<!-- empacotar:cabecalho -->
 <title>Truco de Turing</title>
-<meta name="description" content="Jogo de cartas para aprender redes neurais e deep learning, com alma de truco. FPO 2026/2, trabalho tema 4.">
+<meta name="description" content="Jogo de cartas para aprender redes neurais e deep learning, com alma de truco e Magic: The Gathering.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap">
-<link rel="stylesheet" href="src/style.css">
-<!-- /build:head -->
+<link rel="stylesheet" href="src/estilo.css">
+<!-- /empacotar:cabecalho -->
 </head>
 <body>
-<!-- build:body -->
-<div id="game"></div>
-<div id="ui"></div>
-<div id="toasts" aria-live="polite"></div>
-<div id="rotate" role="status">
-  <div class="rotate-box">
-    <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true"><g class="phone"><rect x="20" y="8" width="24" height="44" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="46" r="2" fill="currentColor"/></g><path d="M50 22a20 20 0 0 1 0 20" fill="none" stroke="#f59322" stroke-width="3" stroke-linecap="round"/><path d="M47 40l3 3 3-4" fill="none" stroke="#f59322" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<!-- empacotar:corpo -->
+<div id="jogo"></div>
+<div id="paineis"></div>
+<div id="avisos" aria-live="polite"></div>
+<div id="girar" role="status">
+  <div class="girar-caixa">
+    <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden="true"><g class="celular"><rect x="20" y="8" width="24" height="44" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="32" cy="46" r="2" fill="currentColor"/></g><path d="M50 22a20 20 0 0 1 0 20" fill="none" stroke="#f59322" stroke-width="3" stroke-linecap="round"/><path d="M47 40l3 3 3-4" fill="none" stroke="#f59322" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <b>Gire o celular</b>
     <span>A mesa do Truco de Turing foi feita para a horizontal.</span>
   </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
-<script src="src/core/rules.js"></script>
-<script src="src/core/scoring.js"></script>
-<script src="src/core/game.js"></script>
-<script src="src/core/bots.js"></script>
-<script src="src/core/truco.js"></script>
-<script src="src/core/content.js"></script>
-<script src="src/assets/professor.js"></script>
-<script src="src/ui/icons.js"></script>
-<script src="src/ui/cardArt.js"></script>
-<script src="src/ui/audio.js"></script>
-<script src="src/ui/overlay.js"></script>
-<script src="src/scenes/BootMenu.js"></script>
-<script src="src/scenes/GameScene.js"></script>
-<script src="src/main.js"></script>
-<!-- /build:body -->
+<script type="module" src="src/principal.js"></script>
+<!-- /empacotar:corpo -->
 </body>
 </html>

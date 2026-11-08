@@ -1,0 +1,288 @@
+# Manual do código — Truco de Turing
+
+Este manual explica como o código do jogo está organizado, como rodar, testar e publicar, e como
+estender o jogo (novo baralho, terreno, oponente, conquista ou verbete do Grimório).
+
+A lista completa de módulos e funções, com a descrição de cada uma, fica em
+[`docs/REFERENCIA.md`](REFERENCIA.md). Ela é gerada a partir dos comentários do código com
+`npm run docs`; por isso, toda função nova deve ganhar um comentário `/** ... */` logo acima.
+
+---
+
+## 1. Visão geral
+
+O jogo roda no navegador com **Phaser 3** (carregado do CDN). O código é escrito em **módulos ES**
+(`import`/`export`) e em **português do Brasil**: pastas, arquivos, funções, variáveis e comentários.
+
+A regra mais importante da arquitetura é a separação em camadas, em que cada camada só conhece as de baixo:
+
+```
+┌───────────────────────────────────────────────────────────────┐
+│ principal.js        cria o Phaser.Game com as três cenas      │
+├───────────────────────────────────────────────────────────────┤
+│ cenas/              Phaser: carregamento, menu e mesa         │
+│ interface/          HTML sobreposto: menu, telas, avisos, som │
+├───────────────────────────────────────────────────────────────┤
+│ arte/               desenho procedural em canvas (sem Phaser) │
+│ conteudo/           textos, Grimório, conquistas, progresso   │
+├───────────────────────────────────────────────────────────────┤
+│ nucleo/             regras puras: sem Phaser, sem DOM          │
+└───────────────────────────────────────────────────────────────┘
+```
+
+- **`nucleo/`** é o motor de regras. Não usa Phaser nem `document`, por isso roda também no Node
+  (testes e simulações em massa). Toda regra do jogo mora aqui.
+- **`arte/`** desenha cartas, versos, mesas, avatares e botões em `<canvas>`, em qualquer densidade
+  de pixels. Não conhece o Phaser: devolve canvases que as cenas transformam em texturas.
+- **`conteudo/`** guarda o que é texto ou dado: verbetes, conquistas, falas dos oponentes e o
+  progresso salvo no navegador.
+- **`interface/`** cuida das telas em HTML que ficam sobre o canvas (menu, regras, grimório,
+  conquistas, sobre, caixas de confirmação e avisos) e do som.
+- **`cenas/`** são as cenas do Phaser. A mesa (`cenas/mesa/`) é dividida em partes por assunto.
+
+## 2. Estrutura de pastas
+
+```
+index.html                  página de desenvolvimento (carrega src/principal.js como módulo)
+package.json                scripts npm
+src/
+  principal.js              ponto de entrada: cria o Phaser.Game
+  aplicacao.js              estado fora da partida: opções, progresso, conquistas, navegação
+  configuracao.js           tamanho do mundo, cores, fontes, resolução e densidade das texturas
+  estilo.css                estilo dos painéis HTML
+  nucleo/                   REGRAS (puras)
+    aleatorio.js              sorteios reprodutíveis com semente
+    cartas.js                 valores, naipes, nomes, força das cartas, baralho de 52
+    baralhos.js               baralhos com efeitos e pontos de cada carta
+    terrenos.js               terrenos (nome e resumo)
+    rede.js                   formato da rede: 3-5-5-5-5-5-4, nomes das camadas
+    pontuacao.js              soma da rede: tunagem, combos de figuras, vanishing, terrenos
+    partida.js                estado de uma mão, jogadas legais, aplicação de jogadas, desempates
+    truco.js                  tentos, pedidos de TRUCO/SEIS/NOVE/DOZE, mão de onze
+    oponentes/
+      comum.js                  avaliação, determinização e simulação até o fim
+      estrategias.js            jogada aleatória, gulosa e Monte Carlo
+      index.js                  perfis dos oponentes e decisões de truco
+  conteudo/
+    grimorio.js               verbetes (conceito de ML + como aparece no jogo)
+    conquistas.js             graduações e conquistas com seus testes
+    textos.js                 ambientação das cartas e provocações dos oponentes
+    progresso.js              carregar/salvar progresso no localStorage (com migração da v1)
+  arte/
+    paleta.js                 medidas-base das cartas e cores por naipe
+    pincel.js                 utilitários de desenho (degradês, sombras, texto com quebra…)
+    moldura.js                corpo da carta, placas e gemas
+    emblemas.js               emblemas dos naipes espanhóis
+    cenarios.js               paisagens de fundo (montanhas, estrelas, raios…)
+    figuras.js                Valete, Dama e Rei
+    cartas.js                 carta completa e carta da mesa
+    versos.js                 verso de cada baralho
+    cartasDeTerreno.js        cartas de terreno (inspeção)
+    mesas.js                  fundo da mesa de cada terreno
+    avatares.js               retratos dos oponentes e dos jogadores
+    botoes.js                 botões e faíscas
+    icones.js                 ícones SVG das conquistas
+    retrato.js                retrato do professor em moldura medieval
+  recursos/
+    retratoProfessor.js       foto do professor embutida (data URI)
+  interface/
+    som.js                    efeitos sonoros sintetizados (WebAudio)
+    paineis.js                abrir/fechar painéis, avisos e confirmações
+    menu.js                   menu inicial e configuração da mesa
+    telas/                    regras, grimório, conquistas, sobre
+  cenas/
+    recursos.js               câmera, texto nítido, fundo e texturas sob demanda
+    CenaCarregamento.js       espera fontes e gera texturas fixas
+    CenaMenu.js               fundo animado do menu
+    mesa/                     a cena da partida (ver seção 5)
+ferramentas/
+  empacotar.js              gera dist/truco-de-turing.html (arquivo único)
+  testar.js                 testes das regras
+  simular.js                partidas em massa entre oponentes
+  documentar.js             gera docs/REFERENCIA.md
+docs/
+  MANUAL.md                 este manual
+  REFERENCIA.md             referência gerada das funções
+```
+
+## 3. Convenções de código
+
+- **Idioma:** português do Brasil em nomes e comentários. Exceções são só os nomes impostos por
+  bibliotecas (`create`, `update`, `preload` do Phaser; `ctx.fillStyle` do canvas) e as abreviações
+  geométricas usuais no desenho (`x`, `y`, `w`, `h`, `W`, `H`, `S`, `ctx`).
+- **Nomes:** funções com verbo (`pontuarRede`, `desenharVerso`, `abrirPainel`); perguntas com
+  `eh`/`pode` (`ehFigura`, `podeTrucar`); constantes de tabela em MAIÚSCULAS (`BARALHOS`, `TERRENOS`).
+- **Documentação:** cada arquivo começa com um bloco `@file` dizendo o que ele contém; cada função,
+  constante exportada e método tem um comentário `/** ... */`. Regras sutis ganham comentário no ponto
+  em que acontecem.
+- **Módulos pequenos e com um assunto:** se um arquivo começa a tratar de dois assuntos, ele é dividido.
+- **Regras só no núcleo:** a cena nunca decide uma regra; ela chama `nucleo/` e desenha o resultado.
+- **Identificadores dos dados:** naipes `E` (espadas), `C` (copas), `P` (paus), `O` (ouros); uma
+  carta é `{ id, valor, naipe }`, por exemplo `{ id: '7O', valor: '7', naipe: 'O' }`.
+
+## 4. O núcleo de regras
+
+### 4.1 Estado de uma mão (`nucleo/partida.js`)
+
+`novaMao(opcoes)` cria o estado completo de uma mão. Os campos principais:
+
+| Campo | Conteúdo |
+|---|---|
+| `config` | `{ baralho, terreno, inicio }` escolhidos no menu |
+| `camadas` | lista de camadas; cada uma é uma lista de neurônios |
+| `neuronios` | mapa `id → { id, camada, posicao, cartas, revelado, dono, removido, conhecido }` |
+| `jogadores` | `{ nome, tipo: 'humano'|'oponente', oponente, mao, caminho, situacao, dropouts, transferUsado, cartaInicial, estatisticas }` |
+| `limbo`, `cemiterio` | cartas fora de jogo |
+| `vez`, `primeiro`, `rodada`, `turno` | controle de turnos |
+| `fase` | `'inicio'` → `'jogo'` → `'fim'` |
+| `eventos` | eventos para a interface animar (esvaziados pela cena) |
+| `registro`, `historico` | linhas do registro de jogadas e curva de treino |
+| `resultado` | `{ somas, vencedor, motivo, travados }` ao fim |
+
+`situacao` de um jogador: `'construindo'`, `'concluida'` (chegou à saída), `'earlystop'` ou `'overflow'`.
+
+### 4.2 Jogadas
+
+As jogadas são objetos simples. `jogadasLegais(mao, j)` lista as possíveis e `aplicarJogada(mao, jogada)`
+aplica uma delas (ou lança erro se for inválida):
+
+| Jogada | Formato |
+|---|---|
+| Escolher a carta de início | `{ tipo: 'inicio', jogador, carta }` |
+| Ativar neurônio | `{ tipo: 'ativar', jogador, neuronio }` |
+| Empilhar cartas (tunagem e ataques) | `{ tipo: 'empilhar', jogador, neuronio, cartas: [ids] }` |
+| Dropout | `{ tipo: 'dropout', jogador, n, pagamento: [ids] }` |
+| Transfer learning | `{ tipo: 'transfer', jogador, cartas: [4 ids] }` |
+| Passar a vez | `{ tipo: 'passar', jogador }` |
+
+O efeito de empilhar depende do tamanho final da pilha (`efeitoDoEmpilhamento`): 2 cartas = tunagem
+(própria rede) ou overfit (adversário); 3 = early stop; 4 = stack overflow.
+
+### 4.3 Eventos
+
+Cada jogada emite eventos em `mao.eventos`. A cena da mesa os anima em `efeitos.js` (um método
+`animar_<tipo>` por evento):
+
+`inicio`, `ativacao`, `completa`, `tunagem`, `overfit`, `earlystop`, `stackoverflow`, `dropout`,
+`transfer`, `passe`, `vento`, `powerbi`, `fim`.
+
+### 4.4 Pontuação (`nucleo/pontuacao.js`)
+
+`pontuarRede(mao, j)` devolve `{ total, neuronios, combos, vanishing }`. Cada neurônio traz os pontos
+já com tunagem, terreno e baralho e uma lista `notas` explicando os ajustes, mostrada na inspeção e na
+tela de resultado.
+
+### 4.5 Truco (`nucleo/truco.js`)
+
+`novaPartida(alvo)` cria o placar; `pedirTruco`, `responderTruco('aceitar'|'correr'|'aumentar')`,
+`marcarTentos` e `proximaMao` implementam a escada 1 → 3 → 6 → 9 → 12 e a mão de onze.
+
+### 4.6 Oponentes (`nucleo/oponentes/`)
+
+| Chave | Nome | Nível | Método |
+|---|---|---|---|
+| `aleatorio` | Zé do Ruído | Fácil | sorteia uma jogada válida |
+| `guloso` | Gradiente Guloso | Médio | olha um turno à frente pelo valor esperado |
+| `montecarlo` | Mestre Monte Carlo | Difícil | sorteia as cartas ocultas (determinização) e simula partidas até o fim |
+
+`escolherJogada(mao, j)`, `querTrucar(mao, j, perfil)` e `responderAoTruco(...)` são as três decisões
+de um oponente.
+
+## 5. A cena da mesa (`cenas/mesa/`)
+
+A classe `CenaMesa` é pequena: o comportamento fica em arquivos por assunto, cujos métodos são
+copiados para o protótipo com `Object.assign` no fim de `CenaMesa.js`. Dentro deles, `this` é a cena.
+
+| Arquivo | Responsabilidade |
+|---|---|
+| `layout.js` | geometria (posições dos painéis e dos neurônios), cores e textos que encolhem para caber |
+| `cenario.js` | molduras fixas, criação de botões e de todos os textos dos painéis (`this.painel`) |
+| `desenho.js` | `redesenhar()`: neurônios, mãos, placar, curva de treino, dica e alvos destacados |
+| `entrada.js` | cliques e toques: neurônios, cartas da mão, botões de ação |
+| `turnos.js` | fluxo da mão: `iniciarMao`, `executarJogada`, `avancar`, vez do oponente, troca de aparelho |
+| `truco.js` | pedir, anunciar e responder truco |
+| `efeitos.js` | animação de cada evento, faíscas, faixas, balão de fala e avisos do Grimório |
+| `resultado.js` | fim da mão, tentos, conquistas e tela de resultado |
+
+O ciclo de uma jogada:
+
+```
+clique → entrada.js → executarJogada(jogada)
+                       ├─ nucleo: aplicarJogada(mao, jogada)
+                       ├─ redesenhar()
+                       ├─ animarEventos(eventos) → espera N ms
+                       └─ avancar()
+                            ├─ fase 'fim'      → encerrarMao()
+                            ├─ vez do oponente → vezDoOponente() → executarJogada(...)
+                            └─ vez do humano   → libera os cliques
+```
+
+Estado da cena: `this.partida` (tentos), `this.mao` (mão atual), `this.quemVe` (jogador olhando a tela;
+−1 durante a troca de aparelho), `this.modo` (`'livre'`, `'inicio'`, `'dropout'`, `'pagarDropout'`),
+`this.selecao` (cartas escolhidas), `this.alvos` (neurônios clicáveis), `this.ocupada` (bloqueia
+cliques durante animações) e `this.encerrada`.
+
+## 6. Arte e nitidez
+
+- O mundo do jogo tem sempre **1280×720** unidades. A câmera aplica o zoom para cada tela
+  (`ajustarCamera` em `cenas/recursos.js`), conferindo o tamanho a cada quadro porque o modo EXPAND do
+  Phaser não redimensiona a câmera ao girar o aparelho.
+- O canvas tem a **resolução física** da tela (`RESOLUCAO` em `configuracao.js`, até 3×); textos são
+  criados nessa resolução (`prepararTextoNitido`).
+- Toda arte é **procedural**: cada função de `arte/` desenha em coordenadas-base e recebe a densidade
+  `S`. As texturas são geradas sob demanda com chaves descritivas (`'carta-mesa:truco:4P'`,
+  `'verso-mao@yinyang'`) e as cartas da mão são liberadas a cada mão para poupar memória.
+- Botões e faíscas são texturas (e não gráficos com degradê ou `tint`) para ficarem iguais nos
+  renderizadores WebGL e Canvas. `?renderer=canvas` força o Canvas e `?res=2` força a resolução.
+
+## 7. Como rodar, testar e publicar
+
+```bash
+npm install          # instala o esbuild (empacotador) e o Phaser (usado nos testes de navegador)
+npm start            # servidor local em http://localhost:8080 (módulos ES exigem http, não file://)
+npm run testar       # testes das regras no Node
+npm run simular      # 300 mãos entre o Gradiente Guloso e o Zé do Ruído
+node ferramentas/simular.js 60 montecarlo guloso truco oceano
+npm run build        # gera dist/truco-de-turing.html, um arquivo único que abre até com duplo clique
+npm run docs         # atualiza docs/REFERENCIA.md
+```
+
+**Publicação gratuita:** o GitHub Pages serve a pasta do repositório como está (o `index.html` carrega
+os módulos de `src/`). Alternativas: enviar `dist/truco-de-turing.html` ao itch.io (projeto HTML),
+Netlify Drop ou Cloudflare Pages.
+
+## 8. Como estender
+
+### Novo baralho
+1. Em `nucleo/baralhos.js`, acrescente uma entrada em `BARALHOS` com `nome`, `resumo` e `montar()`.
+   Para efeitos, use os campos existentes (`pontosFixos`, `manilhas`, `fraternidade`, `trocaMao`) ou
+   crie um novo e trate-o em `nucleo/pontuacao.js` (pontos) ou `nucleo/partida.js` (fluxo).
+2. Em `arte/versos.js`, escreva `versoNovo(ctx, W, H, aleatorio)` e registre em `VERSOS`.
+3. O menu lista os baralhos automaticamente. Rode `npm run testar` e uma simulação com o baralho.
+
+### Novo terreno
+1. `nucleo/terrenos.js`: entrada em `TERRENOS` com `nome` e `resumo`.
+2. `nucleo/pontuacao.js`: o efeito nos pontos (veja montanha, pântano e oceano em `pontuarNeuronios`).
+3. `arte/mesas.js`: o fundo da mesa (registre na tabela de `desenharMesa`).
+4. `arte/cartasDeTerreno.js`: a paleta e a paisagem da carta de terreno.
+
+### Novo oponente
+1. Escreva a estratégia em `nucleo/oponentes/estrategias.js` (recebe `mao` e `j`, devolve uma jogada
+   de `jogadasLegais`).
+2. Registre o perfil em `OPONENTES` (`nucleo/oponentes/index.js`) e ligue-o em `escolherJogada`.
+3. Desenhe o avatar em `arte/avatares.js` e acrescente a chave em `AVATARES` de `CenaCarregamento.js`.
+
+### Nova conquista
+Acrescente em `CONQUISTAS` (`conteudo/conquistas.js`) um objeto `{ id, nome, descricao, graduacao,
+teste(ctx) }` e um ícone com o mesmo `id` em `arte/icones.js`. Se ela puder ser obtida numa mão
+encerrada por truco, inclua o `id` em `VALEM_SEM_MAO_COMPLETA`.
+
+### Novo verbete do Grimório
+Acrescente em `VERBETES` (`conteudo/grimorio.js`) `{ id, titulo, categoria, conceito, noJogo }`. Para
+o aviso aparecer durante a partida, chame `this.avisarVerbete('id')` no ponto certo de `efeitos.js`.
+
+## 9. Testes no navegador
+
+Os testes de interface usados no desenvolvimento rodam o jogo no Chrome sem janela (Playwright),
+jogando mãos inteiras pelos métodos da cena: `__TRUCO_DE_TURING__` (a `Aplicacao`) fica exposta no
+`globalThis` e a cena é obtida com `__TRUCO_DE_TURING__.jogo.scene.getScene('Mesa')`.

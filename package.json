@@ -5,8 +5,10 @@
   "main": "index.html",
   "scripts": {
     "start": "npx http-server -c-1 -p 8080 .",
-    "build": "node tools/build.js",
-    "simulate": "node tools/simulate.js 500 guloso aleatorio"
+    "build": "node ferramentas/empacotar.js",
+    "simular": "node ferramentas/simular.js 300 guloso aleatorio",
+    "testar": "node ferramentas/testar.js",
+    "docs": "node ferramentas/documentar.js"
   },
   "keywords": [
     "phaser",
@@ -19,5 +21,9 @@
   "license": "GPL-3.0-only",
   "dependencies": {
     "phaser": "^3.80.1"
-  }
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.2"
+  },
+  "type": "module"
 }
