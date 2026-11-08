@@ -858,9 +858,18 @@ html, body { overscroll-behavior: none; }
       nota(740, 0.12, "square", 0.04);
       nota(990, 0.12, "square", 0.04, 0.08);
     },
-    truco() {
-      nota(392, 0.18, "square", 0.08);
-      nota(523, 0.32, "square", 0.08, 0.16);
+    /**
+     * Grito de truco: tapa na mesa (baque grave e estalo), depois a fanfarra do pedido.
+     * @param {number} [forca=1] 1 = TRUCO, 2 = SEIS, 3 = NOVE, 4 = DOZE; cada degrau é mais alto e longo.
+     */
+    truco(forca = 1) {
+      const f = Math.max(1, Math.min(4, forca));
+      nota(90, 0.5 + f * 0.08, "sine", 0.22 + f * 0.03, 0, 32);
+      ruido(0.35 + f * 0.05, 0.38 + f * 0.05, 0, 500);
+      ruido(0.08, 0.3, 0, 4e3);
+      const base = [392, 440, 494, 523][f - 1];
+      [1, 1.26, 1.5].forEach((m) => nota(base * m, 0.32 + f * 0.05, "square", 0.05, 0.12));
+      nota(base * 2, 0.45 + f * 0.06, "sawtooth", 0.05, 0.3);
     },
     vitoria() {
       [523, 659, 784, 1047].forEach((f, i) => nota(f, 0.22, "triangle", 0.09, i * 0.1));
@@ -5130,8 +5139,34 @@ html, body { overscroll-behavior: none; }
   }
 
   // src/cenas/mesa/layout.js
-  var PAINEL_ESQ = { x: 8, y: 80, l: 244, a: 632 };
+  var PAINEL_ESQ = { x: 8, y: 8, l: 244, a: 704 };
   var PAINEL_DIR = { x: 962, y: 8, l: 310, a: 704 };
+  var ESQ = {
+    titulo: 26,
+    inspecao: 182,
+    nota: 326,
+    divisoria1: 378,
+    pilhas: 442,
+    pilha: { l: 66, a: 92 },
+    rotulosPilha: 498,
+    terreno: 518,
+    divisoria2: 566,
+    dica: 578
+  };
+  var DIR = {
+    tituloMao: 28,
+    subtitulo: 49,
+    blocos: 64,
+    alturaBloco: 102,
+    passoBloco: 108,
+    avatar: 58,
+    rotuloCurva: 292,
+    curva: 304,
+    alturaCurva: 64,
+    registro: 380,
+    alturaRegistro: 132,
+    truco: 543
+  };
   var ESPACO_LINHA = 95;
   var CENTRO_TABULEIRO = 334;
   var colunaX = (camada) => 318 + camada * 97;
@@ -5197,7 +5232,7 @@ html, body { overscroll-behavior: none; }
         g.strokeRoundedRect(p.x + 4, p.y + 4, p.l - 8, p.a - 8, 9);
       }
       g.lineStyle(1, CORES.ouro, 0.25);
-      for (const y of [440, 568]) g.lineBetween(PAINEL_ESQ.x + 18, y, PAINEL_ESQ.x + PAINEL_ESQ.l - 18, y);
+      for (const y of [ESQ.divisoria1, ESQ.divisoria2]) g.lineBetween(PAINEL_ESQ.x + 18, y, PAINEL_ESQ.x + PAINEL_ESQ.l - 18, y);
       for (let c = 0; c < TOTAL_CAMADAS; c++) {
         const imune = c === 0 || c === CAMADA_SAIDA;
         const topo = linhaY(c, 0) - 52, base = linhaY(c, TAMANHOS_CAMADAS[c] - 1) + 52;
@@ -5211,7 +5246,7 @@ html, body { overscroll-behavior: none; }
         ajustarLinha(rotulo, rotulo.text, 13, 90, 10);
         if (imune) this.add.text(colunaX(c), topo - 11, "imune a a\xE7\xF5es", { fontFamily: FONTES.texto, fontStyle: "italic", fontSize: "11.5px", color: "#f3c3cf" }).setOrigin(0.5).setDepth(1);
       }
-      this.add.text(PAINEL_ESQ.x + PAINEL_ESQ.l / 2, 98, "INSPE\xC7\xC3O", { fontFamily: FONTES.titulo, fontStyle: "700", fontSize: "12px", color: "#e8d6a8", letterSpacing: 2 }).setOrigin(0.5).setDepth(7);
+      this.add.text(PAINEL_ESQ.x + PAINEL_ESQ.l / 2, ESQ.titulo, "INSPE\xC7\xC3O", { fontFamily: FONTES.titulo, fontStyle: "700", fontSize: "12px", color: "#e8d6a8", letterSpacing: 2 }).setOrigin(0.5).setDepth(7);
     },
     /**
      * Cria um botão com textura própria e rótulo que se ajusta à largura.
@@ -5260,74 +5295,109 @@ html, body { overscroll-behavior: none; }
     },
     /** Cria os textos, imagens e botões dos painéis. Ficam em `this.painel`. */
     criarPaineis() {
-      const texto = (x, y, s, estilo) => this.add.text(x, y, s, { fontFamily: FONTES.texto, fontSize: "13px", color: "#efe3c6", ...estilo || {} }).setDepth(7);
-      const titulo = { fontFamily: FONTES.titulo, fontStyle: "700" };
       const p = this.painel = {};
-      p.avatarOponente = this.add.image(44, 40, "avatar-gradiente").setDisplaySize(64, 64).setDepth(7);
-      p.nomeOponente = texto(84, 23, "", { ...titulo, fontSize: "18px", color: "#f6dc8f" }).setOrigin(0, 0.5);
-      p.nivelOponente = texto(84, 50, "", { fontStyle: "italic", fontSize: "13px", color: "#cdbf9e" }).setOrigin(0, 0.5);
-      p.balao = this.add.container(700, 40).setDepth(30).setVisible(false);
-      p.fundoBalao = this.add.graphics();
-      p.textoBalao = this.add.text(0, 0, "", { fontFamily: FONTES.texto, fontStyle: "italic", fontSize: "15px", color: "#24170c", wordWrap: { width: 230 }, align: "center" }).setOrigin(0.5);
-      p.balao.add([p.fundoBalao, p.textoBalao]);
+      this.criarPainelEsquerdo(p);
+      this.criarPlacar(p);
+      this.criarBotoesDeAcao(p);
+      this.atualizarBotaoSom();
+    },
+    /** Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. */
+    criarTexto(x, y, s, estilo) {
+      return this.add.text(x, y, s, { fontFamily: FONTES.texto, fontSize: "13px", color: "#efe3c6", ...estilo || {} }).setDepth(7);
+    },
+    /** Painel esquerdo: inspeção, limbo e cemitério (como pilhas), terreno e dica do turno. */
+    criarPainelEsquerdo(p) {
+      const titulo = { fontFamily: FONTES.titulo, fontStyle: "700" };
       const cx = PAINEL_ESQ.x + PAINEL_ESQ.l / 2;
-      p.inspecao = this.add.image(cx, 250, "terreno-" + this.opcoes.terreno).setDisplaySize(TAMANHO_CARTA.inspecaoL, TAMANHO_CARTA.inspecaoA).setDepth(7);
-      p.notaInspecao = texto(cx, 394, "", { fontStyle: "italic", fontSize: "12px", color: "#d6c8a6", align: "center", wordWrap: { width: PAINEL_ESQ.l - 30 }, lineSpacing: 0 }).setOrigin(0.5, 0);
-      const rotuloPilha = { ...titulo, fontSize: "10.5px", color: "#e8d6a8", letterSpacing: 1 };
-      p.limbo = this.add.image(PAINEL_ESQ.x + 70, 474, this.verso("mesa")).setDisplaySize(42, 59).setDepth(7).setInteractive();
-      p.textoLimbo = texto(PAINEL_ESQ.x + 70, 509, "", rotuloPilha).setOrigin(0.5, 0);
-      p.cemiterio = this.add.image(PAINEL_ESQ.x + PAINEL_ESQ.l - 70, 474, this.verso("mesa")).setDisplaySize(42, 59).setDepth(7).setInteractive();
-      p.textoCemiterio = texto(PAINEL_ESQ.x + PAINEL_ESQ.l - 70, 509, "", rotuloPilha).setOrigin(0.5, 0);
-      p.limbo.on("pointerover", () => this.inspecionar(this.verso("inspecao"), "Limbo: cartas queimadas no in\xEDcio (ru\xEDdo). S\xF3 voltam por transfer learning."));
-      p.cemiterio.on("pointerover", () => {
+      p.inspecao = this.add.image(cx, ESQ.inspecao, "terreno-" + this.opcoes.terreno).setDisplaySize(TAMANHO_CARTA.inspecaoL, TAMANHO_CARTA.inspecaoA).setDepth(7);
+      p.notaInspecao = this.criarTexto(cx, ESQ.nota, "", { fontStyle: "italic", fontSize: "12px", color: "#d6c8a6", align: "center", wordWrap: { width: PAINEL_ESQ.l - 30 }, lineSpacing: 0 }).setOrigin(0.5, 0);
+      const rotuloPilha = { ...titulo, fontSize: "11px", color: "#e8d6a8", letterSpacing: 1 };
+      const criarPilha = (x) => ({
+        x,
+        y: ESQ.pilhas,
+        camadas: this.add.graphics().setDepth(7),
+        carta: this.add.image(x, ESQ.pilhas, this.verso("mesa")).setDisplaySize(ESQ.pilha.l, ESQ.pilha.a).setDepth(8).setInteractive(),
+        contador: this.criarTexto(x + ESQ.pilha.l / 2 - 2, ESQ.pilhas + ESQ.pilha.a / 2 - 2, "", {
+          fontStyle: "800",
+          fontSize: "12px",
+          color: "#24170c",
+          backgroundColor: "#f6dc8f",
+          padding: { x: 5, y: 1 }
+        }).setOrigin(0.5).setDepth(9),
+        rotulo: this.criarTexto(x, ESQ.rotulosPilha, "", rotuloPilha).setOrigin(0.5, 0)
+      });
+      p.limbo = criarPilha(PAINEL_ESQ.x + 64);
+      p.cemiterio = criarPilha(PAINEL_ESQ.x + PAINEL_ESQ.l - 64);
+      p.limbo.carta.on("pointerover", () => this.inspecionar(
+        this.verso("inspecao"),
+        "Limbo: " + (this.mao ? this.mao.limbo.length : 0) + " carta(s) queimadas no in\xEDcio (ru\xEDdo). S\xF3 voltam por transfer learning."
+      ));
+      p.cemiterio.carta.on("pointerover", () => {
         const ultima = this.mao?.cemiterio[this.mao.cemiterio.length - 1];
         this.inspecionar(
           ultima ? texturaDeInspecao(this, ultima, this.mao.config.baralho) : this.verso("inspecao"),
-          "Cemit\xE9rio: " + (this.mao ? this.mao.cemiterio.length : 0) + " carta(s) fora de jogo. Mostrando a \xFAltima."
+          "Cemit\xE9rio: " + (this.mao ? this.mao.cemiterio.length : 0) + " carta(s) fora de jogo. Mostrando a do topo."
         );
       });
-      p.textoTerreno = texto(cx, 528, "", { fontSize: "12px", align: "center", color: "#d6c8a6", wordWrap: { width: PAINEL_ESQ.l - 30 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
+      p.textoTerreno = this.criarTexto(cx, ESQ.terreno, "", { fontSize: "12px", align: "center", color: "#d6c8a6", wordWrap: { width: PAINEL_ESQ.l - 30 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
       p.textoTerreno.on("pointerover", () => {
         const t = TERRENOS[this.opcoes.terreno];
         this.inspecionar("terreno-" + this.opcoes.terreno, t.nome + ": " + t.resumo);
       });
-      p.meuAvatar = this.add.image(PAINEL_ESQ.x + 26, 592, "avatar-p1").setDisplaySize(36, 36).setDepth(7);
-      p.meuNome = texto(PAINEL_ESQ.x + 52, 592, "", { ...titulo, fontSize: "15px", color: "#bfe2fa" }).setOrigin(0, 0.5);
-      p.dica = texto(PAINEL_ESQ.x + 14, 616, "", { fontSize: "13.5px", color: "#efe3c6", wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
+      p.dica = this.criarTexto(PAINEL_ESQ.x + 14, ESQ.dica, "", { fontSize: "13.5px", color: "#efe3c6", wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
+      p.balao = this.add.container(800, 40).setDepth(30).setVisible(false);
+      p.fundoBalao = this.add.graphics();
+      p.textoBalao = this.add.text(0, 0, "", { fontFamily: FONTES.texto, fontStyle: "italic", fontSize: "15px", color: "#24170c", wordWrap: { width: 230 }, align: "center" }).setOrigin(0.5);
+      p.balao.add([p.fundoBalao, p.textoBalao]);
+    },
+    /**
+     * Placar (painel direito): título da mão e um bloco por jogador com avatar, nome, nível,
+     * situação, detalhes, tentos e soma da rede. O bloco de cima é o adversário de quem está vendo.
+     */
+    criarPlacar(p) {
+      const titulo = { fontFamily: FONTES.titulo, fontStyle: "700" };
       const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-      p.tituloMao = texto(rc, 28, "", { ...titulo, fontSize: "16px", color: "#f6dc8f", letterSpacing: 1 }).setOrigin(0.5);
-      p.subtitulo = texto(rc, 50, "", { fontStyle: "italic", fontSize: "12.5px", color: "#cdbf9e" }).setOrigin(0.5);
+      p.tituloMao = this.criarTexto(rc, DIR.tituloMao, "", { ...titulo, fontSize: "16px", color: "#f6dc8f", letterSpacing: 1 }).setOrigin(0.5);
+      p.subtitulo = this.criarTexto(rc, DIR.subtitulo, "", { fontStyle: "italic", fontSize: "12.5px", color: "#cdbf9e" }).setOrigin(0.5);
       p.blocos = [0, 1].map((i) => {
-        const y = 66 + i * 86;
-        const b = { x: rx, y, l: rl, a: 80 };
+        const y = DIR.blocos + i * DIR.passoBloco;
+        const b = { x: rx, y, l: rl, a: DIR.alturaBloco };
+        const tx = rx + 14 + DIR.avatar + 10;
+        b.textoX = tx;
         b.grafico = this.add.graphics().setDepth(6);
-        b.nome = texto(rx + 16, y + 15, "", { ...titulo, fontSize: "15px" }).setOrigin(0, 0.5);
-        b.situacao = texto(rx + 16, y + 34, "", { ...titulo, fontSize: "9.5px", color: "#e0cc9a", letterSpacing: 0.8 }).setOrigin(0, 0.5);
-        b.detalhe = texto(rx + 16, y + 51, "", { fontSize: "12px", color: "#cdbf9e" }).setOrigin(0, 0.5);
-        b.tentos = texto(rx + 16 + 12 * 10 + 4, y + 67, "", { fontSize: "11px", color: "#cdbf9e" }).setOrigin(0, 0.5);
-        b.rotuloSoma = texto(rx + rl - 12, y + 14, "SOMA DA REDE", { ...titulo, fontSize: "8.5px", color: "#9a8c6c", letterSpacing: 1 }).setOrigin(1, 0.5);
-        b.soma = texto(rx + rl - 12, y + 47, "0", { fontFamily: FONTES.titulo, fontStyle: "900", fontSize: "36px" }).setOrigin(1, 0.5);
+        b.avatar = this.add.image(rx + 14 + DIR.avatar / 2, y + 44, "avatar-p1").setDisplaySize(DIR.avatar, DIR.avatar).setDepth(7);
+        b.selo = this.criarTexto(b.avatar.x, y + 86, "NA VEZ", { ...titulo, fontSize: "10px", color: "#0d0a08", padding: { x: 6, y: 2 }, letterSpacing: 1 }).setOrigin(0.5).setDepth(8);
+        b.nome = this.criarTexto(tx, y + 16, "", { ...titulo, fontSize: "15px" }).setOrigin(0, 0.5);
+        b.nivel = this.criarTexto(tx, y + 34, "", { fontStyle: "italic", fontSize: "12px", color: "#cdbf9e" }).setOrigin(0, 0.5);
+        b.situacao = this.criarTexto(tx, y + 56, "", { ...titulo, fontSize: "9.5px", color: "#e0cc9a", letterSpacing: 0.8 }).setOrigin(0, 0.5);
+        b.detalhe = this.criarTexto(tx, y + 72, "", { fontSize: "12px", color: "#cdbf9e" }).setOrigin(0, 0.5);
+        b.tentos = this.criarTexto(tx + 12 * 9 + 4, y + 89, "", { fontSize: "11px", color: "#cdbf9e" }).setOrigin(0, 0.5);
+        b.rotuloSoma = this.criarTexto(rx + rl - 12, y + 13, "SOMA", { ...titulo, fontSize: "8.5px", color: "#9a8c6c", letterSpacing: 1 }).setOrigin(1, 0.5);
+        b.soma = this.criarTexto(rx + rl - 12, y + 37, "0", { fontFamily: FONTES.titulo, fontStyle: "900", fontSize: "34px" }).setOrigin(1, 0.5);
         return b;
       });
-      p.truco = this.criarBotao(rc, 262, rl, 44, "TRUCO!", () => this.pedirTrucoHumano(), { variante: "vinho", tamanho: 20 });
-      p.rotuloCurva = texto(rx, 298, "CURVA DE TREINO", { ...titulo, fontSize: "10px", color: "#e0cc9a", letterSpacing: 1 }).setOrigin(0, 0.5);
-      p.subCurva = texto(rx + rl, 298, "soma da rede por turno", { fontStyle: "italic", fontSize: "11px", color: "#9a8c6c" }).setOrigin(1, 0.5);
-      p.maximoCurva = texto(rx + 6, 316, "", { fontSize: "10px", color: "#9a8c6c" }).setOrigin(0, 0.5);
-      p.registro = texto(rx, 396, "", { fontSize: "12px", color: "#dccfb2", wordWrap: { width: rl }, lineSpacing: 2 });
+      p.rotuloCurva = this.criarTexto(rx, DIR.rotuloCurva, "CURVA DE TREINO", { ...titulo, fontSize: "10px", color: "#e0cc9a", letterSpacing: 1 }).setOrigin(0, 0.5);
+      p.subCurva = this.criarTexto(rx + rl, DIR.rotuloCurva, "soma da rede por turno", { fontStyle: "italic", fontSize: "11px", color: "#9a8c6c" }).setOrigin(1, 0.5);
+      p.maximoCurva = this.criarTexto(rx + 6, DIR.curva + 8, "", { fontSize: "10px", color: "#9a8c6c" }).setOrigin(0, 0.5);
+      p.registro = this.criarTexto(rx, DIR.registro, "", { fontSize: "12px", color: "#dccfb2", wordWrap: { width: rl }, lineSpacing: 2 });
+    },
+    /** Botão de truco (logo acima das ações) e botões de ação e de sistema. */
+    criarBotoesDeAcao(p) {
+      const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
+      p.truco = this.criarBotao(rc, DIR.truco, rl, 44, "TRUCO!", () => this.pedirTrucoHumano(), { variante: "vinho", tamanho: 20 });
       const bl = (rl - 8) / 2, c1 = rx + bl / 2, c2 = rx + rl - bl / 2;
-      p.botaoDropout = this.criarBotao(c1, 590, bl, 38, "Dropout", () => this.alternarDropout());
-      p.botaoTransfer = this.criarBotao(c2, 590, bl, 38, "Transfer", () => this.fazerTransfer());
-      p.botaoPassar = this.criarBotao(c1, 634, bl, 38, "Passar a vez", () => this.passarAVez());
-      p.botaoRegras = this.criarBotao(c2, 634, bl, 38, "Regras", () => abrirRegras(null));
+      p.botaoDropout = this.criarBotao(c1, 596, bl, 36, "Dropout", () => this.alternarDropout());
+      p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, "Transfer", () => this.fazerTransfer());
+      p.botaoPassar = this.criarBotao(c1, 638, bl, 36, "Passar a vez", () => this.passarAVez());
+      p.botaoRegras = this.criarBotao(c2, 638, bl, 36, "Regras", () => abrirRegras(null));
       const larguraPequena = (rl - 12) / 3;
       const pedra = { tamanho: 12, variante: "pedra" };
-      p.botaoGrimorio = this.criarBotao(rx + larguraPequena / 2, 677, larguraPequena, 32, "Grim\xF3rio", () => abrirGrimorio(this.app), pedra);
-      p.botaoSom = this.criarBotao(rc, 677, larguraPequena, 32, "Som", () => {
+      p.botaoGrimorio = this.criarBotao(rx + larguraPequena / 2, 680, larguraPequena, 32, "Grim\xF3rio", () => abrirGrimorio(this.app), pedra);
+      p.botaoSom = this.criarBotao(rc, 680, larguraPequena, 32, "Som", () => {
         this.app.alternarSom();
         this.atualizarBotaoSom();
       }, pedra);
-      p.botaoMenu = this.criarBotao(rx + rl - larguraPequena / 2, 677, larguraPequena, 32, "Menu", () => this.perguntarSeVoltaAoMenu(), pedra);
-      this.atualizarBotaoSom();
+      p.botaoMenu = this.criarBotao(rx + rl - larguraPequena / 2, 680, larguraPequena, 32, "Menu", () => this.perguntarSeVoltaAoMenu(), pedra);
     },
     /** Rótulo do botão de som conforme a preferência. */
     atualizarBotaoSom() {
@@ -5344,7 +5414,7 @@ html, body { overscroll-behavior: none; }
     },
     /** Mostra a dica do turno no rodapé do painel esquerdo. */
     mostrarDica(texto) {
-      ajustarBloco(this.painel.dica, texto, 13.5, PAINEL_ESQ.l - 28, 712 - 616 - 8, 10.5);
+      ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, PAINEL_ESQ.y + PAINEL_ESQ.a - ESQ.dica - 10, 10.5);
     },
     /** Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. */
     redesenhar() {
@@ -5429,20 +5499,13 @@ html, body { overscroll-behavior: none; }
     atualizarPaineis() {
       const mao = this.mao, p = this.painel, partida = this.partida;
       const cima = this.jogadorDeCima(), baixo = this.jogadorDeBaixo();
-      p.avatarOponente.setTexture(this.avatarDe(cima)).setDisplaySize(64, 64);
-      ajustarLinha(p.nomeOponente.setColor(COR_JOGADOR_CSS[cima]), mao.jogadores[cima].nome, 18, 300, 12);
-      const perfil = OPONENTES[mao.jogadores[cima].oponente];
-      const nivel = perfil ? "N\xEDvel " + perfil.nivel.toLowerCase() + " \xB7 " + perfil.metodo : "Aguardando a vez";
-      ajustarLinha(p.nivelOponente, perfil && this.notaDoOponente ? this.notaDoOponente : nivel, 13, 300, 10);
-      p.meuAvatar.setTexture(this.avatarDe(baixo)).setDisplaySize(36, 36);
-      ajustarLinha(p.meuNome.setColor(COR_JOGADOR_CSS[baixo]), mao.jogadores[baixo].nome, 15, PAINEL_ESQ.l - 66, 11);
       ajustarLinha(p.tituloMao, "M\xC3O " + (partida.numeroMao + 1) + " \xB7 VALE " + partida.valor + (partida.valor === 1 ? " TENTO" : " TENTOS"), 16, PAINEL_DIR.l - 28, 11);
       ajustarLinha(p.subtitulo, partida.alvo <= 1 ? "M\xE3o \xFAnica, sem truco" : ehMaoDeOnze(partida) ? "M\xE3o de onze: ningu\xE9m pode trucar" : "Partida at\xE9 " + partida.alvo + " tentos", 12.5, PAINEL_DIR.l - 28, 10);
       [cima, baixo].forEach((j, i) => this.atualizarBlocoDoJogador(p.blocos[i], j));
-      ajustarLinha(p.textoLimbo, "LIMBO \xB7 " + mao.limbo.length, 10.5, 100, 8);
-      ajustarLinha(p.textoCemiterio, "CEMIT\xC9RIO \xB7 " + mao.cemiterio.length, 10.5, 110, 8);
-      const ultima = mao.cemiterio[mao.cemiterio.length - 1];
-      p.cemiterio.setTexture(ultima ? texturaDaCartaNaMesa(this, ultima, mao.config.baralho) : this.verso("mesa")).setDisplaySize(42, 59).setAlpha(ultima ? 1 : 0.25);
+      const baralho = mao.config.baralho;
+      this.atualizarPilha(p.limbo, "LIMBO", mao.limbo.length, null);
+      const topo = mao.cemiterio[mao.cemiterio.length - 1];
+      this.atualizarPilha(p.cemiterio, "CEMIT\xC9RIO", mao.cemiterio.length, topo ? texturaDaCartaNaMesa(this, topo, baralho) : null);
       const extra = [];
       if (mao.config.terreno !== "neutro") extra.push("Rodada " + mao.rodada);
       if (mao.config.terreno === "oceano" && mao.vento) extra.push("vento: " + NAIPE[mao.vento].nome + " vale dobro");
@@ -5452,40 +5515,96 @@ html, body { overscroll-behavior: none; }
       this.desenharCurva();
       this.mostrarDica(this.dicaDoCursor || this.textoDaDica());
     },
-    /** Bloco de placar de um jogador: nome, situação, detalhes, tentos e soma. */
+    /**
+     * Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas
+     * empilhadas por baixo quando há mais de uma, o contador e o rótulo.
+     * @param {string|null} texturaDoTopo Carta virada para cima; null mostra o verso.
+     */
+    atualizarPilha(pilha, nome, quantidade, texturaDoTopo) {
+      const { l, a } = ESQ.pilha, g = pilha.camadas;
+      const camadas = Math.min(4, Math.max(0, quantidade - 1));
+      const desvio = 3;
+      g.clear();
+      if (quantidade === 0) {
+        g.lineStyle(1.5, 14266976, 0.35);
+        g.strokeRoundedRect(pilha.x - l / 2, pilha.y - a / 2, l, a, 6);
+      }
+      for (let k = camadas; k >= 1; k--) {
+        const x = pilha.x - l / 2 + k * desvio, y = pilha.y - a / 2 - k * desvio;
+        g.fillStyle(723207, 1);
+        g.fillRoundedRect(x, y, l, a, 6);
+        g.fillStyle(15326396, 1);
+        g.fillRoundedRect(x + 1.5, y + 1.5, l - 3, a - 3, 5);
+        g.lineStyle(1, 8022604, 0.8);
+        g.strokeRoundedRect(x + 1.5, y + 1.5, l - 3, a - 3, 5);
+      }
+      pilha.carta.setTexture(texturaDoTopo || this.verso("mesa")).setDisplaySize(l, a).setVisible(quantidade > 0);
+      pilha.contador.setVisible(quantidade > 1).setText("\xD7" + quantidade);
+      ajustarLinha(pilha.rotulo, nome, 11, 110, 8);
+    },
+    /** Bloco de placar de um jogador: avatar, nome, nível, situação, detalhes, tentos e soma. */
     atualizarBlocoDoJogador(b, j) {
       const mao = this.mao, jogador = mao.jogadores[j], partida = this.partida;
-      const naVez = mao.fase === "jogo" && mao.vez === j;
-      const g = b.grafico;
+      const naVez = this.estaNaVez(j);
+      const g = b.grafico, cor = COR_JOGADOR[j];
       g.clear();
       g.fillStyle(naVez ? 1189403 : 0, naVez ? 0.95 : 0.3);
       g.fillRoundedRect(b.x, b.y, b.l, b.a, 8);
-      g.fillStyle(COR_JOGADOR[j], 1);
-      g.fillRoundedRect(b.x, b.y, naVez ? 7 : 5, b.a, { tl: 8, bl: 8, tr: 0, br: 0 });
-      g.lineStyle(naVez ? 2 : 1, naVez ? COR_JOGADOR[j] : 14266976, naVez ? 1 : 0.22);
+      g.fillStyle(cor, 1);
+      g.fillRoundedRect(b.x, b.y, naVez ? 8 : 5, b.a, { tl: 8, bl: 8, tr: 0, br: 0 });
+      g.lineStyle(naVez ? 2.5 : 1, naVez ? cor : 14266976, naVez ? 1 : 0.22);
       g.strokeRoundedRect(b.x, b.y, b.l, b.a, 8);
-      ajustarLinha(b.nome.setColor(COR_JOGADOR_CSS[j]), jogador.nome, 15, b.l - 110, 10);
+      b.avatar.setTexture(this.avatarDe(j)).setDisplaySize(DIR.avatar, DIR.avatar).setAlpha(naVez ? 1 : 0.55);
+      if (naVez) {
+        g.lineStyle(3, cor, 1);
+        g.strokeCircle(b.avatar.x, b.avatar.y, DIR.avatar / 2 + 3);
+      }
+      b.selo.setVisible(naVez).setBackgroundColor(COR_JOGADOR_CSS[j]).setText(j === this.quemVe ? "SUA VEZ" : "NA VEZ");
+      const larguraAteSoma = b.x + b.l - 12 - 62 - b.textoX, larguraTexto = b.x + b.l - 12 - b.textoX;
+      ajustarLinha(b.nome.setColor(COR_JOGADOR_CSS[j]), jogador.nome, 15, larguraAteSoma, 10);
+      const perfil = OPONENTES[jogador.oponente];
+      const nivel = perfil ? this.notaDoOponente || perfil.nivel + " \xB7 " + perfil.metodo : this.doisHumanos ? "Jogador humano" : "Voc\xEA joga com o azul";
+      ajustarLinha(b.nivel, nivel, 12, larguraAteSoma, 9);
       const travada = jogador.situacao === "construindo" && mao.fase === "jogo" && alvosDeAtivacao(mao, j).length === 0;
-      ajustarLinha(b.situacao, ((travada ? "travada" : NOME_SITUACAO[jogador.situacao]) + " \xB7 camada " + Math.max(0, jogador.caminho.length - 1) + "/6").toUpperCase(), 9.5, b.l - 110, 7.5);
-      ajustarLinha(b.detalhe, "M\xE3o " + jogador.mao.length + " \xB7 Dropouts " + jogador.dropouts + (jogador.transferUsado ? " \xB7 TL usado" : "") + (naVez ? " \xB7 na vez" : ""), 12, b.l - 110, 9);
+      ajustarLinha(b.situacao, ((travada ? "travada" : NOME_SITUACAO[jogador.situacao]) + " \xB7 camada " + Math.max(0, jogador.caminho.length - 1) + "/6").toUpperCase(), 9.5, larguraTexto, 7.5);
+      ajustarLinha(b.detalhe, "M\xE3o " + jogador.mao.length + " \xB7 Dropouts " + jogador.dropouts + (jogador.transferUsado ? " \xB7 TL usado" : ""), 12, larguraTexto, 9);
       if (partida.alvo > 1) {
         for (let k = 0; k < Math.min(12, partida.alvo); k++) {
-          const px = b.x + 20 + k * 10, py = b.y + 67;
+          const px = b.textoX + 4 + k * 9, py = b.y + 89;
           if (k < partida.tentos[j]) {
-            g.fillStyle(COR_JOGADOR[j], 1);
-            g.fillCircle(px, py, 3.4);
+            g.fillStyle(cor, 1);
+            g.fillCircle(px, py, 3.2);
             g.lineStyle(1, 16777215, 0.5);
-            g.strokeCircle(px, py, 3.4);
+            g.strokeCircle(px, py, 3.2);
           } else {
             g.lineStyle(1, 14266976, 0.45);
-            g.strokeCircle(px, py, 3);
+            g.strokeCircle(px, py, 2.8);
           }
         }
         b.tentos.setVisible(true);
-        ajustarLinha(b.tentos, partida.tentos[j] + (partida.tentos[j] === 1 ? " tento" : " tentos"), 11, b.l - 150, 8.5);
+        ajustarLinha(b.tentos, partida.tentos[j] + (partida.tentos[j] === 1 ? " tento" : " tentos"), 11, 70, 8.5);
       } else b.tentos.setVisible(false);
       const pontuacao = this.pontuacoes[j];
-      ajustarLinha(b.soma.setColor(pontuacao.vanishing ? "#ff7b88" : "#f6ecd6"), String(pontuacao.total), 36, 92, 20);
+      ajustarLinha(b.soma.setColor(pontuacao.vanishing ? "#ff7b88" : "#f6ecd6"), String(pontuacao.total), 34, 60, 18);
+    },
+    /** O jogador `j` está na vez (e a mão está em andamento)? */
+    estaNaVez(j) {
+      return this.mao.fase === "jogo" && this.mao.vez === j && !this.encerrada;
+    },
+    /** Brilho pulsante em volta do bloco de placar de quem está na vez (desenhado a cada quadro). */
+    desenharDestaqueDaVez(tempo) {
+      const g = this.camadaVez;
+      g.clear();
+      const indice = [this.jogadorDeCima(), this.jogadorDeBaixo()].findIndex((j) => this.estaNaVez(j));
+      if (indice < 0) return;
+      const b = this.painel.blocos[indice], cor = COR_JOGADOR[this.mao.vez];
+      const pulso = 0.5 + 0.5 * Math.sin(tempo / 260);
+      for (let k = 1; k <= 3; k++) {
+        g.lineStyle(2, cor, (0.38 - k * 0.1) * (0.5 + pulso));
+        g.strokeRoundedRect(b.x - k * 2.5, b.y - k * 2.5, b.l + k * 5, b.a + k * 5, 8 + k * 2);
+      }
+      g.lineStyle(2, cor, 0.35 + 0.5 * pulso);
+      g.strokeCircle(b.avatar.x, b.avatar.y, DIR.avatar / 2 + 6 + pulso * 3);
     },
     /** Habilita os botões conforme o que o jogador pode fazer agora. */
     atualizarBotoes() {
@@ -5505,7 +5624,7 @@ html, body { overscroll-behavior: none; }
       const linhas = this.mao.registro.slice(-10);
       registro.setFontSize(12).setWordWrapWidth(PAINEL_DIR.l - 24);
       registro.setText(linhas.join("\n"));
-      while (linhas.length > 1 && registro.height > 172) {
+      while (linhas.length > 1 && registro.height > DIR.alturaRegistro) {
         linhas.shift();
         registro.setText(linhas.join("\n"));
       }
@@ -5514,7 +5633,7 @@ html, body { overscroll-behavior: none; }
     desenharCurva() {
       const g = this.camadaCurva, historico = this.mao.historico;
       g.clear();
-      const x0 = PAINEL_DIR.x + 12, l = PAINEL_DIR.l - 24, topo = 308, a = 72;
+      const x0 = PAINEL_DIR.x + 12, l = PAINEL_DIR.l - 24, topo = DIR.curva, a = DIR.alturaCurva;
       g.fillStyle(0, 0.3);
       g.fillRoundedRect(x0, topo, l, a, 6);
       g.lineStyle(1, 14266976, 0.2);
@@ -5966,7 +6085,7 @@ html, body { overscroll-behavior: none; }
     /** Registra o pedido de `j`, grita na tela e pergunta a resposta ao outro jogador. */
     anunciarTruco(j) {
       pedirTruco(this.partida, j);
-      Som.truco();
+      this.impactoDoTruco(this.partida.pedido.para);
       this.avisarVerbete("truco");
       this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[j], 72);
       if (this.mao.jogadores[j].tipo === "oponente") this.falar(provocar("truco"));
@@ -5987,7 +6106,8 @@ html, body { overscroll-behavior: none; }
       }
       const quemPediu = this.mao.jogadores[pedido.por].nome;
       const botoes = [
-        { rotulo: "Correr", classe: "discreto", acao: () => this.aplicarResposta(quem, "correr") },
+        /* quem corre entrega o valor atual da mão */
+        { rotulo: "Correr (Perde " + partida.valor + ")", classe: "discreto", acao: () => this.aplicarResposta(quem, "correr") },
         { rotulo: "Desce! (vale " + pedido.para + ")", classe: "vinho", acao: () => this.aplicarResposta(quem, "aceitar") }
       ];
       if (podeAumentar) botoes.push({ rotulo: "Pedir " + GRITO_TRUCO[proximoValor(pedido.para)], acao: () => this.aplicarResposta(quem, "aumentar") });
@@ -6011,7 +6131,7 @@ html, body { overscroll-behavior: none; }
         return;
       }
       if (resposta === "aumentar") {
-        Som.truco();
+        this.impactoDoTruco(this.partida.pedido.para);
         this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[quem], 72);
         this.redesenhar();
         this.time.delayedCall(900, () => this.pedirResposta());
@@ -6268,7 +6388,10 @@ html, body { overscroll-behavior: none; }
       this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 220, ease: "Back.out" });
       this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, duration: 380, delay: 1050, onComplete: () => t.destroy() });
     },
-    /** Balão de fala do oponente, ao lado do avatar. */
+    /**
+     * Balão de fala do oponente. Fica à esquerda do placar, na altura do bloco do oponente,
+     * com a ponta virada para o avatar dele.
+     */
     falar(texto) {
       if (!texto) return;
       const p = this.painel, g = p.fundoBalao;
@@ -6277,12 +6400,24 @@ html, body { overscroll-behavior: none; }
       g.clear();
       g.fillStyle(15721414, 1);
       g.fillRoundedRect(-l / 2, -a / 2, l, a, 10);
-      g.fillTriangle(-l / 2 + 10, -4, -l / 2 - 12, -10, -l / 2 + 10, 8);
+      g.fillTriangle(l / 2 - 10, -6, l / 2 + 14, 0, l / 2 - 10, 8);
       g.lineStyle(2, 854536, 1);
       g.strokeRoundedRect(-l / 2, -a / 2, l, a, 10);
-      p.balao.setPosition(Math.min(950 - l / 2, 690 + l / 2), 40).setVisible(true).setAlpha(1);
+      const avatar = p.blocos[0].avatar;
+      p.balao.setPosition(PAINEL_DIR.x - 18 - l / 2, Math.max(a / 2 + 6, avatar.y - 30)).setVisible(true).setAlpha(1);
       this.tweens.killTweensOf(p.balao);
       this.tweens.add({ targets: p.balao, alpha: 0, delay: 2600, duration: 400, onComplete: () => p.balao.setVisible(false) });
+    },
+    /**
+     * Impacto do grito de truco: tapa na mesa, flash e tremor de tela mais fortes que o do stack
+     * overflow, crescendo a cada degrau (TRUCO 3, SEIS 6, NOVE 9, DOZE 12).
+     */
+    impactoDoTruco(valor) {
+      const forca = [3, 6, 9, 12].indexOf(valor) + 1;
+      Som.truco(forca);
+      const camera = this.cameras.main;
+      camera.shake(600 + forca * 80, 0.016 + forca * 4e-3);
+      camera.flash(180, 255, 210, 120);
     },
     /** Mostra uma vez por sessão o resumo do verbete do Grimório ligado ao que aconteceu. */
     avisarVerbete(id) {
@@ -6393,6 +6528,7 @@ html, body { overscroll-behavior: none; }
       this.camadaConexoes = this.add.graphics().setDepth(2);
       this.camadaDestaques = this.add.graphics().setDepth(5);
       this.camadaCurva = this.add.graphics().setDepth(6);
+      this.camadaVez = this.add.graphics().setDepth(6);
       this.camadaSelecao = this.add.graphics().setDepth(11);
       this.criarPaineis();
       this.input.keyboard?.on("keydown-ESC", () => this.cancelarSelecao());
@@ -6403,9 +6539,11 @@ html, body { overscroll-behavior: none; }
       if (!this.app.progresso.tutorialVisto) abrirRegras(this.app, comecar);
       else comecar();
     }
-    /** A cada quadro: conexões animadas e contornos pulsantes. */
+    /** A cada quadro: conexões animadas, contornos pulsantes e o destaque de quem está na vez. */
     update(tempo) {
-      if (this.mao) this.desenharConexoesEAlvos(tempo);
+      if (!this.mao) return;
+      this.desenharConexoesEAlvos(tempo);
+      this.desenharDestaqueDaVez(tempo);
     }
   };
   Object.assign(

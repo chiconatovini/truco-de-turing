@@ -5,7 +5,6 @@
 import { podeTrucar, pedirTruco, responderTruco, proximoValor, GRITO_TRUCO } from '../../nucleo/truco.js';
 import { responderAoTruco } from '../../nucleo/oponentes/index.js';
 import { provocar } from '../../conteudo/textos.js';
-import { Som } from '../../interface/som.js';
 import { confirmar, escaparHtml } from '../../interface/paineis.js';
 import { COR_JOGADOR_CSS } from './layout.js';
 
@@ -19,7 +18,7 @@ export const metodosDoTruco = {
   /** Registra o pedido de `j`, grita na tela e pergunta a resposta ao outro jogador. */
   anunciarTruco(j) {
     pedirTruco(this.partida, j);
-    Som.truco();
+    this.impactoDoTruco(this.partida.pedido.para);
     this.avisarVerbete('truco');
     this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[j], 72);
     if (this.mao.jogadores[j].tipo === 'oponente') this.falar(provocar('truco'));
@@ -41,7 +40,8 @@ export const metodosDoTruco = {
     }
     const quemPediu = this.mao.jogadores[pedido.por].nome;
     const botoes = [
-      { rotulo: 'Correr', classe: 'discreto', acao: () => this.aplicarResposta(quem, 'correr') },
+      /* quem corre entrega o valor atual da mão */
+      { rotulo: 'Correr (Perde ' + partida.valor + ')', classe: 'discreto', acao: () => this.aplicarResposta(quem, 'correr') },
       { rotulo: 'Desce! (vale ' + pedido.para + ')', classe: 'vinho', acao: () => this.aplicarResposta(quem, 'aceitar') },
     ];
     if (podeAumentar) botoes.push({ rotulo: 'Pedir ' + GRITO_TRUCO[proximoValor(pedido.para)], acao: () => this.aplicarResposta(quem, 'aumentar') });
@@ -63,7 +63,7 @@ export const metodosDoTruco = {
       return;
     }
     if (resposta === 'aumentar') {
-      Som.truco();
+      this.impactoDoTruco(this.partida.pedido.para);
       this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[quem], 72);
       this.redesenhar();
       this.time.delayedCall(900, () => this.pedirResposta());

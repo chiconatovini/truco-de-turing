@@ -53,6 +53,7 @@ export class CenaMesa extends Phaser.Scene {
     this.camadaConexoes = this.add.graphics().setDepth(2);
     this.camadaDestaques = this.add.graphics().setDepth(5);
     this.camadaCurva = this.add.graphics().setDepth(6);
+    this.camadaVez = this.add.graphics().setDepth(6);
     this.camadaSelecao = this.add.graphics().setDepth(11);
     this.criarPaineis();
 
@@ -63,9 +64,11 @@ export class CenaMesa extends Phaser.Scene {
     else comecar();
   }
 
-  /** A cada quadro: conexões animadas e contornos pulsantes. */
+  /** A cada quadro: conexões animadas, contornos pulsantes e o destaque de quem está na vez. */
   update(tempo) {
-    if (this.mao) this.desenharConexoesEAlvos(tempo);
+    if (!this.mao) return;
+    this.desenharConexoesEAlvos(tempo);
+    this.desenharDestaqueDaVez(tempo);
   }
 }
 

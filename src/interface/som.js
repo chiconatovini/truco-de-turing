@@ -69,7 +69,19 @@ export const Som = {
   golpe() { nota(220, 0.25, 'sawtooth', 0.09, 0, 90); ruido(0.2, 0.2, 0, 1200); },
   explosao() { nota(110, 0.6, 'sawtooth', 0.14, 0, 40); ruido(0.6, 0.35, 0, 600); },
   dropout() { nota(740, 0.12, 'square', 0.04); nota(990, 0.12, 'square', 0.04, 0.08); },
-  truco() { nota(392, 0.18, 'square', 0.08); nota(523, 0.32, 'square', 0.08, 0.16); },
+  /**
+   * Grito de truco: tapa na mesa (baque grave e estalo), depois a fanfarra do pedido.
+   * @param {number} [forca=1] 1 = TRUCO, 2 = SEIS, 3 = NOVE, 4 = DOZE; cada degrau é mais alto e longo.
+   */
+  truco(forca = 1) {
+    const f = Math.max(1, Math.min(4, forca));
+    nota(90, 0.5 + f * 0.08, 'sine', 0.22 + f * 0.03, 0, 32);   /* baque da mão na mesa */
+    ruido(0.35 + f * 0.05, 0.38 + f * 0.05, 0, 500);           /* madeira estalando */
+    ruido(0.08, 0.3, 0, 4000);                                 /* tapa */
+    const base = [392, 440, 494, 523][f - 1];                  /* o grito sobe a cada degrau */
+    [1, 1.26, 1.5].forEach((m) => nota(base * m, 0.32 + f * 0.05, 'square', 0.05, 0.12));
+    nota(base * 2, 0.45 + f * 0.06, 'sawtooth', 0.05, 0.3);
+  },
   vitoria() { [523, 659, 784, 1047].forEach((f, i) => nota(f, 0.22, 'triangle', 0.09, i * 0.1)); },
   derrota() { [392, 330, 262].forEach((f, i) => nota(f, 0.3, 'triangle', 0.08, i * 0.14)); },
   medalha() { [880, 1175].forEach((f, i) => nota(f, 0.18, 'sine', 0.08, i * 0.09)); },

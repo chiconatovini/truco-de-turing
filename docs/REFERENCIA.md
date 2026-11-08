@@ -178,7 +178,7 @@ Versos das cartas, um por baralho: clássico (damasco), truco (baralho espanhol)
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `molduraDourada(ctx, W, H, ouro)` | função | Moldura dourada dupla do verso das cartas. |
+| `molduraDourada(ctx, W, H, dourado)` | função | Moldura dourada dupla do verso das cartas. |
 | `legenda(ctx, W, y, a, b, cor, larguraMax)` | função | Escreve o título do verso (linha a) e o subtítulo (linha b) centralizados. |
 | `versoClassico(ctx, W, H, aleatorio)` | função | Clássico: damasco vinho com a rede neural dourada |
 | `versoTruco(ctx, W, H, aleatorio)` | função | Truco: verso de baralho espanhol, margem branca, treliça azul, espada e pau cruzados |
@@ -215,7 +215,7 @@ Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os mé
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `create()` | método | Monta a mesa e começa a primeira mão (depois das regras, na primeira visita). |
-| `update(tempo)` | método | A cada quadro: conexões animadas e contornos pulsantes. |
+| `update(tempo)` | método | A cada quadro: conexões animadas, contornos pulsantes e o destaque de quem está na vez. |
 
 ## `src/cenas/mesa/cenario.js`
 
@@ -227,6 +227,10 @@ Parte da CenaMesa: elementos fixos da tela (molduras dos painéis, colunas das c
 | `desenharCenarioFixo()` | método | Molduras dos painéis laterais, divisórias e colunas das camadas com seus nomes. |
 | `criarBotao(x, y, l, a, rotulo, acao, opcoes = {})` | método | Cria um botão com textura própria e rótulo que se ajusta à largura. O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`. |
 | `criarPaineis()` | método | Cria os textos, imagens e botões dos painéis. Ficam em `this.painel`. |
+| `criarTexto(x, y, s, estilo)` | método | Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. |
+| `criarPainelEsquerdo(p)` | método | Painel esquerdo: inspeção, limbo e cemitério (como pilhas), terreno e dica do turno. |
+| `criarPlacar(p)` | método | Placar (painel direito): título da mão e um bloco por jogador com avatar, nome, nível, situação, detalhes, tentos e soma da rede. O bloco de cima é o adversário de quem está vendo. |
+| `criarBotoesDeAcao(p)` | método | Botão de truco (logo acima das ações) e botões de ação e de sistema. |
 | `atualizarBotaoSom()` | método | Rótulo do botão de som conforme a preferência. |
 
 ## `src/cenas/mesa/desenho.js`
@@ -241,7 +245,10 @@ Parte da CenaMesa: desenhar o estado da mão na tela. Neurônios, mãos, placar,
 | `desenharMaos()` | método | Desenha a mão do jogador de baixo (aberta) e a do de cima (versos). |
 | `notaDaCartaDaMao(carta)` | método | Nota da inspeção para uma carta da mão: onde ela pode ser usada agora. |
 | `atualizarPaineis()` | método | Atualiza os textos e botões dos painéis. |
-| `atualizarBlocoDoJogador(b, j)` | método | Bloco de placar de um jogador: nome, situação, detalhes, tentos e soma. |
+| `atualizarPilha(pilha, nome, quantidade, texturaDoTopo)` | método | Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas empilhadas por baixo quando há mais de uma, o contador e o rótulo. |
+| `atualizarBlocoDoJogador(b, j)` | método | Bloco de placar de um jogador: avatar, nome, nível, situação, detalhes, tentos e soma. |
+| `estaNaVez(j)` | método | O jogador `j` está na vez (e a mão está em andamento)? |
+| `desenharDestaqueDaVez(tempo)` | método | Brilho pulsante em volta do bloco de placar de quem está na vez (desenhado a cada quadro). |
 | `atualizarBotoes()` | método | Habilita os botões conforme o que o jogador pode fazer agora. |
 | `atualizarRegistro()` | método | Registro de jogadas: as linhas mais recentes que couberem. |
 | `desenharCurva()` | método | Curva de treino: soma de cada rede a cada turno. |
@@ -276,7 +283,8 @@ Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo
 | `explodir(x, y, cor, quantidade)` | método | Explosão de `quantidade` faíscas da cor dada. A faísca colorida é uma textura própria (Canvas não tem tint). |
 | `textoFlutuante(x, y, texto, cor = '#fff', tamanho = 20)` | método | Texto que sobe e desaparece. |
 | `faixa(texto, cor = '#f6dc8f', tamanho = 48)` | método | Faixa grande no centro do tabuleiro (gritos de truco, ataques). |
-| `falar(texto)` | método | Balão de fala do oponente, ao lado do avatar. |
+| `falar(texto)` | método | Balão de fala do oponente. Fica à esquerda do placar, na altura do bloco do oponente, com a ponta virada para o avatar dele. |
+| `impactoDoTruco(valor)` | método | Impacto do grito de truco: tapa na mesa, flash e tremor de tela mais fortes que o do stack overflow, crescendo a cada degrau (TRUCO 3, SEIS 6, NOVE 9, DOZE 12). |
 | `avisarVerbete(id)` | método | Mostra uma vez por sessão o resumo do verbete do Grimório ligado ao que aconteceu. |
 
 ## `src/cenas/mesa/entrada.js`
@@ -300,8 +308,10 @@ Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coor
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `PAINEL_ESQ` | constante (exportada) | Painel esquerdo (inspeção). |
-| `PAINEL_DIR` | constante (exportada) | Painel direito (placar e ações). |
+| `PAINEL_ESQ` | constante (exportada) | Painel esquerdo (inspeção, pilhas e dica). |
+| `PAINEL_DIR` | constante (exportada) | Painel direito (placar, curva, registro e ações). |
+| `ESQ` | constante (exportada) | Posições verticais dentro do painel esquerdo, de cima para baixo. `pilha` é o tamanho das cartas do limbo e do cemitério. |
+| `DIR` | constante (exportada) | Posições verticais dentro do painel direito. Os blocos de placar ficam empilhados a partir de `blocos`, cada um com altura `alturaBloco`; o botão de truco fica logo acima das ações. |
 | `ESPACO_LINHA` | constante | Distância vertical entre neurônios e centro vertical do tabuleiro. |
 | `colunaX` | constante (exportada) | X do centro da coluna da camada. |
 | `linhaY` | constante (exportada) | Y do centro do neurônio `posicao` na camada. |
@@ -458,6 +468,7 @@ Efeitos sonoros sintetizados com WebAudio (nenhum arquivo de áudio). O navegado
 | `nota(frequencia, duracao, forma, volume, atraso, deslize)` | função | Toca uma nota curta. |
 | `ruido(duracao, volume, atraso, filtro)` | função | Toca um chiado filtrado (cartas, impactos). |
 | `Som` | constante (exportada) | Efeitos sonoros do jogo, um por acontecimento. |
+| `truco(forca = 1)` | método | Grito de truco: tapa na mesa (baque grave e estalo), depois a fanfarra do pedido. |
 
 ## `src/interface/telas/conquistas.js`
 

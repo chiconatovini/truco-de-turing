@@ -13,7 +13,7 @@ import { desenharFaisca } from '../../arte/botoes.js';
 import { Som } from '../../interface/som.js';
 import { mostrarAviso } from '../../interface/paineis.js';
 import { texturaDaCartaNaMesa, texturaDaCartaMedia, texturaDeInspecao } from '../recursos.js';
-import { colunaX, linhaY, COR_JOGADOR_CSS } from './layout.js';
+import { colunaX, linhaY, COR_JOGADOR_CSS, PAINEL_DIR } from './layout.js';
 
 /** Cor e título de cada ataque. */
 const ATAQUES = {
@@ -241,7 +241,10 @@ export const metodosDeEfeitos = {
     this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, duration: 380, delay: 1050, onComplete: () => t.destroy() });
   },
 
-  /** Balão de fala do oponente, ao lado do avatar. */
+  /**
+   * Balão de fala do oponente. Fica à esquerda do placar, na altura do bloco do oponente,
+   * com a ponta virada para o avatar dele.
+   */
   falar(texto) {
     if (!texto) return;
     const p = this.painel, g = p.fundoBalao;
@@ -249,11 +252,24 @@ export const metodosDeEfeitos = {
     const l = Math.min(250, p.textoBalao.width + 28), a = p.textoBalao.height + 18;
     g.clear();
     g.fillStyle(0xefe3c6, 1); g.fillRoundedRect(-l / 2, -a / 2, l, a, 10);
-    g.fillTriangle(-l / 2 + 10, -4, -l / 2 - 12, -10, -l / 2 + 10, 8);
+    g.fillTriangle(l / 2 - 10, -6, l / 2 + 14, 0, l / 2 - 10, 8);
     g.lineStyle(2, 0x0d0a08, 1); g.strokeRoundedRect(-l / 2, -a / 2, l, a, 10);
-    p.balao.setPosition(Math.min(950 - l / 2, 690 + l / 2), 40).setVisible(true).setAlpha(1);
+    const avatar = p.blocos[0].avatar;
+    p.balao.setPosition(PAINEL_DIR.x - 18 - l / 2, Math.max(a / 2 + 6, avatar.y - 30)).setVisible(true).setAlpha(1);
     this.tweens.killTweensOf(p.balao);
     this.tweens.add({ targets: p.balao, alpha: 0, delay: 2600, duration: 400, onComplete: () => p.balao.setVisible(false) });
+  },
+
+  /**
+   * Impacto do grito de truco: tapa na mesa, flash e tremor de tela mais fortes que o do stack
+   * overflow, crescendo a cada degrau (TRUCO 3, SEIS 6, NOVE 9, DOZE 12).
+   */
+  impactoDoTruco(valor) {
+    const forca = [3, 6, 9, 12].indexOf(valor) + 1; /* 1 a 4 */
+    Som.truco(forca);
+    const camera = this.cameras.main;
+    camera.shake(600 + forca * 80, 0.016 + forca * 0.004);
+    camera.flash(180, 255, 210, 120);
   },
 
   /** Mostra uma vez por sessão o resumo do verbete do Grimório ligado ao que aconteceu. */

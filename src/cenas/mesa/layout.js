@@ -7,10 +7,28 @@
 import { TAMANHOS_CAMADAS } from '../../nucleo/rede.js';
 import { CORES, CORES_CSS, TAMANHO_CARTA } from '../../configuracao.js';
 
-/** Painel esquerdo (inspeção). */
-export const PAINEL_ESQ = { x: 8, y: 80, l: 244, a: 632 };
-/** Painel direito (placar e ações). */
+/** Painel esquerdo (inspeção, pilhas e dica). */
+export const PAINEL_ESQ = { x: 8, y: 8, l: 244, a: 704 };
+/** Painel direito (placar, curva, registro e ações). */
 export const PAINEL_DIR = { x: 962, y: 8, l: 310, a: 704 };
+
+/**
+ * Posições verticais dentro do painel esquerdo, de cima para baixo.
+ * `pilha` é o tamanho das cartas do limbo e do cemitério.
+ */
+export const ESQ = {
+  titulo: 26, inspecao: 182, nota: 326, divisoria1: 378,
+  pilhas: 442, pilha: { l: 66, a: 92 }, rotulosPilha: 498, terreno: 518, divisoria2: 566, dica: 578,
+};
+
+/**
+ * Posições verticais dentro do painel direito. Os blocos de placar ficam empilhados a partir de
+ * `blocos`, cada um com altura `alturaBloco`; o botão de truco fica logo acima das ações.
+ */
+export const DIR = {
+  tituloMao: 28, subtitulo: 49, blocos: 64, alturaBloco: 102, passoBloco: 108, avatar: 58,
+  rotuloCurva: 292, curva: 304, alturaCurva: 64, registro: 380, alturaRegistro: 132, truco: 543,
+};
 
 /** Distância vertical entre neurônios e centro vertical do tabuleiro. */
 const ESPACO_LINHA = 95, CENTRO_TABULEIRO = 334;

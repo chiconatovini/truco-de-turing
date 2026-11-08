@@ -18,7 +18,7 @@ import { podeTrucar, proximoValor, ehMaoDeOnze, GRITO_TRUCO } from '../../nucleo
 import { OPONENTES } from '../../nucleo/oponentes/index.js';
 import { texturaDaCartaNaMao, texturaDaCartaNaMesa, texturaDeInspecao } from '../recursos.js';
 import {
-  PAINEL_ESQ, PAINEL_DIR, colunaX, linhaY, COR_JOGADOR, COR_JOGADOR_CSS, COR_DO_ALVO, NOME_SITUACAO,
+  PAINEL_ESQ, PAINEL_DIR, ESQ, DIR, colunaX, linhaY, COR_JOGADOR, COR_JOGADOR_CSS, COR_DO_ALVO, NOME_SITUACAO,
   ajustarCartaDaMesa, ajustarLinha, ajustarBloco,
 } from './layout.js';
 
@@ -31,7 +31,7 @@ export const metodosDeDesenho = {
 
   /** Mostra a dica do turno no rodapé do painel esquerdo. */
   mostrarDica(texto) {
-    ajustarBloco(this.painel.dica, texto, 13.5, PAINEL_ESQ.l - 28, 712 - 616 - 8, 10.5);
+    ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, PAINEL_ESQ.y + PAINEL_ESQ.a - ESQ.dica - 10, 10.5);
   },
 
   /** Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. */
@@ -114,21 +114,13 @@ export const metodosDeDesenho = {
   atualizarPaineis() {
     const mao = this.mao, p = this.painel, partida = this.partida;
     const cima = this.jogadorDeCima(), baixo = this.jogadorDeBaixo();
-    p.avatarOponente.setTexture(this.avatarDe(cima)).setDisplaySize(64, 64);
-    ajustarLinha(p.nomeOponente.setColor(COR_JOGADOR_CSS[cima]), mao.jogadores[cima].nome, 18, 300, 12);
-    /* `notaDoOponente` ("pensando…", resultado da simulação) substitui a linha de nível */
-    const perfil = OPONENTES[mao.jogadores[cima].oponente];
-    const nivel = perfil ? 'Nível ' + perfil.nivel.toLowerCase() + ' · ' + perfil.metodo : 'Aguardando a vez';
-    ajustarLinha(p.nivelOponente, perfil && this.notaDoOponente ? this.notaDoOponente : nivel, 13, 300, 10);
-    p.meuAvatar.setTexture(this.avatarDe(baixo)).setDisplaySize(36, 36);
-    ajustarLinha(p.meuNome.setColor(COR_JOGADOR_CSS[baixo]), mao.jogadores[baixo].nome, 15, PAINEL_ESQ.l - 66, 11);
     ajustarLinha(p.tituloMao, 'MÃO ' + (partida.numeroMao + 1) + ' · VALE ' + partida.valor + (partida.valor === 1 ? ' TENTO' : ' TENTOS'), 16, PAINEL_DIR.l - 28, 11);
     ajustarLinha(p.subtitulo, partida.alvo <= 1 ? 'Mão única, sem truco' : ehMaoDeOnze(partida) ? 'Mão de onze: ninguém pode trucar' : 'Partida até ' + partida.alvo + ' tentos', 12.5, PAINEL_DIR.l - 28, 10);
     [cima, baixo].forEach((j, i) => this.atualizarBlocoDoJogador(p.blocos[i], j));
-    ajustarLinha(p.textoLimbo, 'LIMBO · ' + mao.limbo.length, 10.5, 100, 8);
-    ajustarLinha(p.textoCemiterio, 'CEMITÉRIO · ' + mao.cemiterio.length, 10.5, 110, 8);
-    const ultima = mao.cemiterio[mao.cemiterio.length - 1];
-    p.cemiterio.setTexture(ultima ? texturaDaCartaNaMesa(this, ultima, mao.config.baralho) : this.verso('mesa')).setDisplaySize(42, 59).setAlpha(ultima ? 1 : 0.25);
+    const baralho = mao.config.baralho;
+    this.atualizarPilha(p.limbo, 'LIMBO', mao.limbo.length, null);
+    const topo = mao.cemiterio[mao.cemiterio.length - 1];
+    this.atualizarPilha(p.cemiterio, 'CEMITÉRIO', mao.cemiterio.length, topo ? texturaDaCartaNaMesa(this, topo, baralho) : null);
     const extra = [];
     if (mao.config.terreno !== 'neutro') extra.push('Rodada ' + mao.rodada);
     if (mao.config.terreno === 'oceano' && mao.vento) extra.push('vento: ' + NAIPE[mao.vento].nome + ' vale dobro');
@@ -139,31 +131,87 @@ export const metodosDeDesenho = {
     this.mostrarDica(this.dicaDoCursor || this.textoDaDica());
   },
 
-  /** Bloco de placar de um jogador: nome, situação, detalhes, tentos e soma. */
+  /**
+   * Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas
+   * empilhadas por baixo quando há mais de uma, o contador e o rótulo.
+   * @param {string|null} texturaDoTopo Carta virada para cima; null mostra o verso.
+   */
+  atualizarPilha(pilha, nome, quantidade, texturaDoTopo) {
+    const { l, a } = ESQ.pilha, g = pilha.camadas;
+    const camadas = Math.min(4, Math.max(0, quantidade - 1)); /* bordas visíveis por baixo do topo */
+    const desvio = 3; /* deslocamento de cada carta da pilha, para cima e para a direita */
+    g.clear();
+    if (quantidade === 0) {
+      /* lugar vazio: só o contorno tracejado da carta */
+      g.lineStyle(1.5, 0xd9b260, 0.35); g.strokeRoundedRect(pilha.x - l / 2, pilha.y - a / 2, l, a, 6);
+    }
+    for (let k = camadas; k >= 1; k--) {
+      const x = pilha.x - l / 2 + k * desvio, y = pilha.y - a / 2 - k * desvio;
+      g.fillStyle(0x0b0907, 1); g.fillRoundedRect(x, y, l, a, 6);
+      g.fillStyle(0xe9dcbc, 1); g.fillRoundedRect(x + 1.5, y + 1.5, l - 3, a - 3, 5);
+      g.lineStyle(1, 0x7a6a4c, 0.8); g.strokeRoundedRect(x + 1.5, y + 1.5, l - 3, a - 3, 5);
+    }
+    pilha.carta.setTexture(texturaDoTopo || this.verso('mesa')).setDisplaySize(l, a).setVisible(quantidade > 0);
+    pilha.contador.setVisible(quantidade > 1).setText('\u00d7' + quantidade);
+    ajustarLinha(pilha.rotulo, nome, 11, 110, 8);
+  },
+
+  /** Bloco de placar de um jogador: avatar, nome, nível, situação, detalhes, tentos e soma. */
   atualizarBlocoDoJogador(b, j) {
     const mao = this.mao, jogador = mao.jogadores[j], partida = this.partida;
-    const naVez = mao.fase === 'jogo' && mao.vez === j;
-    const g = b.grafico;
+    const naVez = this.estaNaVez(j);
+    const g = b.grafico, cor = COR_JOGADOR[j];
     g.clear();
     g.fillStyle(naVez ? 0x12261b : 0x000000, naVez ? 0.95 : 0.3); g.fillRoundedRect(b.x, b.y, b.l, b.a, 8);
-    g.fillStyle(COR_JOGADOR[j], 1); g.fillRoundedRect(b.x, b.y, naVez ? 7 : 5, b.a, { tl: 8, bl: 8, tr: 0, br: 0 });
-    g.lineStyle(naVez ? 2 : 1, naVez ? COR_JOGADOR[j] : 0xd9b260, naVez ? 1 : 0.22); g.strokeRoundedRect(b.x, b.y, b.l, b.a, 8);
-    ajustarLinha(b.nome.setColor(COR_JOGADOR_CSS[j]), jogador.nome, 15, b.l - 110, 10);
+    g.fillStyle(cor, 1); g.fillRoundedRect(b.x, b.y, naVez ? 8 : 5, b.a, { tl: 8, bl: 8, tr: 0, br: 0 });
+    g.lineStyle(naVez ? 2.5 : 1, naVez ? cor : 0xd9b260, naVez ? 1 : 0.22); g.strokeRoundedRect(b.x, b.y, b.l, b.a, 8);
+    /* avatar: aceso e com aro na cor do jogador quando é a vez dele; apagado quando não é */
+    b.avatar.setTexture(this.avatarDe(j)).setDisplaySize(DIR.avatar, DIR.avatar).setAlpha(naVez ? 1 : 0.55);
+    if (naVez) { g.lineStyle(3, cor, 1); g.strokeCircle(b.avatar.x, b.avatar.y, DIR.avatar / 2 + 3); }
+    b.selo.setVisible(naVez).setBackgroundColor(COR_JOGADOR_CSS[j]).setText(j === this.quemVe ? 'SUA VEZ' : 'NA VEZ');
+    /* nome e nível vão até a coluna da soma (canto superior direito); as linhas de baixo usam a largura toda */
+    const larguraAteSoma = b.x + b.l - 12 - 62 - b.textoX, larguraTexto = b.x + b.l - 12 - b.textoX;
+    ajustarLinha(b.nome.setColor(COR_JOGADOR_CSS[j]), jogador.nome, 15, larguraAteSoma, 10);
+    /* linha de nível: perfil do oponente; `notaDoOponente` ("pensando…", simulação) tem prioridade */
+    const perfil = OPONENTES[jogador.oponente];
+    const nivel = perfil ? (this.notaDoOponente || perfil.nivel + ' \u00b7 ' + perfil.metodo) : (this.doisHumanos ? 'Jogador humano' : 'Você joga com o azul');
+    ajustarLinha(b.nivel, nivel, 12, larguraAteSoma, 9);
     const travada = jogador.situacao === 'construindo' && mao.fase === 'jogo' && alvosDeAtivacao(mao, j).length === 0;
-    ajustarLinha(b.situacao, ((travada ? 'travada' : NOME_SITUACAO[jogador.situacao]) + ' · camada ' + Math.max(0, jogador.caminho.length - 1) + '/6').toUpperCase(), 9.5, b.l - 110, 7.5);
-    ajustarLinha(b.detalhe, 'Mão ' + jogador.mao.length + ' · Dropouts ' + jogador.dropouts + (jogador.transferUsado ? ' · TL usado' : '') + (naVez ? ' · na vez' : ''), 12, b.l - 110, 9);
+    ajustarLinha(b.situacao, ((travada ? 'travada' : NOME_SITUACAO[jogador.situacao]) + ' \u00b7 camada ' + Math.max(0, jogador.caminho.length - 1) + '/6').toUpperCase(), 9.5, larguraTexto, 7.5);
+    ajustarLinha(b.detalhe, 'Mão ' + jogador.mao.length + ' \u00b7 Dropouts ' + jogador.dropouts + (jogador.transferUsado ? ' \u00b7 TL usado' : ''), 12, larguraTexto, 9);
     if (partida.alvo > 1) {
       /* tentos como grãos de feijão do truco */
       for (let k = 0; k < Math.min(12, partida.alvo); k++) {
-        const px = b.x + 20 + k * 10, py = b.y + 67;
-        if (k < partida.tentos[j]) { g.fillStyle(COR_JOGADOR[j], 1); g.fillCircle(px, py, 3.4); g.lineStyle(1, 0xffffff, 0.5); g.strokeCircle(px, py, 3.4); }
-        else { g.lineStyle(1, 0xd9b260, 0.45); g.strokeCircle(px, py, 3); }
+        const px = b.textoX + 4 + k * 9, py = b.y + 89;
+        if (k < partida.tentos[j]) { g.fillStyle(cor, 1); g.fillCircle(px, py, 3.2); g.lineStyle(1, 0xffffff, 0.5); g.strokeCircle(px, py, 3.2); }
+        else { g.lineStyle(1, 0xd9b260, 0.45); g.strokeCircle(px, py, 2.8); }
       }
       b.tentos.setVisible(true);
-      ajustarLinha(b.tentos, partida.tentos[j] + (partida.tentos[j] === 1 ? ' tento' : ' tentos'), 11, b.l - 150, 8.5);
+      ajustarLinha(b.tentos, partida.tentos[j] + (partida.tentos[j] === 1 ? ' tento' : ' tentos'), 11, 70, 8.5);
     } else b.tentos.setVisible(false);
     const pontuacao = this.pontuacoes[j];
-    ajustarLinha(b.soma.setColor(pontuacao.vanishing ? '#ff7b88' : '#f6ecd6'), String(pontuacao.total), 36, 92, 20);
+    ajustarLinha(b.soma.setColor(pontuacao.vanishing ? '#ff7b88' : '#f6ecd6'), String(pontuacao.total), 34, 60, 18);
+  },
+
+  /** O jogador `j` está na vez (e a mão está em andamento)? */
+  estaNaVez(j) {
+    return this.mao.fase === 'jogo' && this.mao.vez === j && !this.encerrada;
+  },
+
+  /** Brilho pulsante em volta do bloco de placar de quem está na vez (desenhado a cada quadro). */
+  desenharDestaqueDaVez(tempo) {
+    const g = this.camadaVez;
+    g.clear();
+    const indice = [this.jogadorDeCima(), this.jogadorDeBaixo()].findIndex((j) => this.estaNaVez(j));
+    if (indice < 0) return;
+    const b = this.painel.blocos[indice], cor = COR_JOGADOR[this.mao.vez];
+    const pulso = 0.5 + 0.5 * Math.sin(tempo / 260);
+    for (let k = 1; k <= 3; k++) {
+      g.lineStyle(2, cor, (0.38 - k * 0.1) * (0.5 + pulso));
+      g.strokeRoundedRect(b.x - k * 2.5, b.y - k * 2.5, b.l + k * 5, b.a + k * 5, 8 + k * 2);
+    }
+    g.lineStyle(2, cor, 0.35 + 0.5 * pulso);
+    g.strokeCircle(b.avatar.x, b.avatar.y, DIR.avatar / 2 + 6 + pulso * 3);
   },
 
   /** Habilita os botões conforme o que o jogador pode fazer agora. */
@@ -185,14 +233,14 @@ export const metodosDeDesenho = {
     const linhas = this.mao.registro.slice(-10);
     registro.setFontSize(12).setWordWrapWidth(PAINEL_DIR.l - 24);
     registro.setText(linhas.join('\n'));
-    while (linhas.length > 1 && registro.height > 172) { linhas.shift(); registro.setText(linhas.join('\n')); }
+    while (linhas.length > 1 && registro.height > DIR.alturaRegistro) { linhas.shift(); registro.setText(linhas.join('\n')); }
   },
 
   /** Curva de treino: soma de cada rede a cada turno. */
   desenharCurva() {
     const g = this.camadaCurva, historico = this.mao.historico;
     g.clear();
-    const x0 = PAINEL_DIR.x + 12, l = PAINEL_DIR.l - 24, topo = 308, a = 72;
+    const x0 = PAINEL_DIR.x + 12, l = PAINEL_DIR.l - 24, topo = DIR.curva, a = DIR.alturaCurva;
     g.fillStyle(0x000000, 0.3); g.fillRoundedRect(x0, topo, l, a, 6);
     g.lineStyle(1, 0xd9b260, 0.2); g.strokeRoundedRect(x0, topo, l, a, 6);
     let maximo = 40;
