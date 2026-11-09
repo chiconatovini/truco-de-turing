@@ -760,6 +760,8 @@ Ponto de entrada do jogo: prepara o texto nítido, carrega as opções e cria o 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `celularEmPe` | constante | Celular na vertical (o aviso para girar aparece no lugar do jogo; ver #girar em estilo.css). |
+| `TOQUES_SIMULTANEOS` | constante (exportada) | Quantos dedos o Phaser acompanha ao mesmo tempo. |
+| `remedirAposMudarATela()` | função | Ao entrar ou sair da tela cheia (e ao girar), o canvas muda de tamanho e de posição em etapas. Remede algumas vezes, para que os toques nunca caiam no lugar antigo dos botões. |
 | `criarJogo()` | função | Cria o Phaser.Game com as três cenas. |
 | `iniciarJogo()` | função | Cria o jogo agora ou, num celular em pé, assim que ele for girado para a horizontal. |
 

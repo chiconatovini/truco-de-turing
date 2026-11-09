@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.1.2 — 2026-11-09
+
+- Toque nos botões da mesa em tela cheia no celular
+
 ## 1.1.1 — 2026-11-09
 
 - Menu inicial centralizado e alinhado no celular
