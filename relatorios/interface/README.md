@@ -1,13 +1,13 @@
 # Testes de interface
 
-**Versão 1.1.1** · 09/11/2026, 00:40 (horário de Brasília)  
+**Versão 1.1.2** · 09/11/2026, 19:51 (horário de Brasília)  
 Ambiente: Node v22.23.4 · Chromium 153.0.8010.12 · Linux x64 · 2 núcleos
 
 O jogo inteiro rodando no Chromium (Playwright): menu e telas, mãos completas contra os três oponentes e entre duas pessoas, cada ação da mesa, truco, modo dicas (mouse e toque), som, música, comemorações e celular (vertical e horizontal).
 
 | Testes | Aprovados | Reprovados | Pulados | Duração |
 |---:|---:|---:|---:|---:|
-| 15 | 15 | 0 | 0 | 407,0 s |
+| 15 | 15 | 0 | 0 | 402,0 s |
 
 Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](resultado.junit.xml).
 
@@ -34,34 +34,35 @@ Tiradas pelo próprio teste, no momento indicado pelo nome.
 <a href="capturas/17-dica-de-jogo.jpg"><img src="capturas/17-dica-de-jogo.jpg" width="300" alt="17-dica-de-jogo"></a>
 <a href="capturas/18-dica-do-botao.jpg"><img src="capturas/18-dica-do-botao.jpg" width="300" alt="18-dica-do-botao"></a>
 <a href="capturas/19-vitoria.jpg"><img src="capturas/19-vitoria.jpg" width="300" alt="19-vitoria"></a>
+<a href="capturas/20-menu-da-mesa.jpg"><img src="capturas/20-menu-da-mesa.jpg" width="300" alt="20-menu-da-mesa"></a>
 
 ## `testes/interface/acoes.test.js`
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | inspeção, seleção, Esc, tunagem, overfit, stack overflow e early stop na própria rede | ações da mesa | 71,0 s |
-| ✅ | dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient | ações da mesa | 48,5 s |
-| ✅ | truco: pedir, responder (aumentar, aceitar, correr) e a mão terminada por corrida | ações da mesa | 47,9 s |
-| ✅ | dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar | ações da mesa | 26,5 s |
-| ✅ | celular: segurar um botão mostra a dica sem executar a ação; toque rápido executa | ações da mesa | 17,6 s |
-| ✅ | celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela | ações da mesa | 14,8 s |
-| ✅ | som, música, comemorações, derrota e voltar ao menu | ações da mesa | 35,8 s |
+| ✅ | inspeção, seleção, Esc, tunagem, overfit, stack overflow e early stop na própria rede | ações da mesa | 50,3 s |
+| ✅ | dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient | ações da mesa | 46,4 s |
+| ✅ | truco: pedir, responder (aumentar, aceitar, correr) e a mão terminada por corrida | ações da mesa | 44,5 s |
+| ✅ | dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar | ações da mesa | 27,4 s |
+| ✅ | celular: segurar um botão mostra a dica sem executar a ação; toque rápido executa | ações da mesa | 17,7 s |
+| ✅ | celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela | ações da mesa | 13,4 s |
+| ✅ | som, música, comemorações, derrota e voltar ao menu | ações da mesa | 36,1 s |
 
 ## `testes/interface/menu-e-telas.test.js`
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas e Sobre | menu e telas | 20,3 s |
-| ✅ | celular na vertical: só o aviso para girar; ao girar, o jogo é criado e o menu aparece | menu e telas | 29,6 s |
-| ✅ | renderizador Canvas e resolução forçados pela URL | menu e telas | 2,4 s |
+| ✅ | carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas e Sobre | menu e telas | 20,1 s |
+| ✅ | celular na vertical: só o aviso para girar; ao girar, o jogo é criado e o menu aparece | menu e telas | 27,4 s |
+| ✅ | renderizador Canvas e resolução forçados pela URL | menu e telas | 1,8 s |
 
 ## `testes/interface/partidas.test.js`
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | Zé do Ruído · clássico · neutro · revela e volta | mãos completas contra o computador | 164,0 s |
-| ✅ | Gradiente Guloso · truco · montanha · revela e descarta | mãos completas contra o computador | 80,8 s |
-| ✅ | Mestre Monte Carlo · fraternidade · pântano · sorteio | mãos completas contra o computador | 53,3 s |
-| ✅ | duas pessoas no mesmo aparelho (yin-yang, oceano): o aparelho troca de mãos entre as vezes | duas pessoas e mão única | 28,3 s |
-| ✅ | mão única sem truco (Power BI): "Nova partida" recomeça o placar | duas pessoas e mão única | 26,6 s |
+| ✅ | Zé do Ruído · clássico · neutro · revela e volta | mãos completas contra o computador | 168,1 s |
+| ✅ | Gradiente Guloso · truco · montanha · revela e descarta | mãos completas contra o computador | 62,4 s |
+| ✅ | Mestre Monte Carlo · fraternidade · pântano · sorteio | mãos completas contra o computador | 59,2 s |
+| ✅ | duas pessoas no mesmo aparelho (yin-yang, oceano): o aparelho troca de mãos entre as vezes | duas pessoas e mão única | 35,4 s |
+| ✅ | mão única sem truco (Power BI): "Nova partida" recomeça o placar | duas pessoas e mão única | 26,0 s |
 

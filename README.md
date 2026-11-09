@@ -127,6 +127,7 @@ Pontos em que o enunciado deixa margem e a leitura adotada:
 - **5 baralhos e 4 terrenos** da seção de extensões (Truco com manilhas, Fraternidade, Yin-yang, Power BI; Montanha, Pântano, Oceano).
 - **27 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…).
 - **Modo dicas**: dicas de estratégia a cada vez, sempre com o conceito de redes neurais por trás, e explicações nos botões (mouse ou segurar no celular); só usam o que está à vista e nunca dizem qual carta virada escolher. Mãos com dicas não valem conquistas.
+- **Mesa pensada para o toque**: no painel esquerdo, só REGRAS (como jogar, Grimório e dicas) e MENU (som, música e sair); botões de ação grandes e quase quadrados.
 - **Revisão da mão**: curva de treino passo a passo, momentos-chave e linha do tempo comentada com os conceitos do Grimório.
 - **Música por terreno** (ligada por padrão): blues na mesa neutra, valsa no oceano, épica na montanha e gótica no pântano; fanfarra e confete na vitória.
 - **Feedback visual**: conexões com espessura proporcional ao valor (como no Playground), curva de treino, explosões, banners, músicas e sons.

@@ -3,6 +3,8 @@
  *
  * Tudo em coordenadas do mundo (1280x720). Painel esquerdo: inspeção, pilhas e dica.
  * Centro: as sete camadas da rede e as mãos. Painel direito: placar, truco, curva e ações.
+ * Os botões são grandes (≥ 52 de altura) para o toque no celular, e a área de toque
+ * passa um pouco da borda desenhada (`FOLGA_DE_TOQUE`).
  */
 import { TAMANHOS_CAMADAS } from '../../nucleo/rede.js';
 import { CORES, CORES_CSS, TAMANHO_CARTA } from '../../configuracao.js';
@@ -17,8 +19,10 @@ export const PAINEL_DIR = { x: 962, y: 8, l: 310, a: 704 };
  * `pilha` é o tamanho das cartas do limbo e do cemitério.
  */
 export const ESQ = {
-  titulo: 26, inspecao: 182, nota: 326, divisoria1: 378,
-  pilhas: 442, pilha: { l: 66, a: 92 }, rotulosPilha: 498, terreno: 518, divisoria2: 566, dica: 578, botoes: 684,
+  titulo: 26, inspecao: 182, nota: 326, divisoria1: 374,
+  pilhas: 428, pilha: { l: 66, a: 92 }, rotulosPilha: 482, terreno: 500, divisoria2: 538, dica: 548,
+  /* botões REGRAS e MENU: grandes e quase quadrados, longe da borda de baixo (gestos do celular) */
+  botoes: 648, alturaBotao: 64,
 };
 
 /**
@@ -27,8 +31,14 @@ export const ESQ = {
  */
 export const DIR = {
   tituloMao: 28, subtitulo: 49, blocos: 64, alturaBloco: 102, passoBloco: 108, avatar: 58,
-  rotuloCurva: 292, curva: 304, alturaCurva: 64, registro: 380, alturaRegistro: 132, truco: 543,
+  rotuloCurva: 292, curva: 304, alturaCurva: 64, registro: 380, alturaRegistro: 132,
+  truco: 556, alturaTruco: 52,
+  /* Dropout, Transfer e Passar: uma linha de três botões quase quadrados */
+  acoes: 640, alturaAcao: 80,
 };
+
+/** Quanto a área de toque de um botão passa da borda desenhada, de cada lado. */
+export const FOLGA_DE_TOQUE = 4;
 
 /** Distância vertical entre neurônios e centro vertical do tabuleiro. */
 const ESPACO_LINHA = 95, CENTRO_TABULEIRO = 334;

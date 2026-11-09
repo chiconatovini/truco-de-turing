@@ -234,7 +234,13 @@ cliques durante animações) e `this.encerrada`.
 
 ### 5.1 Dicas, revisão e música
 
-- **Dicas** (`dicas.js` e `conteudo/dicasDeJogo.js`): a chave "Ativar dicas" fica em
+- **Botões da mesa** (`cenario.js` e `entrada.js`): o painel esquerdo tem só **REGRAS** (janela com
+  Como jogar, Grimório e a chave das dicas) e **MENU** (janela com som, música, voltar ao jogo e sair
+  da partida); o direito tem TRUCO e a linha Dropout · Transfer · Passar. Os botões são grandes e
+  quase quadrados, ficam longe da borda de baixo (gestos do celular) e a área de toque passa
+  `FOLGA_DE_TOQUE` da borda desenhada. O Phaser acompanha vários dedos (`TOQUES_SIMULTANEOS`), para
+  que o polegar apoiado na tela não bloqueie os botões.
+- **Dicas** (`dicas.js` e `conteudo/dicasDeJogo.js`): a chave "Ativar dicas" (na janela REGRAS) fica em
   `Aplicacao.dicasLigadas` (só na sessão). Ligada, a cada vez do humano `escolherDicaDeJogo` escolhe
   uma dica de jogo (oportunidade de ataque ou tunagem, risco, terreno, placar ou estratégia geral) e a
   mostra com o conceito do Grimório ligado a ela. As dicas usam **só informação pública** e nunca

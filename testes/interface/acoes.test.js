@@ -30,6 +30,11 @@ async function esperarMinhaVez(pagina) {
 const ativarQualquer = (pagina) => naCena(pagina, 'cena.aoClicarNoNeuronio(Object.keys(cena.alvos)[0]);');
 
 /** Clica num botão da mesa (o botão age ao soltar). */
+/** Abre a janela REGRAS ou MENU da mesa e clica numa das opções dela. */
+const naJanela = async (pagina, botao, seletor) => {
+  await apertar(pagina, botao);
+  await pagina.locator('.janela-da-mesa ' + seletor).dispatchEvent('click');
+};
 const apertar = (pagina, botao) => naCena(pagina, `const b = cena.painel[arg]; b.emit('pointerover', { wasTouch: false }); b.emit('pointerdown'); b.emit('pointerup'); b.emit('pointerout');`, botao);
 
 describe('ações da mesa', () => {
@@ -189,7 +194,7 @@ describe('ações da mesa', () => {
     const { pagina } = jogo;
     try {
       await comecarPartida(pagina, { oponente: 'aleatorio', baralho: 'classico', terreno: 'pantano', inicio: 'sorteio', partida: '12' });
-      await apertar(pagina, 'botaoDicas');
+      await naJanela(pagina, 'botaoRegras', '[data-opcao="dicas"]');
       await pagina.waitForSelector('.camada h2:has-text("Ativar dicas")');
       /* o computador pode gritar truco ao mesmo tempo: mira a caixa das dicas, e não a de cima */
       const caixa = pagina.locator('.camada', { has: pagina.locator('h2', { hasText: 'Ativar dicas' }) });
@@ -213,7 +218,7 @@ describe('ações da mesa', () => {
       await pagina.mouse.move(600, 300);
       /* com dicas, a mão não vale conquistas */
       assert.equal(await naCena(pagina, 'return cena.dicasNaMao'), true);
-      await apertar(pagina, 'botaoDicas');
+      await naJanela(pagina, 'botaoRegras', '[data-opcao="dicas"]');
       assert.equal(await naCena(pagina, 'return app.dicasLigadas'), false);
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
@@ -253,9 +258,8 @@ describe('ações da mesa', () => {
       await pagina.evaluate(() => document.dispatchEvent(new Event('fullscreenchange')));
       await pagina.waitForTimeout(1400);
       const [x, y] = await naCena(pagina, `
-        const b = cena.painel.botaoSom, canvas = jogo.canvas, r = canvas.getBoundingClientRect(), cam = cena.cameras.main, k = r.width / canvas.width;
+        const b = cena.painel.botaoMenu, canvas = jogo.canvas, r = canvas.getBoundingClientRect(), cam = cena.cameras.main, k = r.width / canvas.width;
         return [r.left + (b.x - cam.worldView.x) * cam.zoom * k, r.top + (b.y - cam.worldView.y) * cam.zoom * k];`);
-      const antes = await naCena(pagina, 'return cena.painel.botaoSom.texto.text');
       const cdp = await contexto.newCDPSession(pagina);
       const toque = (type, touchPoints) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints });
       const polegar = { x: 4, y: 200, id: 1 }, dedo = { x, y, id: 2 };
@@ -267,7 +271,7 @@ describe('ações da mesa', () => {
       await pagina.waitForTimeout(100);
       await toque('touchEnd', []);
       await pagina.waitForTimeout(300);
-      assert.notEqual(await naCena(pagina, 'return cena.painel.botaoSom.texto.text'), antes, 'o segundo dedo aperta o botão');
+      assert.ok(await pagina.$('.janela-da-mesa'), 'o segundo dedo aperta o botão MENU');
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
   });
@@ -277,13 +281,19 @@ describe('ações da mesa', () => {
     const { pagina } = jogo;
     try {
       await comecarPartida(pagina, { oponente: 'aleatorio', terreno: 'montanha', partida: '12', inicio: 'sorteio' });
-      await apertar(pagina, 'botaoSom');
-      assert.match(await naCena(pagina, 'return cena.painel.botaoSom.texto.text'), /Som: não/);
-      await apertar(pagina, 'botaoSom');
-      await apertar(pagina, 'botaoMusica');
-      assert.match(await naCena(pagina, 'return cena.painel.botaoMusica.texto.text'), /Música: não/);
-      await apertar(pagina, 'botaoMusica');
-      assert.match(await naCena(pagina, 'return cena.painel.botaoMusica.texto.text'), /Música: sim/);
+      /* MENU: som e música mudam com a janela aberta */
+      await apertar(pagina, 'botaoMenu');
+      const som = pagina.locator('.janela-da-mesa [data-chave="som"]'), musica = pagina.locator('.janela-da-mesa [data-chave="musica"]');
+      await som.dispatchEvent('click');
+      assert.match(await som.textContent(), /Som: não/);
+      await som.dispatchEvent('click');
+      assert.match(await som.textContent(), /Som: sim/);
+      await musica.dispatchEvent('click');
+      assert.match(await musica.textContent(), /Música: não/);
+      await musica.dispatchEvent('click');
+      assert.match(await musica.textContent(), /Música: sim/);
+      await capturar(pagina, '20-menu-da-mesa');
+      await pagina.locator('.janela-da-mesa [data-fechar]').dispatchEvent('click');
       /* comemorações e impacto do truco */
       await naCena(pagina, 'cena.comemorar("mao", "Você"); cena.impactoDoTruco(12);');
       await pagina.waitForTimeout(500);
@@ -291,14 +301,14 @@ describe('ações da mesa', () => {
       await naCena(pagina, 'cena.comemorar("partida", "Você");');
       await pagina.waitForTimeout(300);
       /* regras e grimório pelos botões da mesa */
-      await apertar(pagina, 'botaoRegras');
+      await naJanela(pagina, 'botaoRegras', '[data-opcao="regras"]');
       await pagina.locator('.camada [data-fechar] >> nth=0').click();
-      await apertar(pagina, 'botaoGrimorio');
+      await naJanela(pagina, 'botaoRegras', '[data-opcao="grimorio"]');
       await pagina.locator('.camada [data-fechar] >> nth=0').click();
       /* menu: continuar jogando, depois voltar */
-      await apertar(pagina, 'botaoMenu');
+      await naJanela(pagina, 'botaoMenu', '[data-opcao="sair"]');
       await pagina.locator('.camada .botao', { hasText: 'Continuar jogando' }).click();
-      await apertar(pagina, 'botaoMenu');
+      await naJanela(pagina, 'botaoMenu', '[data-opcao="sair"]');
       await pagina.locator('.camada .botao', { hasText: 'Voltar ao menu' }).click();
       await esperarMenu(pagina);
       assert.deepEqual(jogo.erros, []);

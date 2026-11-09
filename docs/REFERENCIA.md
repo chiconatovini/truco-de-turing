@@ -231,9 +231,8 @@ Parte da CenaMesa: elementos fixos da tela (molduras dos painéis, colunas das c
 | `criarTexto(x, y, s, estilo)` | método | Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. |
 | `criarPainelEsquerdo(p)` | método | Painel esquerdo: inspeção, limbo e cemitério (como pilhas), terreno e dica do turno. |
 | `criarPlacar(p)` | método | Placar (painel direito): título da mão e um bloco por jogador com avatar, nome, nível, situação, detalhes, tentos e soma da rede. O bloco de cima é o adversário de quem está vendo. |
-| `criarBotoesDeAcao(p)` | método | Botão de truco (logo acima das ações) e botões de ação e de sistema. |
-| `atualizarBotaoSom()` | método | Rótulo do botão de som conforme a preferência. |
-| `atualizarChaves()` | método | Rótulos das chaves de dicas e de música. |
+| `criarBotoesDeAcao(p)` | método | Botão de truco (logo acima das ações) e os três botões de ação, grandes e quase quadrados. |
+| `atualizarChaves()` | método | Atualiza os rótulos das chaves (som, música e dicas) nas janelas REGRAS e MENU, se abertas. O botão REGRAS ganha uma estrela quando as dicas estão ligadas. |
 
 ## `src/cenas/mesa/desenho.js`
 
@@ -320,11 +319,12 @@ Parte da CenaMesa: respostas a toques e cliques do jogador. Passar o cursor nos 
 | `alternarDropout()` | método | Botão Dropout: entra ou sai do modo de escolher o alcance. |
 | `fazerTransfer()` | método | Botão Transfer: troca as quatro cartas iguais da mão. |
 | `passarAVez()` | método | Botão Passar a vez. |
-| `perguntarSeVoltaAoMenu()` | método | Botão Menu: confirma antes de abandonar a partida. |
+| `abrirRegrasDaMesa()` | método | Botão REGRAS da mesa: como jogar, Grimório e a chave das dicas, numa janela só. |
+| `abrirMenuDaMesa()` | método | Botão MENU da mesa: som e música (a janela fica aberta para ligar e desligar), voltar ao jogo ou abandonar a partida. |
 
 ## `src/cenas/mesa/layout.js`
 
-Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coordenadas do mundo (1280x720). Painel esquerdo: inspeção, pilhas e dica. Centro: as sete camadas da rede e as mãos. Painel direito: placar, truco, curva e ações.
+Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coordenadas do mundo (1280x720). Painel esquerdo: inspeção, pilhas e dica. Centro: as sete camadas da rede e as mãos. Painel direito: placar, truco, curva e ações. Os botões são grandes (≥ 52 de altura) para o toque no celular, e a área de toque passa um pouco da borda desenhada (`FOLGA_DE_TOQUE`).
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -332,6 +332,7 @@ Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coor
 | `PAINEL_DIR` | constante (exportada) | Painel direito (placar, curva, registro e ações). |
 | `ESQ` | constante (exportada) | Posições verticais dentro do painel esquerdo, de cima para baixo. `pilha` é o tamanho das cartas do limbo e do cemitério. |
 | `DIR` | constante (exportada) | Posições verticais dentro do painel direito. Os blocos de placar ficam empilhados a partir de `blocos`, cada um com altura `alturaBloco`; o botão de truco fica logo acima das ações. |
+| `FOLGA_DE_TOQUE` | constante (exportada) | Quanto a área de toque de um botão passa da borda desenhada, de cada lado. |
 | `ESPACO_LINHA` | constante | Distância vertical entre neurônios e centro vertical do tabuleiro. |
 | `colunaX` | constante (exportada) | X do centro da coluna da camada. |
 | `linhaY` | constante (exportada) | Y do centro do neurônio `posicao` na camada. |

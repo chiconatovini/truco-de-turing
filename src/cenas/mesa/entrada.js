@@ -9,7 +9,9 @@ import { rotuloCarta } from '../../nucleo/cartas.js';
 import { nomeCamada } from '../../nucleo/rede.js';
 import { valorParaTransfer, podePassar } from '../../nucleo/partida.js';
 import { Som } from '../../interface/som.js';
-import { confirmar } from '../../interface/paineis.js';
+import { confirmar, abrirPainel } from '../../interface/paineis.js';
+import { abrirRegras } from '../../interface/telas/regras.js';
+import { abrirGrimorio } from '../../interface/telas/grimorio.js';
 import { texturaDeInspecao } from '../recursos.js';
 import { colunaX, linhaY } from './layout.js';
 
@@ -131,6 +133,53 @@ export const metodosDeEntrada = {
   },
 
   /** Botão Menu: confirma antes de abandonar a partida. */
+  /**
+   * Botão REGRAS da mesa: como jogar, Grimório e a chave das dicas, numa janela só.
+   */
+  abrirRegrasDaMesa() {
+    const dicas = this.app.dicasLigadas;
+    const painel = abrirPainel(
+      '<div class="folha estreita janela-da-mesa"><h2>Regras</h2>' +
+      '<p>Consulte as regras, os conceitos de redes neurais do Grimório ou ligue as dicas durante a partida.</p>' +
+      '<div class="grade-de-botoes">' +
+      '<button class="botao" data-opcao="regras">Como jogar</button>' +
+      '<button class="botao" data-opcao="grimorio">Grimório</button>' +
+      '<button class="botao ' + (dicas ? 'discreto' : 'vinho') + '" data-opcao="dicas" data-chave="dicas">' + (dicas ? 'Desligar dicas' : 'Ativar dicas') + '</button>' +
+      '<button class="botao discreto" data-fechar>Voltar ao jogo</button>' +
+      '</div></div>', { fechaAoClicarFora: true });
+    const acoes = {
+      regras: () => abrirRegras(null),
+      grimorio: () => abrirGrimorio(this.app),
+      dicas: () => this.alternarDicas(),
+    };
+    painel.elemento.querySelectorAll('[data-opcao]').forEach((b) => b.addEventListener('click', () => {
+      painel.fechar();
+      acoes[b.dataset.opcao]();
+    }));
+    return painel;
+  },
+
+  /**
+   * Botão MENU da mesa: som e música (a janela fica aberta para ligar e desligar), voltar ao jogo
+   * ou abandonar a partida.
+   */
+  abrirMenuDaMesa() {
+    const painel = abrirPainel(
+      '<div class="folha estreita janela-da-mesa"><h2>Menu</h2>' +
+      '<div class="grade-de-botoes">' +
+      '<button class="botao" data-chave="som"></button>' +
+      '<button class="botao" data-chave="musica"></button>' +
+      '<button class="botao discreto" data-fechar>Voltar ao jogo</button>' +
+      '<button class="botao vinho" data-opcao="sair">Sair da partida</button>' +
+      '</div></div>', { fechaAoClicarFora: true });
+    const q = (seletor) => painel.elemento.querySelector(seletor);
+    q('[data-chave="som"]').addEventListener('click', () => { this.app.alternarSom(); this.atualizarChaves(); });
+    q('[data-chave="musica"]').addEventListener('click', () => { this.app.alternarMusica(this.opcoes.terreno); this.atualizarChaves(); });
+    q('[data-opcao="sair"]').addEventListener('click', () => { painel.fechar(); this.perguntarSeVoltaAoMenu(); });
+    this.atualizarChaves();
+    return painel;
+  },
+
   perguntarSeVoltaAoMenu() {
     confirmar('Abandonar a partida?', 'O placar de tentos desta partida será perdido. Conquistas já desbloqueadas ficam salvas.', [
       { rotulo: 'Continuar jogando', classe: 'discreto' },

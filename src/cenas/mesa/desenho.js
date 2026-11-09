@@ -31,7 +31,7 @@ export const metodosDeDesenho = {
 
   /** Mostra a dica do turno no rodapé do painel esquerdo. */
   mostrarDica(texto) {
-    ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, ESQ.botoes - 22 - ESQ.dica, 10);
+    ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, ESQ.botoes - ESQ.alturaBotao / 2 - 8 - ESQ.dica, 10);
   },
 
   /** Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. */

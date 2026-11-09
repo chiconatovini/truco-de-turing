@@ -121,6 +121,15 @@ html, body { overscroll-behavior: none; }
 .botao.pequeno { font-size: 13px; padding: 7px 12px; }
 .botao:focus-visible, select:focus-visible, .grimorio-lista button:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 .linha { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+/* janelas REGRAS e MENU da mesa: botões grandes, quase quadrados, em grade 2×2 */
+.janela-da-mesa { width: min(440px, 100%); }
+.grade-de-botoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.grade-de-botoes .botao { min-height: 72px; padding: 10px 8px; font-size: 17px; }
+.grade-de-botoes .botao.discreto { border-color: rgba(43, 22, 8, 0.45); }
+@media (max-height: 520px) {
+  .janela-da-mesa p { display: none; }
+  .grade-de-botoes .botao { min-height: 60px; }
+}
 .linha.fim { justify-content: flex-end; }
 
 /* ---------- Menu ---------- */

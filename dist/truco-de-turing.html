@@ -133,6 +133,15 @@ html, body { overscroll-behavior: none; }
 .botao.pequeno { font-size: 13px; padding: 7px 12px; }
 .botao:focus-visible, select:focus-visible, .grimorio-lista button:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
 .linha { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+/* janelas REGRAS e MENU da mesa: botões grandes, quase quadrados, em grade 2×2 */
+.janela-da-mesa { width: min(440px, 100%); }
+.grade-de-botoes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 14px; }
+.grade-de-botoes .botao { min-height: 72px; padding: 10px 8px; font-size: 17px; }
+.grade-de-botoes .botao.discreto { border-color: rgba(43, 22, 8, 0.45); }
+@media (max-height: 520px) {
+  .janela-da-mesa p { display: none; }
+  .grade-de-botoes .botao { min-height: 60px; }
+}
 .linha.fim { justify-content: flex-end; }
 
 /* ---------- Menu ---------- */
@@ -5587,14 +5596,16 @@ html, body { overscroll-behavior: none; }
     titulo: 26,
     inspecao: 182,
     nota: 326,
-    divisoria1: 378,
-    pilhas: 442,
+    divisoria1: 374,
+    pilhas: 428,
     pilha: { l: 66, a: 92 },
-    rotulosPilha: 498,
-    terreno: 518,
-    divisoria2: 566,
-    dica: 578,
-    botoes: 684
+    rotulosPilha: 482,
+    terreno: 500,
+    divisoria2: 538,
+    dica: 548,
+    /* botões REGRAS e MENU: grandes e quase quadrados, longe da borda de baixo (gestos do celular) */
+    botoes: 648,
+    alturaBotao: 64
   };
   var DIR = {
     tituloMao: 28,
@@ -5608,8 +5619,13 @@ html, body { overscroll-behavior: none; }
     alturaCurva: 64,
     registro: 380,
     alturaRegistro: 132,
-    truco: 543
+    truco: 556,
+    alturaTruco: 52,
+    /* Dropout, Transfer e Passar: uma linha de três botões quase quadrados */
+    acoes: 640,
+    alturaAcao: 80
   };
+  var FOLGA_DE_TOQUE = 4;
   var ESPACO_LINHA = 95;
   var CENTRO_TABULEIRO = 334;
   var colunaX = (camada) => 318 + camada * 97;
@@ -5713,7 +5729,12 @@ html, body { overscroll-behavior: none; }
       const texto = this.add.text(0, -0.5, rotulo, { fontFamily: FONTES.titulo, fontStyle: "700", fontSize: tamanho + "px", color: COR_ROTULO[variante], align: "center" }).setOrigin(0.5);
       botao.add([fundo, texto]);
       botao.setSize(l, a);
-      botao.setInteractive({ useHandCursor: true });
+      const folga = FOLGA_DE_TOQUE;
+      botao.setInteractive({
+        hitArea: new Phaser.Geom.Rectangle(-folga, -folga, l + folga * 2, a + folga * 2),
+        hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+        useHandCursor: true
+      });
       botao.habilitado = true;
       const pintar = (estado) => fundo.setTexture(textura(estado)).setDisplaySize(l + MARGEM_BOTAO * 2, a + MARGEM_BOTAO * 2);
       const temDica = () => opcoes.dica && this.app.dicasLigadas;
@@ -5769,7 +5790,6 @@ html, body { overscroll-behavior: none; }
       this.criarPainelEsquerdo(p);
       this.criarPlacar(p);
       this.criarBotoesDeAcao(p);
-      this.atualizarBotaoSom();
       this.atualizarChaves();
     },
     /** Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. */
@@ -5816,12 +5836,9 @@ html, body { overscroll-behavior: none; }
         this.inspecionar("terreno-" + this.opcoes.terreno, t.nome + ": " + t.resumo);
       });
       p.dica = this.criarTexto(PAINEL_ESQ.x + 14, ESQ.dica, "", { fontSize: "13.5px", color: "#efe3c6", wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
-      const lb = (PAINEL_ESQ.l - 28 - 8) / 2, pedra = { tamanho: 12, variante: "pedra" };
-      p.botaoDicas = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, 32, "Ativar dicas", () => this.alternarDicas(), pedra);
-      p.botaoMusica = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, 32, "M\xFAsica", () => {
-        this.app.alternarMusica(this.opcoes.terreno);
-        this.atualizarChaves();
-      }, pedra);
+      const lb = (PAINEL_ESQ.l - 28 - 10) / 2, pedra = { tamanho: 17, variante: "pedra" };
+      p.botaoRegras = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, ESQ.alturaBotao, "REGRAS", () => this.abrirRegrasDaMesa(), pedra);
+      p.botaoMenu = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, ESQ.alturaBotao, "MENU", () => this.abrirMenuDaMesa(), pedra);
       p.balao = this.add.container(800, 40).setDepth(30).setVisible(false);
       p.fundoBalao = this.add.graphics();
       p.textoBalao = this.add.text(0, 0, "", { fontFamily: FONTES.texto, fontStyle: "italic", fontSize: "15px", color: "#24170c", wordWrap: { width: 230 }, align: "center" }).setOrigin(0.5);
@@ -5858,32 +5875,31 @@ html, body { overscroll-behavior: none; }
       p.maximoCurva = this.criarTexto(rx + 6, DIR.curva + 8, "", { fontSize: "10px", color: "#9a8c6c" }).setOrigin(0, 0.5);
       p.registro = this.criarTexto(rx, DIR.registro, "", { fontSize: "12px", color: "#dccfb2", wordWrap: { width: rl }, lineSpacing: 2 });
     },
-    /** Botão de truco (logo acima das ações) e botões de ação e de sistema. */
+    /** Botão de truco (logo acima das ações) e os três botões de ação, grandes e quase quadrados. */
     criarBotoesDeAcao(p) {
       const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-      p.truco = this.criarBotao(rc, DIR.truco, rl, 44, "TRUCO!", () => this.pedirTrucoHumano(), { variante: "vinho", tamanho: 20, dica: "truco" });
-      const bl = (rl - 8) / 2, c1 = rx + bl / 2, c2 = rx + rl - bl / 2;
-      p.botaoDropout = this.criarBotao(c1, 596, bl, 36, "Dropout", () => this.alternarDropout(), { dica: "dropout" });
-      p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, "Transfer", () => this.fazerTransfer(), { dica: "transfer" });
-      p.botaoPassar = this.criarBotao(c1, 638, bl, 36, "Passar a vez", () => this.passarAVez(), { dica: "passar" });
-      p.botaoRegras = this.criarBotao(c2, 638, bl, 36, "Regras", () => abrirRegras(null));
-      const larguraPequena = (rl - 12) / 3;
-      const pedra = { tamanho: 12, variante: "pedra" };
-      p.botaoGrimorio = this.criarBotao(rx + larguraPequena / 2, 680, larguraPequena, 32, "Grim\xF3rio", () => abrirGrimorio(this.app), pedra);
-      p.botaoSom = this.criarBotao(rc, 680, larguraPequena, 32, "Som", () => {
-        this.app.alternarSom();
-        this.atualizarBotaoSom();
-      }, pedra);
-      p.botaoMenu = this.criarBotao(rx + rl - larguraPequena / 2, 680, larguraPequena, 32, "Menu", () => this.perguntarSeVoltaAoMenu(), pedra);
+      p.truco = this.criarBotao(rc, DIR.truco, rl, DIR.alturaTruco, "TRUCO!", () => this.pedirTrucoHumano(), { variante: "vinho", tamanho: 22, dica: "truco" });
+      const espaco = 8, bl = (rl - espaco * 2) / 3, coluna = (i) => rx + bl / 2 + i * (bl + espaco);
+      const acao = { tamanho: 16 };
+      p.botaoDropout = this.criarBotao(coluna(0), DIR.acoes, bl, DIR.alturaAcao, "Dropout", () => this.alternarDropout(), { ...acao, dica: "dropout" });
+      p.botaoTransfer = this.criarBotao(coluna(1), DIR.acoes, bl, DIR.alturaAcao, "Transfer", () => this.fazerTransfer(), { ...acao, dica: "transfer" });
+      p.botaoPassar = this.criarBotao(coluna(2), DIR.acoes, bl, DIR.alturaAcao, "Passar\na vez", () => this.passarAVez(), { ...acao, dica: "passar" });
     },
-    /** Rótulo do botão de som conforme a preferência. */
-    atualizarBotaoSom() {
-      this.painel.botaoSom.definirRotulo(Som.estaMudo() ? "Som: n\xE3o" : "Som: sim");
-    },
-    /** Rótulos das chaves de dicas e de música. */
+    /**
+     * Atualiza os rótulos das chaves (som, música e dicas) nas janelas REGRAS e MENU, se abertas.
+     * O botão REGRAS ganha uma estrela quando as dicas estão ligadas.
+     */
     atualizarChaves() {
-      this.painel.botaoDicas.definirRotulo(this.app.dicasLigadas ? "Dicas ligadas" : "Ativar dicas");
-      this.painel.botaoMusica.definirRotulo(this.app.progresso.musica ? "M\xFAsica: sim" : "M\xFAsica: n\xE3o");
+      this.painel.botaoRegras.definirRotulo(this.app.dicasLigadas ? "REGRAS \u2605" : "REGRAS");
+      const rotulos = {
+        som: Som.estaMudo() ? "Som: n\xE3o" : "Som: sim",
+        musica: this.app.progresso.musica ? "M\xFAsica: sim" : "M\xFAsica: n\xE3o",
+        dicas: this.app.dicasLigadas ? "Desligar dicas" : "Ativar dicas"
+      };
+      for (const [chave, rotulo] of Object.entries(rotulos)) {
+        const botao = document.querySelector('#paineis [data-chave="' + chave + '"]');
+        if (botao) botao.textContent = rotulo;
+      }
     }
   };
 
@@ -5896,7 +5912,7 @@ html, body { overscroll-behavior: none; }
     },
     /** Mostra a dica do turno no rodapé do painel esquerdo. */
     mostrarDica(texto) {
-      ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, ESQ.botoes - 22 - ESQ.dica, 10);
+      ajustarBloco(this.painel.dica, texto, 14, PAINEL_ESQ.l - 28, ESQ.botoes - ESQ.alturaBotao / 2 - 8 - ESQ.dica, 10);
     },
     /** Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. */
     redesenhar() {
@@ -6370,6 +6386,51 @@ html, body { overscroll-behavior: none; }
       if (this.ehVezDoHumano() && podePassar(this.mao, this.quemVe)) this.executarJogada({ tipo: "passar", jogador: this.quemVe });
     },
     /** Botão Menu: confirma antes de abandonar a partida. */
+    /**
+     * Botão REGRAS da mesa: como jogar, Grimório e a chave das dicas, numa janela só.
+     */
+    abrirRegrasDaMesa() {
+      const dicas = this.app.dicasLigadas;
+      const painel = abrirPainel(
+        '<div class="folha estreita janela-da-mesa"><h2>Regras</h2><p>Consulte as regras, os conceitos de redes neurais do Grim\xF3rio ou ligue as dicas durante a partida.</p><div class="grade-de-botoes"><button class="botao" data-opcao="regras">Como jogar</button><button class="botao" data-opcao="grimorio">Grim\xF3rio</button><button class="botao ' + (dicas ? "discreto" : "vinho") + '" data-opcao="dicas" data-chave="dicas">' + (dicas ? "Desligar dicas" : "Ativar dicas") + '</button><button class="botao discreto" data-fechar>Voltar ao jogo</button></div></div>',
+        { fechaAoClicarFora: true }
+      );
+      const acoes = {
+        regras: () => abrirRegras(null),
+        grimorio: () => abrirGrimorio(this.app),
+        dicas: () => this.alternarDicas()
+      };
+      painel.elemento.querySelectorAll("[data-opcao]").forEach((b) => b.addEventListener("click", () => {
+        painel.fechar();
+        acoes[b.dataset.opcao]();
+      }));
+      return painel;
+    },
+    /**
+     * Botão MENU da mesa: som e música (a janela fica aberta para ligar e desligar), voltar ao jogo
+     * ou abandonar a partida.
+     */
+    abrirMenuDaMesa() {
+      const painel = abrirPainel(
+        '<div class="folha estreita janela-da-mesa"><h2>Menu</h2><div class="grade-de-botoes"><button class="botao" data-chave="som"></button><button class="botao" data-chave="musica"></button><button class="botao discreto" data-fechar>Voltar ao jogo</button><button class="botao vinho" data-opcao="sair">Sair da partida</button></div></div>',
+        { fechaAoClicarFora: true }
+      );
+      const q = (seletor) => painel.elemento.querySelector(seletor);
+      q('[data-chave="som"]').addEventListener("click", () => {
+        this.app.alternarSom();
+        this.atualizarChaves();
+      });
+      q('[data-chave="musica"]').addEventListener("click", () => {
+        this.app.alternarMusica(this.opcoes.terreno);
+        this.atualizarChaves();
+      });
+      q('[data-opcao="sair"]').addEventListener("click", () => {
+        painel.fechar();
+        this.perguntarSeVoltaAoMenu();
+      });
+      this.atualizarChaves();
+      return painel;
+    },
     perguntarSeVoltaAoMenu() {
       confirmar("Abandonar a partida?", "O placar de tentos desta partida ser\xE1 perdido. Conquistas j\xE1 desbloqueadas ficam salvas.", [
         { rotulo: "Continuar jogando", classe: "discreto" },

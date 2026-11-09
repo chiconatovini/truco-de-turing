@@ -9,10 +9,8 @@ import { TOTAL_CAMADAS, CAMADA_SAIDA, TAMANHOS_CAMADAS, nomeCamada } from '../..
 import { TERRENOS } from '../../nucleo/terrenos.js';
 import { desenharBotao, MARGEM_BOTAO } from '../../arte/botoes.js';
 import { Som } from '../../interface/som.js';
-import { abrirRegras } from '../../interface/telas/regras.js';
-import { abrirGrimorio } from '../../interface/telas/grimorio.js';
 import { texturaDeInspecao } from '../recursos.js';
-import { PAINEL_ESQ, PAINEL_DIR, ESQ, DIR, colunaX, linhaY, ajustarLinha } from './layout.js';
+import { PAINEL_ESQ, PAINEL_DIR, ESQ, DIR, FOLGA_DE_TOQUE, colunaX, linhaY, ajustarLinha } from './layout.js';
 
 /** Cor do rótulo de cada variante de botão. */
 const COR_ROTULO = { ouro: '#2a1606', vinho: '#fff0e0', pedra: '#f6ecd6' };
@@ -64,7 +62,13 @@ export const metodosDoCenario = {
     const texto = this.add.text(0, -0.5, rotulo, { fontFamily: FONTES.titulo, fontStyle: '700', fontSize: tamanho + 'px', color: COR_ROTULO[variante], align: 'center' }).setOrigin(0.5);
     botao.add([fundo, texto]);
     botao.setSize(l, a);
-    botao.setInteractive({ useHandCursor: true });
+    /* área de toque um pouco maior que o desenho (o dedo cobre mais do que o cursor) */
+    const folga = FOLGA_DE_TOQUE;
+    botao.setInteractive({
+      hitArea: new Phaser.Geom.Rectangle(-folga, -folga, l + folga * 2, a + folga * 2),
+      hitAreaCallback: Phaser.Geom.Rectangle.Contains,
+      useHandCursor: true,
+    });
     botao.habilitado = true;
     const pintar = (estado) => fundo.setTexture(textura(estado)).setDisplaySize(l + MARGEM_BOTAO * 2, a + MARGEM_BOTAO * 2);
     const temDica = () => opcoes.dica && this.app.dicasLigadas;
@@ -108,7 +112,6 @@ export const metodosDoCenario = {
     this.criarPainelEsquerdo(p);
     this.criarPlacar(p);
     this.criarBotoesDeAcao(p);
-    this.atualizarBotaoSom();
     this.atualizarChaves();
   },
 
@@ -152,13 +155,10 @@ export const metodosDoCenario = {
     });
     p.dica = this.criarTexto(PAINEL_ESQ.x + 14, ESQ.dica, '', { fontSize: '13.5px', color: '#efe3c6', wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
 
-    /* chaves de dicas e música, no rodapé do painel esquerdo */
-    const lb = (PAINEL_ESQ.l - 28 - 8) / 2, pedra = { tamanho: 12, variante: 'pedra' };
-    p.botaoDicas = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, 32, 'Ativar dicas', () => this.alternarDicas(), pedra);
-    p.botaoMusica = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, 32, 'Música', () => {
-      this.app.alternarMusica(this.opcoes.terreno);
-      this.atualizarChaves();
-    }, pedra);
+    /* só dois botões no rodapé: REGRAS (como jogar, Grimório e dicas) e MENU (som, música, sair) */
+    const lb = (PAINEL_ESQ.l - 28 - 10) / 2, pedra = { tamanho: 17, variante: 'pedra' };
+    p.botaoRegras = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, ESQ.alturaBotao, 'REGRAS', () => this.abrirRegrasDaMesa(), pedra);
+    p.botaoMenu = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, ESQ.alturaBotao, 'MENU', () => this.abrirMenuDaMesa(), pedra);
 
     /* balão de fala do oponente (aponta para o avatar dele no placar) */
     p.balao = this.add.container(800, 40).setDepth(30).setVisible(false);
@@ -199,30 +199,31 @@ export const metodosDoCenario = {
     p.registro = this.criarTexto(rx, DIR.registro, '', { fontSize: '12px', color: '#dccfb2', wordWrap: { width: rl }, lineSpacing: 2 });
   },
 
-  /** Botão de truco (logo acima das ações) e botões de ação e de sistema. */
+  /** Botão de truco (logo acima das ações) e os três botões de ação, grandes e quase quadrados. */
   criarBotoesDeAcao(p) {
     const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-    p.truco = this.criarBotao(rc, DIR.truco, rl, 44, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 20, dica: 'truco' });
-    const bl = (rl - 8) / 2, c1 = rx + bl / 2, c2 = rx + rl - bl / 2;
-    p.botaoDropout = this.criarBotao(c1, 596, bl, 36, 'Dropout', () => this.alternarDropout(), { dica: 'dropout' });
-    p.botaoTransfer = this.criarBotao(c2, 596, bl, 36, 'Transfer', () => this.fazerTransfer(), { dica: 'transfer' });
-    p.botaoPassar = this.criarBotao(c1, 638, bl, 36, 'Passar a vez', () => this.passarAVez(), { dica: 'passar' });
-    p.botaoRegras = this.criarBotao(c2, 638, bl, 36, 'Regras', () => abrirRegras(null));
-    const larguraPequena = (rl - 12) / 3;
-    const pedra = { tamanho: 12, variante: 'pedra' };
-    p.botaoGrimorio = this.criarBotao(rx + larguraPequena / 2, 680, larguraPequena, 32, 'Grimório', () => abrirGrimorio(this.app), pedra);
-    p.botaoSom = this.criarBotao(rc, 680, larguraPequena, 32, 'Som', () => { this.app.alternarSom(); this.atualizarBotaoSom(); }, pedra);
-    p.botaoMenu = this.criarBotao(rx + rl - larguraPequena / 2, 680, larguraPequena, 32, 'Menu', () => this.perguntarSeVoltaAoMenu(), pedra);
+    p.truco = this.criarBotao(rc, DIR.truco, rl, DIR.alturaTruco, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 22, dica: 'truco' });
+    const espaco = 8, bl = (rl - espaco * 2) / 3, coluna = (i) => rx + bl / 2 + i * (bl + espaco);
+    const acao = { tamanho: 16 };
+    p.botaoDropout = this.criarBotao(coluna(0), DIR.acoes, bl, DIR.alturaAcao, 'Dropout', () => this.alternarDropout(), { ...acao, dica: 'dropout' });
+    p.botaoTransfer = this.criarBotao(coluna(1), DIR.acoes, bl, DIR.alturaAcao, 'Transfer', () => this.fazerTransfer(), { ...acao, dica: 'transfer' });
+    p.botaoPassar = this.criarBotao(coluna(2), DIR.acoes, bl, DIR.alturaAcao, 'Passar\na vez', () => this.passarAVez(), { ...acao, dica: 'passar' });
   },
 
-  /** Rótulo do botão de som conforme a preferência. */
-  atualizarBotaoSom() {
-    this.painel.botaoSom.definirRotulo(Som.estaMudo() ? 'Som: não' : 'Som: sim');
-  },
-
-  /** Rótulos das chaves de dicas e de música. */
+  /**
+   * Atualiza os rótulos das chaves (som, música e dicas) nas janelas REGRAS e MENU, se abertas.
+   * O botão REGRAS ganha uma estrela quando as dicas estão ligadas.
+   */
   atualizarChaves() {
-    this.painel.botaoDicas.definirRotulo(this.app.dicasLigadas ? 'Dicas ligadas' : 'Ativar dicas');
-    this.painel.botaoMusica.definirRotulo(this.app.progresso.musica ? 'Música: sim' : 'Música: não');
+    this.painel.botaoRegras.definirRotulo(this.app.dicasLigadas ? 'REGRAS \u2605' : 'REGRAS');
+    const rotulos = {
+      som: Som.estaMudo() ? 'Som: não' : 'Som: sim',
+      musica: this.app.progresso.musica ? 'Música: sim' : 'Música: não',
+      dicas: this.app.dicasLigadas ? 'Desligar dicas' : 'Ativar dicas',
+    };
+    for (const [chave, rotulo] of Object.entries(rotulos)) {
+      const botao = document.querySelector('#paineis [data-chave="' + chave + '"]');
+      if (botao) botao.textContent = rotulo;
+    }
   },
 };

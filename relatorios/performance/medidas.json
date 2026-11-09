@@ -2,229 +2,229 @@
   {
     "grupo": "Navegador",
     "nome": "Tempo até o menu (WebGL)",
-    "valor": 587,
+    "valor": 879,
     "unidade": "ms",
     "limite": 15000,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:03.013Z"
+    "quando": "2026-11-09T22:58:31.792Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Tempo até a mesa pronta (WebGL)",
-    "valor": 4840,
+    "valor": 4672,
     "unidade": "ms",
     "limite": 15000,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:07.856Z"
+    "quando": "2026-11-09T22:58:36.465Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Quadros por segundo na mesa (WebGL)",
-    "valor": 5.929634998023273,
+    "valor": 6.197201474281802,
     "unidade": "qps",
     "limite": 3,
     "melhor": "maior",
     "detalhe": "WebGL por software (sem GPU no teste)",
-    "quando": "2026-11-09T03:48:11.240Z"
+    "quando": "2026-11-09T22:58:39.908Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Memória JavaScript em uso (WebGL)",
-    "valor": 33.473968505859375,
+    "valor": 31.566619873046875,
     "unidade": "MB",
     "limite": 400,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:11.393Z"
+    "quando": "2026-11-09T22:58:40.062Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Resposta a uma jogada (WebGL)",
-    "valor": 41.60000000009313,
+    "valor": 33.5,
     "unidade": "ms",
     "limite": 300,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:11.987Z"
+    "quando": "2026-11-09T22:58:49.078Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Tempo até o menu (Canvas)",
-    "valor": 277,
+    "valor": 282,
     "unidade": "ms",
     "limite": 15000,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:13.463Z"
+    "quando": "2026-11-09T22:58:50.497Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Tempo até a mesa pronta (Canvas)",
-    "valor": 812,
+    "valor": 847,
     "unidade": "ms",
     "limite": 15000,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:14.275Z"
+    "quando": "2026-11-09T22:58:51.345Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Quadros por segundo na mesa (Canvas)",
-    "valor": 59.71139492453143,
+    "valor": 59.840425531914896,
     "unidade": "qps",
     "limite": 20,
     "melhor": "maior",
     "detalhe": "Chromium sem GPU",
-    "quando": "2026-11-09T03:48:17.305Z"
+    "quando": "2026-11-09T22:58:54.370Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Memória JavaScript em uso (Canvas)",
-    "valor": 23.365020751953125,
+    "valor": 22.029876708984375,
     "unidade": "MB",
     "limite": 400,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:17.313Z"
+    "quando": "2026-11-09T22:58:54.377Z"
   },
   {
     "grupo": "Navegador",
     "nome": "Resposta a uma jogada (Canvas)",
-    "valor": 28.899999999906868,
+    "valor": 25.5,
     "unidade": "ms",
     "limite": 300,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:17.349Z"
+    "quando": "2026-11-09T22:58:54.408Z"
   },
   {
     "grupo": "Node",
     "nome": "pontuarRede",
-    "valor": 4.0557540000001495,
+    "valor": 3.043039999999462,
     "unidade": "µs por chamada",
     "limite": 200,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:18.067Z"
+    "quando": "2026-11-09T22:58:55.070Z"
   },
   {
     "grupo": "Node",
     "nome": "jogadasLegais",
-    "valor": 6.311191199999848,
+    "valor": 3.8822707999994805,
     "unidade": "µs por chamada",
     "limite": 300,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:18.102Z"
+    "quando": "2026-11-09T22:58:55.093Z"
   },
   {
     "grupo": "Node",
     "nome": "Mãos completas simuladas",
-    "valor": 12600.655586071545,
+    "valor": 12091.374779192918,
     "unidade": "mãos/s",
     "limite": 150,
     "melhor": "maior",
-    "quando": "2026-11-09T03:48:19.603Z"
+    "quando": "2026-11-09T22:58:56.593Z"
   },
   {
     "grupo": "Node",
     "nome": "copiarMao",
-    "valor": 5.032475000001341,
+    "valor": 6.512960500003032,
     "unidade": "µs por chamada",
     "limite": 300,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:19.615Z"
+    "quando": "2026-11-09T22:58:56.608Z"
   },
   {
     "grupo": "Node",
     "nome": "determinizar",
-    "valor": 10.733685000012656,
+    "valor": 17.73006799999905,
     "unidade": "µs por chamada",
     "limite": 600,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:19.638Z"
+    "quando": "2026-11-09T22:58:56.645Z"
   },
   {
     "grupo": "Node",
     "nome": "Decisão gulosa",
-    "valor": 0.36663912500000606,
+    "valor": 0.20749444999999014,
     "unidade": "ms",
     "limite": 60,
     "melhor": "menor",
-    "detalhe": "p95 0.3 ms",
-    "quando": "2026-11-09T03:48:19.655Z"
+    "detalhe": "p95 0.6 ms",
+    "quando": "2026-11-09T22:58:56.656Z"
   },
   {
     "grupo": "Node",
     "nome": "Simulações por decisão (Monte Carlo)",
-    "valor": 1200,
+    "valor": 1600,
     "unidade": "partidas",
     "limite": 150,
     "melhor": "maior",
-    "quando": "2026-11-09T03:48:19.761Z"
+    "quando": "2026-11-09T22:58:56.791Z"
   },
   {
     "grupo": "Node",
     "nome": "chanceDeVitoria (40 simulações)",
-    "valor": 2.4190365999999814,
+    "valor": 1.7208705999999894,
     "unidade": "ms",
     "limite": 150,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:19.789Z"
+    "quando": "2026-11-09T22:58:56.813Z"
   },
   {
     "grupo": "Node",
     "nome": "escolherDicaDeJogo",
-    "valor": 4.731863499992869,
+    "valor": 4.744578999996065,
     "unidade": "µs por chamada",
     "limite": 500,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:19.800Z"
+    "quando": "2026-11-09T22:58:56.825Z"
   },
   {
     "grupo": "Node",
     "nome": "Carta completa (densidade 2)",
-    "valor": 10.670435066666718,
+    "valor": 11.077460999999978,
     "unidade": "ms",
     "limite": 120,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:19.994Z"
+    "quando": "2026-11-09T22:58:57.029Z"
   },
   {
     "grupo": "Node",
     "nome": "Carta da mesa (densidade 1,25)",
-    "valor": 5.156014800000018,
+    "valor": 5.751748666666754,
     "unidade": "ms",
     "limite": 60,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:20.083Z"
+    "quando": "2026-11-09T22:58:57.128Z"
   },
   {
     "grupo": "Node",
     "nome": "Verso (densidade 2)",
-    "valor": 0.3202969000000394,
+    "valor": 0.5178980999999567,
     "unidade": "ms",
     "limite": 120,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:20.088Z"
+    "quando": "2026-11-09T22:58:57.136Z"
   },
   {
     "grupo": "Node",
     "nome": "Fundo da mesa 1280×720",
-    "valor": 13.734346800000186,
+    "valor": 10.593678999999975,
     "unidade": "ms",
     "limite": 400,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:20.170Z"
+    "quando": "2026-11-09T22:58:57.202Z"
   },
   {
     "grupo": "Node",
     "nome": "Empacotamento (esbuild)",
-    "valor": 132.7707220000002,
+    "valor": 136.51613899999984,
     "unidade": "ms",
     "limite": 8000,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:20.306Z"
+    "quando": "2026-11-09T22:58:57.342Z"
   },
   {
     "grupo": "Node",
     "nome": "Tamanho do arquivo único",
-    "valor": 385.2998046875,
+    "valor": 388.373046875,
     "unidade": "KB",
     "limite": 700,
     "melhor": "menor",
-    "quando": "2026-11-09T03:48:20.306Z"
+    "quando": "2026-11-09T22:58:57.342Z"
   }
 ]

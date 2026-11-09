@@ -1,28 +1,28 @@
 {
   "total": {
     "lines": {
-      "total": 7191,
-      "covered": 7168,
+      "total": 7251,
+      "covered": 7228,
       "skipped": 0,
       "pct": 99.68
     },
     "statements": {
-      "total": 7191,
-      "covered": 7168,
+      "total": 7251,
+      "covered": 7228,
       "skipped": 0,
       "pct": 99.68
     },
     "functions": {
-      "total": 431,
-      "covered": 431,
+      "total": 437,
+      "covered": 437,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 2496,
-      "covered": 2339,
+      "total": 2506,
+      "covered": 2349,
       "skipped": 0,
-      "pct": 93.7
+      "pct": 93.73
     },
     "branchesTrue": {
       "total": 0,
@@ -233,10 +233,10 @@
       "pct": 100
     },
     "branches": {
-      "total": 76,
-      "covered": 72,
+      "total": 77,
+      "covered": 73,
       "skipped": 0,
-      "pct": 94.73
+      "pct": 94.8
     }
   },
   "src/arte/cartasDeTerreno.js": {
@@ -605,8 +605,8 @@
   },
   "src/cenas/mesa/cenario.js": {
     "lines": {
-      "total": 228,
-      "covered": 228,
+      "total": 229,
+      "covered": 229,
       "skipped": 0,
       "pct": 100
     },
@@ -617,16 +617,16 @@
       "pct": 100
     },
     "statements": {
-      "total": 228,
-      "covered": 228,
+      "total": 229,
+      "covered": 229,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 79,
-      "covered": 75,
+      "total": 78,
+      "covered": 73,
       "skipped": 0,
-      "pct": 94.93
+      "pct": 93.58
     }
   },
   "src/cenas/mesa/desenho.js": {
@@ -650,9 +650,9 @@
     },
     "branches": {
       "total": 204,
-      "covered": 195,
+      "covered": 196,
       "skipped": 0,
-      "pct": 95.58
+      "pct": 96.07
     }
   },
   "src/cenas/mesa/dicas.js": {
@@ -675,10 +675,10 @@
       "pct": 98.81
     },
     "branches": {
-      "total": 59,
-      "covered": 35,
+      "total": 60,
+      "covered": 36,
       "skipped": 0,
-      "pct": 59.32
+      "pct": 60
     }
   },
   "src/cenas/mesa/efeitos.js": {
@@ -709,34 +709,34 @@
   },
   "src/cenas/mesa/entrada.js": {
     "lines": {
-      "total": 140,
-      "covered": 136,
+      "total": 189,
+      "covered": 185,
       "skipped": 0,
-      "pct": 97.14
+      "pct": 97.88
     },
     "functions": {
-      "total": 9,
-      "covered": 9,
+      "total": 15,
+      "covered": 15,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 140,
-      "covered": 136,
+      "total": 189,
+      "covered": 185,
       "skipped": 0,
-      "pct": 97.14
+      "pct": 97.88
     },
     "branches": {
-      "total": 72,
-      "covered": 61,
+      "total": 85,
+      "covered": 73,
       "skipped": 0,
-      "pct": 84.72
+      "pct": 85.88
     }
   },
   "src/cenas/mesa/layout.js": {
     "lines": {
-      "total": 88,
-      "covered": 88,
+      "total": 98,
+      "covered": 98,
       "skipped": 0,
       "pct": 100
     },
@@ -747,16 +747,16 @@
       "pct": 100
     },
     "statements": {
-      "total": 88,
-      "covered": 88,
+      "total": 98,
+      "covered": 98,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 21,
-      "covered": 19,
+      "total": 20,
+      "covered": 20,
       "skipped": 0,
-      "pct": 90.47
+      "pct": 100
     }
   },
   "src/cenas/mesa/resultado.js": {
@@ -779,10 +779,10 @@
       "pct": 100
     },
     "branches": {
-      "total": 107,
-      "covered": 91,
+      "total": 106,
+      "covered": 90,
       "skipped": 0,
-      "pct": 85.04
+      "pct": 84.9
     }
   },
   "src/cenas/mesa/truco.js": {
@@ -1221,10 +1221,10 @@
       "pct": 100
     },
     "branches": {
-      "total": 101,
-      "covered": 100,
+      "total": 102,
+      "covered": 101,
       "skipped": 0,
-      "pct": 99
+      "pct": 99.01
     }
   },
   "src/interface/telas/sobre.js": {
@@ -1351,10 +1351,10 @@
       "pct": 100
     },
     "branches": {
-      "total": 88,
-      "covered": 86,
+      "total": 86,
+      "covered": 83,
       "skipped": 0,
-      "pct": 97.72
+      "pct": 96.51
     }
   },
   "src/nucleo/oponentes/estrategias.js": {
@@ -1429,8 +1429,8 @@
       "pct": 100
     },
     "branches": {
-      "total": 227,
-      "covered": 223,
+      "total": 226,
+      "covered": 222,
       "skipped": 0,
       "pct": 98.23
     }
