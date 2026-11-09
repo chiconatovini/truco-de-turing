@@ -25,7 +25,8 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
+/** Pasta do projeto. `TRUCO_RAIZ` permite rodar sobre uma cópia (usado nos testes). */
+const raiz = process.env.TRUCO_RAIZ || join(dirname(fileURLToPath(import.meta.url)), '..');
 const caminho = (arquivo) => join(raiz, arquivo);
 
 /** Lê os argumentos `--chave valor` (e `--chave` sozinho como verdadeiro). */

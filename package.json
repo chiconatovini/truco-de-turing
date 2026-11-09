@@ -7,7 +7,11 @@
     "start": "npx http-server -c-1 -p 8080 .",
     "build": "node ferramentas/empacotar.js",
     "simular": "node ferramentas/simular.js 300 guloso aleatorio",
-    "testar": "node ferramentas/testar.js",
+    "testar": "node --test \"testes/unidade/*.test.js\"",
+    "testar:interface": "node --test \"testes/interface/*.test.js\"",
+    "testar:performance": "node --test --test-concurrency=1 \"testes/performance/*.test.js\"",
+    "testar:tudo": "npm run testar && npm run testar:interface && npm run testar:performance",
+    "relatorios": "node ferramentas/relatorios.js",
     "docs": "node ferramentas/documentar.js"
   },
   "keywords": [
@@ -23,7 +27,11 @@
     "phaser": "^3.80.1"
   },
   "devDependencies": {
-    "esbuild": "^0.24.2"
+    "@napi-rs/canvas": "^0.1.100",
+    "c8": "^11.0.0",
+    "esbuild": "^0.24.2",
+    "jsdom": "^26.1.0",
+    "playwright": "^1.63.0"
   },
   "type": "module"
 }

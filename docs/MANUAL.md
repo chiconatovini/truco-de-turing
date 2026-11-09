@@ -99,10 +99,16 @@ src/
     mesa/                     a cena da partida (ver seção 5)
 ferramentas/
   empacotar.js              gera dist/truco-de-turing.html (arquivo único)
-  testar.js                 testes das regras
   simular.js                partidas em massa entre oponentes
   documentar.js             gera docs/REFERENCIA.md
   versionar.js              sobe a versão (package.json, src/versao.js, README, CHANGELOG)
+  relatorios.js             roda todos os testes e escreve os relatórios
+testes/
+  unidade/                  testes de unidade (Node)
+  interface/                testes do jogo no Chromium (Playwright)
+  performance/              testes de performance com limites
+  apoio/                    navegador de mentira, servidor, estados prontos, relator e medidas
+relatorios/                 relatórios gerados (resultado, cobertura, performance, capturas)
 docs/
   MANUAL.md                 este manual
   REFERENCIA.md             referência gerada das funções
@@ -232,7 +238,7 @@ cliques durante animações) e `this.encerrada`.
   `Aplicacao.dicasLigadas` (só na sessão). Ligada, a cada vez do humano `escolherDicaDeJogo` escolhe
   uma dica de jogo (oportunidade de ataque ou tunagem, risco, terreno, placar ou estratégia geral) e a
   mostra com o conceito do Grimório ligado a ela. As dicas usam **só informação pública** e nunca
-  apontam qual neurônio oculto ativar; um teste em `ferramentas/testar.js` sorteia de novo tudo o que
+  apontam qual neurônio oculto ativar; um teste em `testes/unidade/conteudo.test.js` sorteia de novo tudo o que
   está escondido e confere que a dica não muda. Os botões que recebem `opcoes.dica` em `criarBotao`
   ganham dicas flutuantes (mouse: ao passar; toque: segurar 0,45 s, e soltar depois de segurar não
   executa a ação). A mão fica marcada em `this.dicasNaMao` e, no fim, não é registrada em
@@ -263,7 +269,10 @@ cliques durante animações) e `this.encerrada`.
 ```bash
 npm install          # instala o esbuild (empacotador) e o Phaser (usado nos testes de navegador)
 npm start            # servidor local em http://localhost:8080 (módulos ES exigem http, não file://)
-npm run testar       # testes das regras no Node
+npm run testar       # testes de unidade (Node)
+npm run testar:interface    # testes de interface (Chromium, via Playwright)
+npm run testar:performance  # testes de performance
+npm run relatorios   # roda tudo e escreve os relatórios em relatorios/
 npm run simular      # 300 mãos entre o Gradiente Guloso e o Zé do Ruído
 node ferramentas/simular.js 60 montecarlo guloso truco oceano
 npm run build        # gera dist/truco-de-turing.html, um arquivo único que abre até com duplo clique
@@ -318,8 +327,24 @@ encerrada por truco, inclua o `id` em `VALEM_SEM_MAO_COMPLETA`.
 Acrescente em `VERBETES` (`conteudo/grimorio.js`) `{ id, titulo, categoria, conceito, noJogo }`. Para
 o aviso aparecer durante a partida, chame `this.avisarVerbete('id')` no ponto certo de `efeitos.js`.
 
-## 9. Testes no navegador
+## 9. Testes e relatórios
 
-Os testes de interface usados no desenvolvimento rodam o jogo no Chrome sem janela (Playwright),
-jogando mãos inteiras pelos métodos da cena: `__TRUCO_DE_TURING__` (a `Aplicacao`) fica exposta no
-`globalThis` e a cena é obtida com `__TRUCO_DE_TURING__.jogo.scene.getScene('Mesa')`.
+Os testes usam o executor nativo do Node (`node:test`), sem framework extra:
+
+| Pasta | O que testa | Como |
+|---|---|---|
+| `testes/unidade/` | regras, oponentes, conteúdo, arte, telas HTML, som, música, aplicação e ferramentas | Node; `testes/apoio/ambiente.js` cria um navegador de mentira (jsdom + canvas de verdade do `@napi-rs/canvas` + WebAudio que registra os nós) |
+| `testes/interface/` | o jogo inteiro: menu, partidas contra cada oponente, duas pessoas, cada ação, truco, dicas (mouse e toque), celular | Chromium via Playwright; `testes/apoio/navegador.js` sobe um servidor local, serve os módulos sem empacotar e acelera o tempo da cena |
+| `testes/performance/` | tempos e limites do motor, oponentes, arte, empacotamento e do jogo no navegador | `testes/apoio/medidas.js` cronometra e confere cada limite |
+
+`npm run relatorios` (`ferramentas/relatorios.js`) roda as três suítes e escreve em `relatorios/`:
+resumo geral, um relatório por suíte (com JUnit XML), capturas de tela dos testes de interface,
+todas as medidas de performance e a **cobertura** juntando Node e navegador (o Chromium mede os
+mesmos arquivos de `src/`), com a lista de cada função e método e quantas vezes foi executado.
+
+No GitHub, o workflow `.github/workflows/testes.yml` faz o mesmo em cada pull request e push na
+main e publica os relatórios como artefato da execução.
+
+Para testar algo novo: uma função pura vai num arquivo de `testes/unidade/`; uma mudança de
+tela ou de fluxo da mesa ganha um caso em `testes/interface/` usando `comecarPartida`, `naCena` e
+`esperarCena`. A cena fica acessível na página por `__TRUCO_DE_TURING__.jogo.scene.getScene('Mesa')`.

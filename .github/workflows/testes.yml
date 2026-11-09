@@ -1,0 +1,39 @@
+# Testes e relatórios do Truco de Turing.
+#
+# Em cada pull request e em cada push na main: roda as suítes de unidade, interface (Chromium) e
+# performance, gera os relatórios (ferramentas/relatorios.js) e os publica como artefato do job
+# ("relatorios-de-testes"), com o resumo na página da execução.
+name: Testes
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  testes:
+    # o commit de versão do robô não precisa testar de novo
+    if: github.event_name == 'pull_request' || !startsWith(github.event.head_commit.message, 'Versão ')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - name: Testes e relatórios
+        run: npm run relatorios
+      - name: Resumo
+        if: always()
+        run: test -f relatorios/README.md && cat relatorios/README.md >> "$GITHUB_STEP_SUMMARY" || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorios-de-testes
+          path: relatorios/

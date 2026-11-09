@@ -24,10 +24,9 @@ Arquivo único (CSS e JS embutidos, Phaser via CDN), que abre até com duplo cli
 npm run build        # gera dist/truco-de-turing.html
 ```
 
-Testes das regras e laboratório de Monte Carlo em Node (oponentes jogando entre si, sem interface):
+Laboratório de Monte Carlo em Node (oponentes jogando entre si, sem interface):
 
 ```bash
-npm run testar
 node ferramentas/simular.js 500 guloso aleatorio classico neutro
 node ferramentas/simular.js 60 montecarlo guloso truco oceano
 ```
@@ -37,6 +36,24 @@ node ferramentas/simular.js 60 montecarlo guloso truco oceano
 - [**Manual do código**](docs/MANUAL.md): arquitetura, convenções, fluxo de uma jogada, como rodar,
   publicar e estender (novo baralho, terreno, oponente, conquista ou verbete).
 - [**Referência**](docs/REFERENCIA.md): todos os módulos e funções, gerada dos comentários com `npm run docs`.
+
+## Testes
+
+Três suítes com o executor nativo do Node: **unidade** (regras, conteúdo, arte, telas, som e
+ferramentas), **interface** (o jogo inteiro no Chromium, inclusive no celular) e **performance**
+(tempos com limites). Os relatórios ficam em [`relatorios/`](relatorios/README.md): resultado de
+cada teste, cobertura por arquivo e por função (Node + navegador), medidas de performance e
+capturas de tela.
+
+```bash
+npm run testar              # unidade
+npm run testar:interface    # interface (Chromium)
+npm run testar:performance  # performance
+npm run relatorios          # tudo + relatórios
+```
+
+No GitHub, cada pull request e cada push na main rodam as três suítes e publicam os relatórios
+como artefato.
 
 ## Versões
 
@@ -70,7 +87,9 @@ src/interface/             menu, telas HTML, avisos e som (WebAudio)
 src/cenas/                 cenas do Phaser: carregamento, menu e mesa
 src/cenas/mesa/            a mesa dividida por assunto: cenário, desenho, entrada,
                            turnos, truco, efeitos e resultado
-ferramentas/               empacotar, testar, simular, documentar e versionar
+ferramentas/               empacotar, simular, documentar, versionar e gerar relatórios
+testes/                    unidade, interface (Chromium) e performance
+relatorios/                relatórios de testes, cobertura e performance
 .github/workflows/         versão automática a cada merge na main
 docs/                      manual e referência
 ```

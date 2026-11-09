@@ -89,6 +89,7 @@ export const metodosDoCenario = {
       if (segurou) { segurou = false; setTimeout(() => this.esconderDicaDoBotao(), 2200); return; }
       if (botao.habilitado) { Som.selecionar(); acao(); }
     });
+    botao.texto = texto;
     botao.definirRotulo = (s) => { ajustarLinha(texto, s, tamanho, l - 18, 9); return botao; };
     botao.habilitar = (sim) => {
       if (botao.habilitado === sim) return botao;

@@ -782,6 +782,7 @@ Gera docs/REFERENCIA.md: a lista de módulos e funções do projeto, montada a p
 
 | Nome | Tipo | Descrição |
 |---|---|---|
+| `raiz` | constante | Pasta do projeto. `TRUCO_RAIZ` permite rodar sobre uma cópia (usado nos testes). |
 | `arquivosJs(pasta)` | função | Lista recursiva dos arquivos .js de uma pasta, em ordem alfabética. |
 | `limparComentario(bloco)` | função | Texto limpo de um bloco de comentário JSDoc (sem `*` e sem as tags @param/@returns). |
 | `lerModulo(caminho)` | função | Extrai a descrição do arquivo e os itens documentados. |
@@ -790,18 +791,31 @@ Gera docs/REFERENCIA.md: a lista de módulos e funções do projeto, montada a p
 
 Empacota o jogo num único arquivo HTML (CSS e JavaScript embutidos; Phaser e fontes via CDN). Saídas: - dist/truco-de-turing.html: página completa, para abrir direto ou hospedar em qualquer lugar; - dist/artifact.html: o mesmo conteúdo sem <html>/<head>/<body>, para publicar como artifact. Uso: `npm run build`.
 
-## `ferramentas/simular.js`
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `raiz` | constante | Pasta do projeto. `TRUCO_RAIZ` permite rodar sobre uma cópia (usado nos testes). |
 
-Laboratório de Monte Carlo no terminal: oponentes jogam entre si e as estatísticas são agregadas. Uso: node ferramentas/simular.js [partidas] [oponente1] [oponente2] [baralho] [terreno] Exemplo: node ferramentas/simular.js 300 guloso aleatorio truco oceano
+## `ferramentas/relatorios.js`
 
-## `ferramentas/testar.js`
-
-Testes das regras do núcleo (sem navegador). Uso: node ferramentas/testar.js
+Roda todas as suítes de teste e escreve os relatórios em relatorios/. Suítes: - unidade (testes/unidade): regras, conteúdo, arte, interface HTML, aplicação e ferramentas; - interface (testes/interface): o jogo de verdade no Chromium (menu, partidas, ações, celular); - performance (testes/performance): tempos e limites no Node e no navegador. Saídas (relatorios/): - README.md: resumo geral (versão, commit, ambiente, totais, cobertura e destaques de performance); - unidade/, interface/, performance/: README.md com cada teste e o resultado JUnit (XML); - interface/capturas/: capturas de tela tiradas durante os testes de interface; - performance/medidas.json: todas as medidas; - cobertura/README.md e resumo.json: cobertura de linhas, ramos e funções por arquivo e a lista de todas as funções e métodos com quantas vezes foram executados nos testes (Node + navegador). Uso: `npm run relatorios` (todas) ou `node ferramentas/relatorios.js unidade performance`.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `teste(nome, corpo)` | função | Roda um teste e mostra o resultado. |
-| `redeCom(pilhas, opcoes = {})` | função | Monta uma mão e força o caminho do jogador 0 com as cartas dadas (uma lista por camada). |
+| `raiz` | constante | Pasta do projeto. |
+| `SUITES` | constante | Suítes de teste: pasta, título e descrição para o relatório. |
+| `rodarSuite(nome)` | função | Roda uma suíte com os relatores JSON, JUnit e o resumo no terminal. |
+| `gerarCobertura()` | função | Junta a cobertura do Node e do navegador com o c8. |
+| `lerMedidas()` | função | ', '--include', 'ferramentas/**', '--exclude', 'src/recursos/**', '--exclude', 'ferramentas/relatorios.js'].map((p) => JSON.stringify(p)).join(' '), { cwd: raiz, stdio: 'inherit' }); return { resumo: JSON.parse(readFileSync(join(temporaria, 'c8', 'coverage-summary.json'), 'utf8')), detalhe: JSON.parse(readFileSync(join(temporaria, 'c8', 'coverage-final.json'), 'utf8')), }; } /** Medidas de performance gravadas pelos testes. |
+| `totais(suite)` | função | Totais de uma suíte (só testes, sem as suítes que os agrupam). |
+| `escreverSuite(suite, contexto, extra = '')` | função | Relatório de uma suíte: cada arquivo, cada grupo e cada teste. |
+| `galeria()` | função | Galeria das capturas de tela dos testes de interface. |
+| `escreverPerformance(suite, medidas, contexto)` | função | Relatório de performance: tabela de medidas com limite e situação. |
+| `escreverCobertura(cobertura, contexto)` | função | Relatório de cobertura: totais, tabela por arquivo e a lista de funções e métodos com o número de execuções (funções anônimas, como callbacks, aparecem só nos totais). |
+| `escreverResumo(suites, cobertura, medidas, contexto)` | função | Resumo geral em relatorios/README.md. |
+
+## `ferramentas/simular.js`
+
+Laboratório de Monte Carlo no terminal: oponentes jogam entre si e as estatísticas são agregadas. Uso: node ferramentas/simular.js [partidas] [oponente1] [oponente2] [baralho] [terreno] Exemplo: node ferramentas/simular.js 300 guloso aleatorio truco oceano
 
 ## `ferramentas/versionar.js`
 
@@ -809,6 +823,7 @@ Versionamento do jogo (versionamento semântico MAIOR.MENOR.CORREÇÃO). Roda no
 
 | Nome | Tipo | Descrição |
 |---|---|---|
+| `raiz` | constante | Pasta do projeto. `TRUCO_RAIZ` permite rodar sobre uma cópia (usado nos testes). |
 | `lerArgumentos(lista)` | função | Lê os argumentos `--chave valor` (e `--chave` sozinho como verdadeiro). |
 | `tipoDeMudanca(titulo = '', rotulos = [])` | função (exportada) | Decide que parte da versão sobe. |
 | `proximaVersao(versao, tipo)` | função (exportada) | Soma uma versão: '1.4.2' + 'menor' → '1.5.0'. |

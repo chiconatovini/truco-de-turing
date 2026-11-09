@@ -1,0 +1,230 @@
+[
+  {
+    "grupo": "Navegador",
+    "nome": "Tempo até o menu (WebGL)",
+    "valor": 790,
+    "unidade": "ms",
+    "limite": 15000,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:01.603Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Tempo até a mesa pronta (WebGL)",
+    "valor": 5211,
+    "unidade": "ms",
+    "limite": 15000,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:06.815Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Quadros por segundo na mesa (WebGL)",
+    "valor": 5.627989869618562,
+    "unidade": "qps",
+    "limite": 3,
+    "melhor": "maior",
+    "detalhe": "WebGL por software (sem GPU no teste)",
+    "quando": "2026-11-09T01:59:10.378Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Memória JavaScript em uso (WebGL)",
+    "valor": 35.572052001953125,
+    "unidade": "MB",
+    "limite": 400,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:10.531Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Resposta a uma jogada (WebGL)",
+    "valor": 29.699999999720603,
+    "unidade": "ms",
+    "limite": 300,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:11.042Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Tempo até o menu (Canvas)",
+    "valor": 269,
+    "unidade": "ms",
+    "limite": 15000,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:12.401Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Tempo até a mesa pronta (Canvas)",
+    "valor": 811,
+    "unidade": "ms",
+    "limite": 15000,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:13.212Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Quadros por segundo na mesa (Canvas)",
+    "valor": 59.675761694786104,
+    "unidade": "qps",
+    "limite": 20,
+    "melhor": "maior",
+    "detalhe": "Chromium sem GPU",
+    "quando": "2026-11-09T01:59:16.243Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Memória JavaScript em uso (Canvas)",
+    "valor": 23.365020751953125,
+    "unidade": "MB",
+    "limite": 400,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:16.252Z"
+  },
+  {
+    "grupo": "Navegador",
+    "nome": "Resposta a uma jogada (Canvas)",
+    "valor": 28.90000000037253,
+    "unidade": "ms",
+    "limite": 300,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:16.299Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "pontuarRede",
+    "valor": 3.470801599999595,
+    "unidade": "µs por chamada",
+    "limite": 200,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:17.063Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "jogadasLegais",
+    "valor": 6.740139800000497,
+    "unidade": "µs por chamada",
+    "limite": 300,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:17.102Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Mãos completas simuladas",
+    "valor": 11822.804635632638,
+    "unidade": "mãos/s",
+    "limite": 150,
+    "melhor": "maior",
+    "quando": "2026-11-09T01:59:18.603Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "copiarMao",
+    "valor": 6.057284000001573,
+    "unidade": "µs por chamada",
+    "limite": 300,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:18.617Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "determinizar",
+    "valor": 11.30996149999828,
+    "unidade": "µs por chamada",
+    "limite": 600,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:18.641Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Decisão gulosa",
+    "valor": 0.46723627500000475,
+    "unidade": "ms",
+    "limite": 60,
+    "melhor": "menor",
+    "detalhe": "p95 1.5 ms",
+    "quando": "2026-11-09T01:59:18.663Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Simulações por decisão (Monte Carlo)",
+    "valor": 1200,
+    "unidade": "partidas",
+    "limite": 150,
+    "melhor": "maior",
+    "quando": "2026-11-09T01:59:18.810Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "chanceDeVitoria (40 simulações)",
+    "valor": 4.383696099999952,
+    "unidade": "ms",
+    "limite": 150,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:18.861Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "escolherDicaDeJogo",
+    "valor": 7.621139500000709,
+    "unidade": "µs por chamada",
+    "limite": 500,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:18.879Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Carta completa (densidade 2)",
+    "valor": 16.130913599999985,
+    "unidade": "ms",
+    "limite": 120,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:19.170Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Carta da mesa (densidade 1,25)",
+    "valor": 5.402312533333346,
+    "unidade": "ms",
+    "limite": 60,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:19.263Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Verso (densidade 2)",
+    "valor": 0.33688020000004143,
+    "unidade": "ms",
+    "limite": 120,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:19.268Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Fundo da mesa 1280×720",
+    "valor": 11.125093599999854,
+    "unidade": "ms",
+    "limite": 400,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:19.337Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Empacotamento (esbuild)",
+    "valor": 143.51168199999984,
+    "unidade": "ms",
+    "limite": 8000,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:19.483Z"
+  },
+  {
+    "grupo": "Node",
+    "nome": "Tamanho do arquivo único",
+    "valor": 382.9462890625,
+    "unidade": "KB",
+    "limite": 700,
+    "melhor": "menor",
+    "quando": "2026-11-09T01:59:19.484Z"
+  }
+]
