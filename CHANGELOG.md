@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.1.0 — 2026-11-09
+
+- Nova suíte de testes: unidade, interface e performance, com relatórios e cobertura
+
 ## 1.0.0 — 2026-11-08
 
 - Primeira versão numerada. Jogo completo segundo a especificação do tema 4 (FPO 2026/2): mesa 3-5-5-5-5-5-4, tunagem, overfit, early stop, stack overflow, dropout, transfer learning e desempates; 5 baralhos e 4 terrenos; truco até 12 tentos; três oponentes (aleatório, guloso e Monte Carlo); 27 conquistas; Grimório.
