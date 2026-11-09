@@ -138,10 +138,11 @@ html, body { overscroll-behavior: none; }
 /* ---------- Menu ---------- */
 .menu {
   width: min(1040px, 100%);
+  margin: auto; /* centraliza na tela, na horizontal e na vertical */
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   gap: 22px;
-  align-items: stretch;
+  align-items: center;
 }
 .menu-capa { display: flex; flex-direction: column; justify-content: center; gap: 14px; color: var(--pergaminho); min-width: 0; }
 .menu-capa h1 {
@@ -169,11 +170,15 @@ html, body { overscroll-behavior: none; }
   background: #fbf4e2; border: 2px solid #2b1608; border-radius: 8px; padding: 8px 10px; width: 100%;
 }
 .campo .dica { font-size: 14px; color: #5a4630; line-height: 1.35; min-width: 0; }
-.dica-linha { display: flex; gap: 10px; align-items: center; }
+/* seletor com a miniatura (verso do baralho, mesa do terreno) ao lado, na mesma linha */
+.campo-linha { display: flex; gap: 10px; align-items: center; }
+.campo-linha select { flex: 1; min-width: 0; }
+/* caixa de largura fixa: os dois seletores terminam no mesmo ponto e a miniatura fica centralizada */
+.campo-linha .miniatura { margin-inline: calc((66px - var(--largura-miniatura)) / 2); }
 .miniatura { flex: none; display: block; border-radius: 5px; overflow: hidden; border: 1.5px solid #2b1608; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3); background: #2b1608; }
 .miniatura img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.miniatura.verso { width: 34px; height: 48px; border: 0; border-radius: 3px; background: transparent; }
-.miniatura.mesa { width: 64px; height: 36px; }
+.miniatura.verso { --largura-miniatura: 30px; width: 30px; height: 42px; border: 0; border-radius: 3px; background: transparent; }
+.miniatura.mesa { --largura-miniatura: 66px; width: 66px; height: 38px; }
 .creditos { font-size: 13px; color: #a8987a; line-height: 1.4; }
 .creditos a { color: var(--latao); }
 
@@ -346,9 +351,16 @@ html, body { overscroll-behavior: none; }
 @media (prefers-reduced-motion: reduce) { .girar-caixa .celular { animation: none; transform: rotate(-90deg); } }
 
 /* Menu em telas baixas (celular na horizontal) */
-@media (max-height: 520px) and (min-width: 600px) {
+@media (max-height: 520px) and (min-width: 560px) {
   .camada { padding-block: max(8px, env(safe-area-inset-top, 0px)) max(8px, env(safe-area-inset-bottom, 0px)); }
-  .menu { gap: 16px; align-items: start; }
+  .menu { gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .menu-capa .legenda { display: none; }
+  .menu-painel h3 { display: none; }
+  .miniatura.verso { --largura-miniatura: 24px; width: 24px; height: 34px; }
+  .miniatura.mesa { --largura-miniatura: 54px; width: 54px; height: 31px; }
+  .campo-linha .miniatura { margin-inline: calc((54px - var(--largura-miniatura)) / 2); }
+  .menu-mais { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+  .campo .dica { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
   .menu-capa { gap: 8px; }
   .menu-capa h1 { font-size: clamp(30px, 5vw, 48px); }
   .menu-capa h1 span { margin-bottom: 2px; }
@@ -359,12 +371,25 @@ html, body { overscroll-behavior: none; }
   .menu-painel { padding: 14px 16px; max-height: calc(100dvh - 16px); overflow-y: auto; }
   .campo { margin-bottom: 8px; }
   .campo select { padding: 6px 8px; font-size: 15px; }
-  .campo .dica { font-size: 13px; }
+  .campo .dica { font-size: 13px; line-height: 1.3; }
+  .campo label { margin-bottom: 2px; }
   .folha { padding: 18px 20px; font-size: 15px; max-height: calc(100dvh - 16px); }
 }
 
-@media (max-width: 760px) {
+/* Celulares mais baixos (≤ 420 px de altura deitados): a capa precisa caber sem rolar */
+@media (max-height: 420px) and (min-width: 560px) {
+  .menu-capa { gap: 6px; }
+  .menu-capa h1 { font-size: clamp(26px, 4.4vw, 40px); }
+  .menu-capa p { font-size: 13.5px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .menu-acoes { gap: 6px; }
+  .menu-acoes .botao.jogar { font-size: 16px; padding: 7px 14px; }
+  .menu-mais .botao { padding: 6px 4px; }
+  .creditos { display: none; } /* os créditos continuam na tela "Sobre" */
+}
+@media (max-width: 760px) and (min-height: 521px) {
   .menu { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
   .grimorio { grid-template-columns: minmax(0, 1fr); }
   .conquistas-salao { grid-template-columns: minmax(0, 1fr); }
   .guilda { position: static; }
@@ -5401,7 +5426,7 @@ html, body { overscroll-behavior: none; }
     }).join("");
   }
   function htmlDoMenu(opcoes) {
-    return '<div class="menu"><section class="menu-capa"><h1><span>O JOGO DO</span>Truco de Turing</h1><p>Monte uma rede neural carta por carta, da entrada \xE0 sa\xEDda. Tune seus neur\xF4nios, aplique overfit no advers\xE1rio, fuja do vanishing gradient e, quando sentir a m\xE3o boa, grite TRUCO.</p><div class="legenda"><span><i class="ponto" style="background:var(--azul)"></i><b>Azul</b> \xE9 a sua rede</span><span><i class="ponto" style="background:var(--laranja)"></i><b>Laranja</b> \xE9 a do advers\xE1rio</span></div><div class="menu-acoes"><button class="botao vinho jogar" id="m-jogar" autofocus>Jogar</button><div class="menu-mais"><button class="botao" id="m-regras">Como jogar</button><button class="botao" id="m-grimorio">Grim\xF3rio</button><button class="botao" id="m-conquistas">Conquistas</button><button class="botao" id="m-sobre">Sobre</button></div></div><div class="creditos">Regras originais: prof. Peng Yaohao (FPO 2026/2, PPCA/UnB). Feito com Phaser. C\xF3digo aberto sob a licen\xE7a <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>.</div></section><section class="folha menu-painel"><h3 style="margin-top:0">Configurar a mesa</h3><div class="campo"><label for="m-oponente">Oponente</label><select id="m-oponente">' + opcoesHtml(ESCOLHAS_OPONENTE, opcoes.oponente) + '</select><div class="dica" id="m-oponente-dica"></div></div><div class="campo"><label for="m-baralho">Baralho</label><select id="m-baralho">' + opcoesHtml(BARALHOS, opcoes.baralho) + '</select><div class="dica-linha"><span class="miniatura verso" id="m-baralho-img"></span><div class="dica" id="m-baralho-dica"></div></div></div><div class="campo"><label for="m-terreno">Terreno</label><select id="m-terreno">' + opcoesHtml(TERRENOS, opcoes.terreno) + '</select><div class="dica-linha"><span class="miniatura mesa" id="m-terreno-img"></span><div class="dica" id="m-terreno-dica"></div></div></div><div class="campo"><label for="m-inicio">Quem come\xE7a</label><select id="m-inicio">' + opcoesHtml(ESCOLHAS_INICIO, opcoes.inicio) + '</select></div><div class="campo" style="margin-bottom:0"><label for="m-partida">Partida</label><select id="m-partida">' + opcoesHtml(ESCOLHAS_PARTIDA, opcoes.alvo) + "</select></div></section></div>";
+    return '<div class="menu"><section class="menu-capa"><h1><span>O JOGO DO</span>Truco de Turing</h1><p>Monte uma rede neural carta por carta, da entrada \xE0 sa\xEDda. Tune seus neur\xF4nios, aplique overfit no advers\xE1rio, fuja do vanishing gradient e, quando sentir a m\xE3o boa, grite TRUCO.</p><div class="legenda"><span><i class="ponto" style="background:var(--azul)"></i><b>Azul</b> \xE9 a sua rede</span><span><i class="ponto" style="background:var(--laranja)"></i><b>Laranja</b> \xE9 a do advers\xE1rio</span></div><div class="menu-acoes"><button class="botao vinho jogar" id="m-jogar" autofocus>Jogar</button><div class="menu-mais"><button class="botao" id="m-regras">Como jogar</button><button class="botao" id="m-grimorio">Grim\xF3rio</button><button class="botao" id="m-conquistas">Conquistas</button><button class="botao" id="m-sobre">Sobre</button></div></div><div class="creditos">Regras originais: prof. Peng Yaohao (FPO 2026/2, PPCA/UnB). Feito com Phaser. C\xF3digo aberto sob a licen\xE7a <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>.</div></section><section class="folha menu-painel"><h3 style="margin-top:0">Configurar a mesa</h3><div class="campo"><label for="m-oponente">Oponente</label><select id="m-oponente">' + opcoesHtml(ESCOLHAS_OPONENTE, opcoes.oponente) + '</select><div class="dica" id="m-oponente-dica"></div></div><div class="campo"><label for="m-baralho">Baralho</label><div class="campo-linha"><select id="m-baralho">' + opcoesHtml(BARALHOS, opcoes.baralho) + '</select><span class="miniatura verso" id="m-baralho-img"></span></div><div class="dica" id="m-baralho-dica"></div></div><div class="campo"><label for="m-terreno">Terreno</label><div class="campo-linha"><select id="m-terreno">' + opcoesHtml(TERRENOS, opcoes.terreno) + '</select><span class="miniatura mesa" id="m-terreno-img"></span></div><div class="dica" id="m-terreno-dica"></div></div><div class="campo"><label for="m-inicio">Quem come\xE7a</label><select id="m-inicio">' + opcoesHtml(ESCOLHAS_INICIO, opcoes.inicio) + '</select></div><div class="campo" style="margin-bottom:0"><label for="m-partida">Partida</label><select id="m-partida">' + opcoesHtml(ESCOLHAS_PARTIDA, opcoes.alvo) + "</select></div></section></div>";
   }
   function abrirMenu(app) {
     const painel = abrirPainel(htmlDoMenu(app.opcoes), { transparente: true });

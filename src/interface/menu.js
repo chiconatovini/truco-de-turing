@@ -69,8 +69,8 @@ function htmlDoMenu(opcoes) {
     '<section class="folha menu-painel">' +
     '<h3 style="margin-top:0">Configurar a mesa</h3>' +
     '<div class="campo"><label for="m-oponente">Oponente</label><select id="m-oponente">' + opcoesHtml(ESCOLHAS_OPONENTE, opcoes.oponente) + '</select><div class="dica" id="m-oponente-dica"></div></div>' +
-    '<div class="campo"><label for="m-baralho">Baralho</label><select id="m-baralho">' + opcoesHtml(BARALHOS, opcoes.baralho) + '</select><div class="dica-linha"><span class="miniatura verso" id="m-baralho-img"></span><div class="dica" id="m-baralho-dica"></div></div></div>' +
-    '<div class="campo"><label for="m-terreno">Terreno</label><select id="m-terreno">' + opcoesHtml(TERRENOS, opcoes.terreno) + '</select><div class="dica-linha"><span class="miniatura mesa" id="m-terreno-img"></span><div class="dica" id="m-terreno-dica"></div></div></div>' +
+    '<div class="campo"><label for="m-baralho">Baralho</label><div class="campo-linha"><select id="m-baralho">' + opcoesHtml(BARALHOS, opcoes.baralho) + '</select><span class="miniatura verso" id="m-baralho-img"></span></div><div class="dica" id="m-baralho-dica"></div></div>' +
+    '<div class="campo"><label for="m-terreno">Terreno</label><div class="campo-linha"><select id="m-terreno">' + opcoesHtml(TERRENOS, opcoes.terreno) + '</select><span class="miniatura mesa" id="m-terreno-img"></span></div><div class="dica" id="m-terreno-dica"></div></div>' +
     '<div class="campo"><label for="m-inicio">Quem começa</label><select id="m-inicio">' + opcoesHtml(ESCOLHAS_INICIO, opcoes.inicio) + '</select></div>' +
     '<div class="campo" style="margin-bottom:0"><label for="m-partida">Partida</label><select id="m-partida">' + opcoesHtml(ESCOLHAS_PARTIDA, opcoes.alvo) + '</select></div>' +
     '</section></div>';
