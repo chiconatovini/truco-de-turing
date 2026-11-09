@@ -191,8 +191,10 @@ describe('ações da mesa', () => {
       await comecarPartida(pagina, { oponente: 'aleatorio', baralho: 'classico', terreno: 'pantano', inicio: 'sorteio', partida: '12' });
       await apertar(pagina, 'botaoDicas');
       await pagina.waitForSelector('.camada h2:has-text("Ativar dicas")');
-      assert.match(await pagina.locator('.camada .folha').textContent(), /não valem conquistas/);
-      await pagina.locator('.camada .botao.vinho').click();
+      /* o computador pode gritar truco ao mesmo tempo: mira a caixa das dicas, e não a de cima */
+      const caixa = pagina.locator('.camada', { has: pagina.locator('h2', { hasText: 'Ativar dicas' }) });
+      assert.match(await caixa.locator('.folha').textContent(), /não valem conquistas/);
+      await caixa.locator('.botao.vinho').dispatchEvent('click');
       await esperarMinhaVez(pagina);
       await pagina.waitForSelector('.dica-de-jogo');
       await capturar(pagina, '17-dica-de-jogo');
@@ -238,6 +240,34 @@ describe('ações da mesa', () => {
       await pagina.waitForTimeout(60);
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
       await esperarCena(pagina, 'return cena.partida.valor > 1 || !!cena.partida.pedido || cena.encerrada');
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela', async () => {
+    const jogo = await abrirJogo(servidor.url, { dispositivo: 'Pixel 7', deitado: true, consulta: '?res=1' });
+    const { pagina, contexto } = jogo;
+    try {
+      await comecarPartida(pagina, { oponente: 'aleatorio', partida: '12', inicio: 'sorteio' });
+      /* entrar e sair da tela cheia remede o canvas (os toques seguem caindo nos botões) */
+      await pagina.evaluate(() => document.dispatchEvent(new Event('fullscreenchange')));
+      await pagina.waitForTimeout(1400);
+      const [x, y] = await naCena(pagina, `
+        const b = cena.painel.botaoSom, canvas = jogo.canvas, r = canvas.getBoundingClientRect(), cam = cena.cameras.main, k = r.width / canvas.width;
+        return [r.left + (b.x - cam.worldView.x) * cam.zoom * k, r.top + (b.y - cam.worldView.y) * cam.zoom * k];`);
+      const antes = await naCena(pagina, 'return cena.painel.botaoSom.texto.text');
+      const cdp = await contexto.newCDPSession(pagina);
+      const toque = (type, touchPoints) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints });
+      const polegar = { x: 4, y: 200, id: 1 }, dedo = { x, y, id: 2 };
+      await toque('touchStart', [polegar]);
+      await pagina.waitForTimeout(100);
+      await toque('touchStart', [polegar, dedo]);
+      await pagina.waitForTimeout(80);
+      await toque('touchEnd', [polegar]);
+      await pagina.waitForTimeout(100);
+      await toque('touchEnd', []);
+      await pagina.waitForTimeout(300);
+      assert.notEqual(await naCena(pagina, 'return cena.painel.botaoSom.texto.text'), antes, 'o segundo dedo aperta o botão');
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
   });

@@ -15,6 +15,19 @@ import { CenaMesa } from './cenas/mesa/CenaMesa.js';
 /** Celular na vertical (o aviso para girar aparece no lugar do jogo; ver #girar em estilo.css). */
 const celularEmPe = globalThis.matchMedia ? matchMedia('(orientation: portrait) and (max-width: 600px)') : null;
 
+/** Quantos dedos o Phaser acompanha ao mesmo tempo. */
+export const TOQUES_SIMULTANEOS = 4;
+
+/**
+ * Ao entrar ou sair da tela cheia (e ao girar), o canvas muda de tamanho e de posição em etapas.
+ * Remede algumas vezes, para que os toques nunca caiam no lugar antigo dos botões.
+ */
+function remedirAposMudarATela() {
+  for (const espera of [50, 250, 600, 1200]) {
+    setTimeout(() => { if (Aplicacao.jogo) Aplicacao.jogo.scale.refresh(); }, espera);
+  }
+}
+
 /** Cria o Phaser.Game com as três cenas. */
 function criarJogo() {
   Aplicacao.jogo = new Phaser.Game({
@@ -25,10 +38,15 @@ function criarJogo() {
     backgroundColor: '#06180f',
     scale: { mode: Phaser.Scale.EXPAND, autoCenter: Phaser.Scale.CENTER_BOTH },
     render: { antialias: true, roundPixels: false },
-    /* cliques nos painéis HTML não vazam para o canvas */
-    input: { windowEvents: false },
+    /* cliques nos painéis HTML não vazam para o canvas. Vários toques simultâneos: em tela cheia
+     * o polegar que segura o celular costuma encostar na borda da tela, e com um só ponteiro
+     * de toque o Phaser ignorava o toque seguinte (nos botões de ação). */
+    input: { windowEvents: false, activePointers: TOQUES_SIMULTANEOS },
     scene: [CenaCarregamento, CenaMenu, CenaMesa],
   });
+  document.addEventListener('fullscreenchange', remedirAposMudarATela);
+  document.addEventListener('webkitfullscreenchange', remedirAposMudarATela);
+  globalThis.screen?.orientation?.addEventListener?.('change', remedirAposMudarATela);
 }
 
 /** Cria o jogo agora ou, num celular em pé, assim que ele for girado para a horizontal. */
