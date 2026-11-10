@@ -99,9 +99,10 @@ export function abrirMenu(app) {
     mostrarMiniatura(campo('m-terreno-img'), 'mesa:' + terreno, () => desenharMesa(terreno, MUNDO.largura * 2, MUNDO.altura * 2, 0.07));
   }
 
-  /** Guarda as escolhas atuais na aplicação. */
+  /** Guarda as escolhas atuais na aplicação (as opções que não estão nesta tela continuam como estavam). */
   function lerEscolhas() {
     app.opcoes = {
+      ...app.opcoes,
       oponente: campo('m-oponente').value, baralho: campo('m-baralho').value, terreno: campo('m-terreno').value,
       inicio: campo('m-inicio').value, alvo: Number(campo('m-partida').value),
     };

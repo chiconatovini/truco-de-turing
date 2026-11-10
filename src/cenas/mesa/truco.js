@@ -21,7 +21,7 @@ export const metodosDoTruco = {
     this.impactoDoTruco(this.partida.pedido.para);
     this.avisarVerbete('truco');
     this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[j], 72);
-    if (this.mao.jogadores[j].tipo === 'oponente') this.falar(provocar('truco'));
+    if (this.mao.jogadores[j].tipo === 'oponente') this.falar(provocar('truco'), j);
     this.anotarNaLinhaDoTempo(null, [{ tipo: 'truco', jogador: j }], this.mao.jogadores[j].nome + ' pediu ' + GRITO_TRUCO[this.partida.pedido.para].replace('!', '') + '.');
     this.ocupada = true;
     this.redesenhar();
@@ -36,7 +36,7 @@ export const metodosDoTruco = {
     const podeAumentar = proximoValor(pedido.para) != null;
     if (jogador.tipo === 'oponente') {
       const resposta = responderAoTruco(this.mao, quem, jogador.oponente, pedido.para, podeAumentar);
-      this.falar(provocar(resposta));
+      this.falar(provocar(resposta), quem);
       return this.aplicarResposta(quem, resposta);
     }
     const quemPediu = this.mao.jogadores[pedido.por].nome;
@@ -47,7 +47,7 @@ export const metodosDoTruco = {
     ];
     if (podeAumentar) botoes.push({ rotulo: 'Pedir ' + GRITO_TRUCO[proximoValor(pedido.para)], acao: () => this.aplicarResposta(quem, 'aumentar') });
     confirmar(GRITO_TRUCO[pedido.para],
-      escaparHtml((this.doisHumanos ? jogador.nome + ', responda. ' : '') + 'Se aceitar, a mão vale ' + pedido.para + ' tentos. Se correr, ' + quemPediu + ' leva ' + partida.valor + ' agora.') +
+      escaparHtml((this.variosHumanos ? jogador.nome + ', responda. ' : '') + 'Se aceitar, a mão vale ' + pedido.para + ' tentos. Se correr, ' + quemPediu + ' leva ' + partida.valor + ' agora.') +
         this.dicaDaRespostaAoTruco(quem),
       botoes, { grito: true, topo: '<div class="quem">' + escaparHtml(quemPediu) + ' pediu</div>' });
   },

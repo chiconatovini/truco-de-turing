@@ -42,7 +42,7 @@ export const metodosDoResultado = {
       somas: this.pontuacoes.map((p) => p.total), tentos: partida.tentos.slice(),
     });
     /* mãos com dicas e partidas entre duas pessoas não valem conquistas */
-    const valeConquistas = !this.doisHumanos && !this.dicasNaMao;
+    const valeConquistas = !this.variosHumanos && !this.dicasNaMao;
     const novas = valeConquistas ? this.app.registrarMao({
       mao, eu: 0, venceu: vencedor === 0, completa, partida,
       venceuPartida: partida.encerrada && partida.vencedor === 0, valorDaMao,
@@ -53,8 +53,8 @@ export const metodosDoResultado = {
     const venceuAPartida = humanoVenceu && partida.encerrada && partida.alvo > 1;
     let espera = completa ? 1100 : 300;
     if (humanoVenceu) espera = this.comemorar(venceuAPartida ? 'partida' : 'mao', mao.jogadores[vencedor].nome);
-    else { Som.derrota(); this.falar(provocar('venceu')); }
-    if (humanoVenceu && !this.doisHumanos) this.time.delayedCall(400, () => this.falar(provocar('perdeu')));
+    else { Som.derrota(); this.falar(provocar('venceu'), vencedor); }
+    if (humanoVenceu && !this.variosHumanos) this.time.delayedCall(400, () => this.falar(provocar('perdeu')));
     this.ultimoResultado = { vencedor, ganho, completa, novas, valeConquistas, humanoVenceu };
     this.time.delayedCall(espera, () => this.mostrarResultado());
   },
@@ -71,7 +71,7 @@ export const metodosDoResultado = {
     camera.flash(350, 255, 225, 140);
     camera.shake(300, 0.006);
     const titulo = partida ? 'CAMPEÃO DA PARTIDA!' : 'VITÓRIA!';
-    const subtitulo = this.doisHumanos ? nome + ' venceu' + (partida ? ' a partida' : ' a mão') : partida ? 'Você venceu a partida' : 'Você venceu a mão';
+    const subtitulo = this.variosHumanos ? nome + ' venceu' + (partida ? ' a partida' : ' a mão') : partida ? 'Você venceu a partida' : 'Você venceu a mão';
     this.faixaDeVitoria(titulo, subtitulo, partida ? 3200 : 2100);
     const fogos = partida ? 14 : 7, cores = [0xf6dc8f, 0x4aa3df, 0xf59322, 0x7fe08a, 0xff6fb1, 0xffffff];
     for (let i = 0; i < fogos; i++) {
@@ -151,16 +151,16 @@ export const metodosDoResultado = {
     const { vencedor, ganho, completa, novas, valeConquistas, humanoVenceu } = this.ultimoResultado;
     const mao = this.mao, partida = this.partida;
     const nome = mao.jogadores[vencedor].nome;
-    const titulo = this.doisHumanos ? nome + ' vence a mão' : vencedor === 0 ? 'Você venceu a mão!' : nome + ' venceu a mão';
-    const motivo = completa ? 'Critério: ' + mao.resultado.motivo + '.' : mao.jogadores[1 - vencedor].nome + ' correu do truco.';
+    const titulo = this.variosHumanos ? nome + ' vence a mão' : vencedor === 0 ? 'Você venceu a mão!' : nome + ' venceu a mão';
+    const motivo = completa ? 'Critério: ' + mao.resultado.motivo + '.' : mao.jogadores.filter((_, j) => j !== vencedor).map((j) => j.nome).join(', ') + ' correu do truco.';
     const campeao = partida.alvo > 1 && partida.encerrada && mao.jogadores[partida.vencedor].tipo === 'humano';
     let html = '<div class="folha' + (humanoVenceu ? ' vitoria' : '') + (campeao ? ' campeao' : '') + '">' +
       (humanoVenceu ? '<div class="trofeu" aria-hidden="true">' + TROFEU + '</div>' : '') +
-      '<h2>' + escaparHtml(campeao ? (this.doisHumanos ? nome + ' é campeão da partida!' : 'Você é campeão da partida!') : titulo) + '</h2><p>' + escaparHtml(motivo) + '</p>';
-    if (completa) html += '<div class="resultado-grade">' + this.htmlDaRede(0) + this.htmlDaRede(1) + '</div>';
+      '<h2>' + escaparHtml(campeao ? (this.variosHumanos ? nome + ' é campeão da partida!' : 'Você é campeão da partida!') : titulo) + '</h2><p>' + escaparHtml(motivo) + '</p>';
+    if (completa) html += '<div class="resultado-grade' + (mao.jogadores.length > 2 ? ' varios' : '') + '">' + mao.jogadores.map((_, j) => this.htmlDaRede(j)).join('') + '</div>';
     if (partida.alvo > 1) {
       html += '<div class="tentos">+' + ganho + (ganho === 1 ? ' tento' : ' tentos') + ' para ' + escaparHtml(nome) +
-        ' \u00b7 placar <span class="grande">' + partida.tentos[0] + ' \u00d7 ' + partida.tentos[1] + '</span> (até ' + partida.alvo + ')</div>';
+        ' \u00b7 placar <span class="grande">' + partida.tentos.join(' \u00d7 ') + '</span> (até ' + partida.alvo + ')</div>';
       if (partida.encerrada && !campeao) html += '<p><b>' + escaparHtml(mao.jogadores[partida.vencedor].nome) + ' venceu a partida!</b></p>';
     }
     if (novas.length) {
@@ -170,7 +170,7 @@ export const metodosDoResultado = {
           graduacao.nome + '</span> ' + escaparHtml(c.nome) + '<br><small>' + escaparHtml(c.descricao) + '</small></div></div>';
       }).join('') + '</div>';
     }
-    if (!valeConquistas && !this.doisHumanos) html += '<p class="sem-conquistas">Mão jogada com dicas: não vale conquistas nem conta nas estatísticas.</p>';
+    if (!valeConquistas && !this.variosHumanos) html += '<p class="sem-conquistas">Mão jogada com dicas: não vale conquistas nem conta nas estatísticas.</p>';
     const partidaAcabou = partida.encerrada || partida.alvo <= 1;
     html += '<div class="linha fim" style="margin-top:16px"><button class="botao discreto" id="r-menu">Menu</button>' +
       '<button class="botao" id="r-revisar">Revisar ' + (partidaAcabou && this.historicoDaPartida.length > 1 ? 'a partida' : 'a mão') + '</button>' +
@@ -186,7 +186,7 @@ export const metodosDoResultado = {
     });
     painel.elemento.querySelector('#r-proxima').addEventListener('click', () => {
       painel.fechar();
-      if (partidaAcabou) { this.partida = novaPartida(this.opcoes.alvo); this.historicoDaPartida = []; }
+      if (partidaAcabou) { this.partida = novaPartida(this.opcoes.alvo, this.numJogadores); this.historicoDaPartida = []; }
       else proximaMao(this.partida);
       this.iniciarMao();
     });

@@ -30,7 +30,7 @@ export const metodosDeEntrada = {
     } else if (n.conhecido) {
       this.inspecionar(texturaDeInspecao(this, n.cartas[0], baralho), 'Neurônio conhecido: ' + rotuloCarta(n.cartas[0]) + '.');
     } else {
-      this.inspecionar(this.verso('inspecao'), nomeCamada(n.camada) + ': neurônio desconhecido.');
+      this.inspecionar(this.verso('inspecao'), nomeCamada(n.camada, mao.camadas.length) + ': neurônio desconhecido.');
     }
     const alvo = this.alvos[id];
     if (!alvo) return;

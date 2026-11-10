@@ -11,7 +11,7 @@ import { podeTrucar } from '../../nucleo/truco.js';
 import { OPONENTES, escolherJogada, querTrucar } from '../../nucleo/oponentes/index.js';
 import { mostrarAviso, confirmar } from '../../interface/paineis.js';
 import { liberarCartasDaMao, texturaDoVerso } from '../recursos.js';
-import { colunaX, linhaY, ajustarCartaDaMesa, ajustarBloco, PAINEL_ESQ } from './layout.js';
+import { colunaX, linhaY, ajustarCartaDaMesa, ajustarBloco, cartaDaMesa, PAINEL_ESQ } from './layout.js';
 import { FONTES } from '../../configuracao.js';
 
 export const metodosDeTurnos = {
@@ -23,14 +23,33 @@ export const metodosDeTurnos = {
   /** Jogador mostrado embaixo (quem está vendo; o 0 enquanto o aparelho troca de mãos). */
   jogadorDeBaixo() { return this.quemVe < 0 ? 0 : this.quemVe; },
 
-  /** Jogador mostrado em cima. */
-  jogadorDeCima() { return this.quemVe < 0 ? 1 : 1 - this.quemVe; },
+  /** Os outros jogadores, na ordem em que jogam depois de quem está embaixo (mãos de cima, da esquerda para a direita). */
+  outrosJogadores() {
+    const n = this.mao ? this.mao.jogadores.length : this.numJogadores, baixo = this.jogadorDeBaixo();
+    return Array.from({ length: n - 1 }, (_, k) => (baixo + 1 + k) % n);
+  },
+
+  /** Ordem dos blocos do placar, de cima para baixo: os outros jogadores e, por último, quem está vendo. */
+  ordemDoPlacar() { return [...this.outrosJogadores(), this.jogadorDeBaixo()]; },
 
   /** Textura do avatar do jogador. */
   avatarDe(j) {
     const jogador = this.mao.jogadores[j];
     if (jogador.tipo === 'oponente') return 'avatar-' + OPONENTES[jogador.oponente].avatar;
     return j === 0 ? 'avatar-p1' : 'avatar-p2';
+  },
+
+  /**
+   * Jogadores da mão: os humanos primeiro ("Você", ou "Jogador 1", "Jogador 2"… quando há mais de
+   * um), depois os oponentes do computador, numerados quando há mais de um do mesmo perfil.
+   */
+  montarJogadores() {
+    const perfil = this.opcoes.oponente, bots = this.numJogadores - this.humanos;
+    return Array.from({ length: this.numJogadores }, (_, j) => {
+      if (j < this.humanos) return { nome: this.variosHumanos ? 'Jogador ' + (j + 1) : 'Você', tipo: 'humano' };
+      const k = j - this.humanos;
+      return { nome: OPONENTES[perfil].nome + (bots > 1 ? ' ' + (k + 1) : ''), tipo: 'oponente', oponente: perfil };
+    });
   },
 
   /** O jogador humano que está vendo a tela pode jogar agora? */
@@ -49,7 +68,7 @@ export const metodosDeTurnos = {
     this.modo = 'livre';
     this.selecao = [];
     this.dicaDoCursor = null;
-    this.vanishingAvisado = [false, false];
+    this.vanishingAvisado = new Array(this.numJogadores).fill(false);
     this.trucoConsideradoNoTurno = -1;
     this.oponenteCorreu = false;
     this.dicaAtual = null;
@@ -64,10 +83,11 @@ export const metodosDeTurnos = {
     this.cartasDoAdversario = [];
     liberarCartasDaMao(this);
 
-    const jogadores = this.doisHumanos
-      ? [{ nome: 'Jogador 1', tipo: 'humano' }, { nome: 'Jogador 2', tipo: 'humano' }]
-      : [{ nome: 'Você', tipo: 'humano' }, { nome: OPONENTES[this.opcoes.oponente].nome, tipo: 'oponente', oponente: this.opcoes.oponente }];
-    this.mao = novaMao({ baralho: this.opcoes.baralho, terreno: this.opcoes.terreno, inicio: this.opcoes.inicio, jogadores });
+    const o = this.opcoes;
+    this.mao = novaMao({
+      baralho: o.baralho, terreno: o.terreno, inicio: o.inicio, arquitetura: o.arquitetura, baralhos: o.baralhos,
+      jogadores: this.montarJogadores(),
+    });
     this.quemVe = 0;
     this.criarNeuronios();
     this.painel.inspecao.setTexture('terreno-' + this.opcoes.terreno);
@@ -81,8 +101,9 @@ export const metodosDeTurnos = {
   /** Cria uma imagem clicável para cada neurônio, com a animação de distribuição. */
   criarNeuronios() {
     this.visuais = {};
-    const etiqueta = { fontFamily: FONTES.texto, fontStyle: '800', fontSize: '12px', color: '#24170c', backgroundColor: '#f6dc8f', padding: { x: 4, y: 1 } };
-    const lembranca = { fontFamily: FONTES.texto, fontStyle: '700', fontSize: '11px', color: '#f6dc8f', backgroundColor: 'rgba(0,0,0,.65)', padding: { x: 3, y: 1 } };
+    const { ml, ma, l } = cartaDaMesa(), escala = Math.max(0.75, l / 62);
+    const etiqueta = { fontFamily: FONTES.texto, fontStyle: '800', fontSize: Math.round(12 * escala) + 'px', color: '#24170c', backgroundColor: '#f6dc8f', padding: { x: 4, y: 1 } };
+    const lembranca = { fontFamily: FONTES.texto, fontStyle: '700', fontSize: Math.round(11 * escala) + 'px', color: '#f6dc8f', backgroundColor: 'rgba(0,0,0,.65)', padding: { x: 3, y: 1 } };
     for (const camada of this.mao.camadas) {
       for (const n of camada) {
         const x = colunaX(n.camada), y = linhaY(n.camada, n.posicao);
@@ -90,8 +111,8 @@ export const metodosDeTurnos = {
         imagem.on('pointerdown', () => this.aoClicarNoNeuronio(n.id));
         imagem.on('pointerover', () => this.aoPassarNoNeuronio(n.id, true));
         imagem.on('pointerout', () => this.aoPassarNoNeuronio(n.id, false));
-        const pilha = this.add.text(x - 18, y + 33, '', etiqueta).setOrigin(0.5).setDepth(4);
-        const memoria = this.add.text(x, y + 32, '', lembranca).setOrigin(0.5).setDepth(4);
+        const pilha = this.add.text(x - ml * 0.58, y + ma * 0.76, '', etiqueta).setOrigin(0.5).setDepth(4);
+        const memoria = this.add.text(x, y + ma * 0.74, '', lembranca).setOrigin(0.5).setDepth(4);
         this.visuais[n.id] = { imagem, pilha, memoria };
         this.objetosDoTabuleiro.push(imagem, pilha, memoria);
         imagem.setAlpha(0).y -= 30;
@@ -130,7 +151,7 @@ export const metodosDeTurnos = {
     if (mao.fase === 'inicio') return this.avancarNoInicio();
     const vez = mao.vez, jogador = mao.jogadores[vez];
     if (jogador.tipo === 'oponente') return this.vezDoOponente();
-    if (this.doisHumanos && this.quemVe !== vez) return this.passarAparelho(vez, () => { this.quemVe = vez; this.avancar(); });
+    if (this.variosHumanos && this.quemVe !== vez) return this.passarAparelho(vez, () => { this.quemVe = vez; this.avancar(); });
     this.quemVe = vez;
     this.ocupada = false;
     this.modo = 'livre';
@@ -186,7 +207,7 @@ export const metodosDeTurnos = {
     }
     const comecar = () => { this.quemVe = esperando; this.modo = 'inicio'; this.ocupada = false; this.redesenhar(); };
     const alguemEscolheu = mao.jogadores.some((jogador) => !!jogador.cartaInicial);
-    if (this.doisHumanos && (alguemEscolheu || this.quemVe !== esperando)) return this.passarAparelho(esperando, comecar);
+    if (this.variosHumanos && (alguemEscolheu || this.quemVe !== esperando)) return this.passarAparelho(esperando, comecar);
     comecar();
   },
 

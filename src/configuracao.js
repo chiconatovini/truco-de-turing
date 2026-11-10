@@ -12,6 +12,13 @@ export const CORES = { j0: 0x4aa3df, j1: 0xf59322, ouro: 0xd9b260, vinho: 0x7a16
 /** As mesmas cores em texto CSS. */
 export const CORES_CSS = { j0: '#4aa3df', j1: '#f59322', ouro: '#d9b260', pergaminho: '#efe3c6', tinta: '#24170c' };
 
+/**
+ * Cor da rede de cada jogador, até 5 (azul e laranja do Playground, depois verde, lilás e rosa).
+ * Com 2 jogadores, ficam as duas primeiras.
+ */
+export const CORES_JOGADORES = [0x4aa3df, 0xf59322, 0x5cc98a, 0xb48cff, 0xff6fb1];
+export const CORES_JOGADORES_CSS = ['#4aa3df', '#f59322', '#5cc98a', '#b48cff', '#ff6fb1'];
+
 /** Fontes dos textos desenhados pelo Phaser. */
 export const FONTES = { titulo: 'Cinzel, Georgia, serif', texto: 'Spectral, Georgia, serif' };
 

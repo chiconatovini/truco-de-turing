@@ -8,7 +8,7 @@ import { sortear, sortearInteiro, embaralhar, sementeNova } from '../../src/nucl
 import {
   VALORES, NAIPES, NAIPE, ORDEM_NAIPE, NOME_VALOR, PLURAL_FIGURA, FORCA_VALOR, ehFigura, rotuloCarta, baralhoPadrao,
 } from '../../src/nucleo/cartas.js';
-import { TAMANHOS_CAMADAS, TOTAL_CAMADAS, CAMADA_SAIDA, TAMANHO_MAO, ehOculta, nomeCamada } from '../../src/nucleo/rede.js';
+import { TAMANHOS_CAMADAS, TOTAL_CAMADAS, CAMADA_SAIDA, TAMANHO_MAO, ehOculta, nomeCamada, tamanhosDaMesa, ARQUITETURAS } from '../../src/nucleo/rede.js';
 import { BARALHOS, pontosDaCarta, nomeDaCarta, manilhaDaCarta } from '../../src/nucleo/baralhos.js';
 import { TERRENOS } from '../../src/nucleo/terrenos.js';
 
@@ -67,13 +67,24 @@ describe('rede.js', () => {
     assert.equal(CAMADA_SAIDA, 6);
     assert.equal(TAMANHO_MAO, 5);
   });
-  it('ehOculta: só as camadas 1 a 5', () => {
-    assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map(ehOculta), [false, true, true, true, true, true, false]);
+  it('ehOculta: só as camadas 1 a 5 na mesa padrão; numa mesa de 9 camadas, de 1 a 7', () => {
+    assert.deepEqual([0, 1, 2, 3, 4, 5, 6].map((c) => ehOculta(c)), [false, true, true, true, true, true, false]);
+    assert.deepEqual([0, 1, 7, 8].map((c) => ehOculta(c, 9)), [false, true, true, false]);
+  });
+  it('tamanhosDaMesa: arquiteturas do NeuroDeck, com um neurônio a mais por camada para cada jogador além de 2', () => {
+    assert.deepEqual(tamanhosDaMesa(), [3, 5, 5, 5, 5, 5, 4]);
+    assert.deepEqual(tamanhosDaMesa('curta'), [3, 4, 4, 4, 3]);
+    assert.deepEqual(tamanhosDaMesa('profunda', 3), [4, 5, 5, 5, 5, 5, 5, 5, 4]);
+    assert.deepEqual(tamanhosDaMesa('larga', 5), [7, 9, 9, 9, 9, 9, 8]);
+    assert.deepEqual(Object.keys(ARQUITETURAS), ['padrao', 'curta', 'larga', 'profunda']);
+    assert.throws(() => tamanhosDaMesa('inexistente'));
   });
   it('nomeCamada: entrada, ocultas numeradas e saída', () => {
     assert.match(nomeCamada(0), /Entrada/i);
     assert.match(nomeCamada(3), /3/);
     assert.match(nomeCamada(6), /Sa[ií]da/i);
+    assert.match(nomeCamada(6, 9), /Oculta 6/);
+    assert.match(nomeCamada(8, 9), /Sa[ií]da/i);
   });
 });
 
