@@ -1,7 +1,7 @@
 # Truco de Turing
 
 <!-- versao -->
-**Versão 1.2.4** (2026-11-09) · [histórico de versões](CHANGELOG.md)
+**Versão 1.3.0** (2026-11-10) · [histórico de versões](CHANGELOG.md)
 <!-- /versao -->
 
 Jogo de cartas para navegador, feito em **Phaser 3**, para ensinar redes neurais e deep learning jogando.
@@ -153,6 +153,7 @@ Autores:
 - Welyngton Jose Vinicius Dal Pra ([@welyngton](https://github.com/welyngton))
 - Diego Casagrande ([@diegocasagrande](https://github.com/diegocasagrande))
 - Suzy Arcanjo ([@SuzyArcanjo](https://github.com/SuzyArcanjo))
+- Claude ([@claude](https://github.com/claude))
 <!-- /autores -->
 
 Regras originais: Peng Yaohao - FPO-UNB - 2026-2

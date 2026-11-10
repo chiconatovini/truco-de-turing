@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.3.0 — 2026-11-10
+
+- feat: verbetes completos de Ação no Grimório, com fórmulas (#23) ([#36](https://github.com/welyngton/truco-de-turing/pull/36), por [@welyngton](https://github.com/welyngton) e [@claude](https://github.com/claude))
+
 ## 1.2.4 — 2026-11-09
 
 - Autores no README: Diego Casagrande e inclusão automática nos próximos pull requests
