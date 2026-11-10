@@ -16,6 +16,7 @@ const { abrirRegras } = await import('../../src/interface/telas/regras.js');
 const { abrirGrimorio } = await import('../../src/interface/telas/grimorio.js');
 const { abrirConquistas, medalhaHtml } = await import('../../src/interface/telas/conquistas.js');
 const { abrirSobre } = await import('../../src/interface/telas/sobre.js');
+const { abrirMods } = await import('../../src/interface/telas/mods.js');
 const { abrirRevisao } = await import('../../src/interface/telas/revisao.js');
 const { Aplicacao } = await import('../../src/aplicacao.js');
 const { VERSAO } = await import('../../src/versao.js');
@@ -142,16 +143,56 @@ describe('telas', () => {
     const app = appFalso();
     abrirMenu(app);
     assert.equal($('#m-baralho').value, 'truco');
-    assert.ok($('#m-oponente').options.length >= 4);
+    assert.equal($('#m-oponente').options.length, 3);
     $('#m-terreno').value = 'montanha';
     $('#m-terreno').dispatchEvent(new window.Event('change'));
     assert.ok($$('.miniatura img').length >= 1);
-    for (const id of ['m-regras', 'm-grimorio', 'm-conquistas', 'm-sobre']) {
+    for (const id of ['m-regras', 'm-grimorio', 'm-conquistas', 'm-mods', 'm-sobre']) {
       clicar($('#' + id));
       assert.equal(app.opcoes.terreno, 'montanha');
     }
     clicar($('#m-jogar'));
     assert.equal(app.jogou, 1);
+  });
+
+  it('menu: configurações do NeuroDeck (jogadores, humanos, oponentes, arquitetura e baralhos)', () => {
+    const app = appFalso();
+    abrirMenu(app);
+    const mudar = (id, valor) => { $('#' + id).value = String(valor); $('#' + id).dispatchEvent(new window.Event('change')); };
+    /* padrão: 2 jogadores, 1 humano, arquitetura padrão, 1 baralho (o Truco pede 2) */
+    assert.deepEqual([$('#m-jogadores').value, $('#m-humanos').value, $('#m-arquitetura').value, $('#m-baralhos').value], ['2', '1', 'padrao', '1']);
+    assert.match($('#m-mesa-dica').textContent, /Mesa 3-5-5-5-5-5-4 .*Mão de 10 cartas \(o baralho Truco usa no mínimo 2 baralhos\)/);
+    assert.match($('#m-partida').options[0].textContent, /com truco/);
+    /* 4 jogadores: a lista de humanos vai até 4, a mesa cresce e o truco sai */
+    mudar('m-jogadores', 4);
+    assert.equal($('#m-humanos').options.length, 4);
+    assert.match($('#m-mesa-dica').textContent, /Mesa 5-7-7-7-7-7-6/);
+    assert.match($('#m-partida').options[0].textContent, /truco só com 2/);
+    assert.match($('#m-oponente-rotulo').textContent, /Oponentes \(3/);
+    /* todos humanos: some a escolha de oponente */
+    mudar('m-humanos', 4);
+    assert.equal($('#m-campo-oponente').hidden, true);
+    mudar('m-humanos', 2);
+    assert.equal($('#m-campo-oponente').hidden, false);
+    mudar('m-arquitetura', 'profunda');
+    mudar('m-baralhos', 3);
+    mudar('m-baralho', 'classico');
+    assert.match($('#m-mesa-dica').textContent, /Mão de 15 cartas\.$/);
+    /* voltando para 3 jogadores, os humanos ficam no máximo 3 */
+    mudar('m-jogadores', 3);
+    assert.equal($('#m-humanos').value, '2');
+    clicar($('#m-jogar'));
+    assert.deepEqual({ jogadores: app.opcoes.jogadores, humanos: app.opcoes.humanos, arquitetura: app.opcoes.arquitetura, baralhos: app.opcoes.baralhos },
+      { jogadores: 3, humanos: 2, arquitetura: 'profunda', baralhos: 3 });
+  });
+
+  it('mods: tipos, exemplo comentado e o aviso de que a interface ainda não carrega mods', async () => {
+    abrirMods();
+    const texto = $('.mods').textContent;
+    for (const termo of ['registerDeck', 'registerTerrain', 'registerAction', 'apiVersion', 'Regularização L1', 'neurodeck-fpo.web.app/?mod=', 'Ainda não no jogo unificado']) assert.ok(texto.includes(termo), termo);
+    clicar($('#mods-copiar'));
+    await esperar(20);
+    assert.ok($('#mods-copiado').textContent.length > 0);
   });
   it('regras: marca o tutorial como visto e chama aoFechar', () => {
     const app = appFalso();
@@ -183,12 +224,12 @@ describe('telas', () => {
     assert.match(medalhaHtml(CONQUISTAS[0], true), /medalha/);
     assert.match(medalhaHtml(CONQUISTAS[0], false), /cadeado|bloquead/);
   });
-  it('sobre: versão, disciplina, professor e autores', () => {
+  it('sobre: versão, os dois jogos, disciplina, professor e autores', () => {
     abrirSobre();
     const texto = $('.camada').textContent;
     assert.ok(texto.includes('Versão ' + VERSAO));
     assert.match(texto, /Peng Yaohao/);
-    assert.match(texto, /Welyngton/);
+    for (const termo of ['NeuroDeck', 'Truco de Turing', 'Francisco Lima', 'Welyngton', 'Diego Casagrande', 'neurodeck-fpo.web.app']) assert.ok(texto.includes(termo), termo);
   });
   it('revisão: resumo, curva, linha do tempo comentada e placar da partida', () => {
     const mao = maoAteOFim({ terreno: 'pantano' });
