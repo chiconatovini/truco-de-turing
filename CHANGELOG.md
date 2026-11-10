@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.2.4 — 2026-11-09
+
+- Autores no README: Diego Casagrande e inclusão automática nos próximos pull requests
+
 ## 1.2.3 — 2026-11-09
 
 - Revisão pós-merge do PR #1: changelog, datas da versão e relatórios
