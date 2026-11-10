@@ -53,7 +53,7 @@ function opcoesHtml(rotulos, selecionado) {
 function htmlDoMenu(opcoes) {
   return '<div class="menu">' +
     '<section class="menu-capa">' +
-    '<h1><span>O JOGO DO</span>Truco de Turing</h1>' +
+    '<h1>TRUCO DE TURING</h1>' +
     '<p>Monte uma rede neural carta por carta, da entrada à saída. Tune seus neurônios, aplique overfit no adversário, fuja do vanishing gradient e, quando sentir a mão boa, grite TRUCO.</p>' +
     '<div class="legenda"><span><i class="ponto" style="background:var(--azul)"></i><b>Azul</b> é a sua rede</span><span><i class="ponto" style="background:var(--laranja)"></i><b>Laranja</b> é a do adversário</span></div>' +
     '<div class="menu-acoes">' +
