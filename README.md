@@ -78,7 +78,7 @@ index.html                 página de desenvolvimento
 src/principal.js           ponto de entrada: cria o Phaser.Game
 src/aplicacao.js           opções, progresso, conquistas e navegação menu ⇄ mesa
 src/configuracao.js        mundo 1280x720, cores, fontes, resolução
-src/estilo.css             painéis HTML (menu, regras, grimório, conquistas, sobre)
+src/estilo.css             painéis HTML (menu, regras, biblioteca, conquistas, avatares, sobre)
 src/motor/                 motor de regras do NeuroDeck (do colega Francisco): estado, ações,
                            baralhos, terrenos, desempates e bots. Ver src/motor/ORIGEM.md
 src/nucleo/                camada de tradução (sem Phaser): entrega às telas a mão, as jogadas,
@@ -143,7 +143,8 @@ Pontos em que o enunciado deixa margem e o que ficou decidido (professor e grupo
   - *Gradiente Guloso* (médio): como a descida de gradiente, escolhe o lance que mais melhora o placar agora, sem olhar adiante.
   - *Mestre Monte Carlo* (difícil): sorteia as cartas ocultas, simula dezenas de partidas para cada lance e escolhe o que mais venceu; mostra a própria chance de vitória e truca com base nas simulações.
 - **7 baralhos e 4 terrenos**: Clássico, Truco com manilhas, Nobreza, Backprop (o naipe é o peso, as figuras são ativações e a rede vale a saída do forward pass), Fraternidade, Yin-yang e Power BI; mesa neutra, Montanha, Pântano e Oceano, cada terreno com ambiente animado (neve, neblina e vaga-lumes, ondas e vento).
-- **27 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…).
+- **35 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…) e as da fusão (baralhos Nobreza e Backprop, mesas de 4 e 5 jogadores, 3 baralhos, arquiteturas).
+- **9 avatares** para o jogador, 6 deles liberados por conquistas (Menu > Avatar).
 - **Modo dicas**: dicas de estratégia a cada vez, sempre com o conceito de redes neurais por trás, e explicações nos botões (mouse ou segurar no celular); só usam o que está à vista e nunca dizem qual carta virada escolher. Mãos com dicas não valem conquistas.
 - **Mesa pensada para o toque**: no painel esquerdo, só REGRAS (regras, ajuda das ações, Biblioteca de conceitos e dicas) e MENU (som, música e sair); botões de ação grandes e quase quadrados.
 - **Revisão da mão**: curva de treino passo a passo, momentos-chave e linha do tempo comentada com os conceitos da Biblioteca de conceitos.

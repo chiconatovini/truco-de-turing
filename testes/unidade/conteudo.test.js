@@ -10,6 +10,7 @@ import { ACOES_DA_AJUDA } from '../../src/interface/telas/ajudaDasAcoes.js';
 import { NeuroDeck } from '../../src/motor/engine.js';
 import { AMBIENTACAO, PROVOCACOES, provocar } from '../../src/conteudo/textos.js';
 import { GRADUACOES, CONQUISTAS, VALEM_SEM_MAO_COMPLETA } from '../../src/conteudo/conquistas.js';
+import { AVATARES_DO_JOGADOR, avatarLiberado, avatarDoJogador, conquistaQueLibera, avataresDaConquista } from '../../src/conteudo/avatares.js';
 import { DICAS_GERAIS, escolherDicaDeJogo } from '../../src/conteudo/dicasDeJogo.js';
 import { carregarProgresso, salvarProgresso } from '../../src/conteudo/progresso.js';
 import { novaMao, aplicarJogada } from '../../src/nucleo/partida.js';
@@ -52,6 +53,19 @@ describe('grimorio.js', () => {
       assert.ok(a.resumo && a.quando, a.id);
     }
     for (const id of ['tunagem', 'overfit', 'earlystop', 'stackoverflow', 'dropout', 'transfer', 'passar']) assert.ok(ACOES_DA_AJUDA.some((a) => a.id === id), id);
+  });
+});
+
+describe('avatares.js', () => {
+  it('livres desde o início e os outros liberados pela conquista; o escolhido só vale se liberado', () => {
+    const p = { desbloqueadas: {}, avatar: 'gato' };
+    assert.deepEqual(AVATARES_DO_JOGADOR.filter((a) => avatarLiberado(a, p)).map((a) => a.id), ['p1', 'p2', 'robo']);
+    assert.equal(avatarDoJogador(p), 'p1'); /* gato ainda bloqueado */
+    p.desbloqueadas.gato10 = 1;
+    assert.equal(avatarDoJogador(p), 'gato');
+    assert.equal(avatarDoJogador({ desbloqueadas: {}, avatar: 'nao-existe' }), 'p1');
+    for (const a of AVATARES_DO_JOGADOR) if (a.conquista) assert.ok(CONQUISTAS.some((c) => c.id === a.conquista) && conquistaQueLibera(a), a.id);
+    assert.deepEqual(avataresDaConquista('contra').map((a) => a.id), ['cosmico']);
   });
 });
 
@@ -112,6 +126,14 @@ describe('conquistas.js', () => {
       c.mao = redeCom([[['4', 'P']]], { baralho: 'truco' });
     }, (c) => { c.venceu = true; c.mao = redeCom([[['5', 'P']]], { baralho: 'truco' }); }],
     biblio: [(c) => { c.progresso.verbetesLidos = VERBETES.length; }],
+    nobreza: [(c) => { c.venceu = true; c.mao = redeCom([['8'], ['KC'], ['KP']], { baralho: 'nobreza' }); }, (c) => { c.venceu = true; c.mao = redeCom([['8'], ['KC'], ['QP']], { baralho: 'nobreza' }); }],
+    backprop: [(c) => { c.mao = redeCom([['8']], { baralho: 'backprop' }); c.mao.resultado = { somas: [45, 0] }; }, (c) => { c.mao = redeCom([['8']], { baralho: 'backprop' }); c.mao.resultado = { somas: [44.9, 0] }; }],
+    tunador: [(c) => { c.mao.jogadores[0].estatisticas.tunagens = 3; }, (c) => { c.mao.jogadores[0].estatisticas.tunagens = 2; }],
+    batch: [(c) => { c.venceu = true; c.mao.jogadores = [...c.mao.jogadores, ...c.mao.jogadores]; }, (c) => { c.venceu = true; }],
+    ensemble: [(c) => { c.venceu = true; c.mao.jogadores = Array(5).fill(c.mao.jogadores[0]); }, (c) => { c.venceu = true; c.mao.jogadores = Array(4).fill(c.mao.jogadores[0]); }],
+    bigdata: [(c) => { c.venceu = true; c.mao.config.baralhos = 3; }, (c) => { c.venceu = true; c.mao.config.baralhos = 2; }],
+    profunda: [(c) => { c.venceu = true; c.mao.config.arquitetura = 'profunda'; }, (c) => { c.venceu = true; c.mao.config.arquitetura = 'larga'; }],
+    arquiteto: [(c) => { c.progresso.arquiteturas = { padrao: true, curta: true, profunda: true, larga: true }; }, (c) => { c.progresso.arquiteturas = { padrao: true, curta: true, profunda: true }; }],
   };
   it('graduações com nome e cor', () => {
     for (const g of Object.values(GRADUACOES)) assert.ok(g.nome && /^#/.test(g.cor));

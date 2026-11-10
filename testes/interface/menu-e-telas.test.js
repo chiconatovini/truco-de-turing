@@ -61,6 +61,16 @@ describe('menu e telas', () => {
         if (botao === '#m-mods') await capturar(pagina, '24-mods');
         await pagina.click('.camada:not(.transparente) [data-fechar] >> nth=0');
       }
+      /* avatar: troca para um liberado; o botão do menu mostra o retrato novo */
+      const antes = await pagina.locator('#m-avatar-img').getAttribute('src');
+      await pagina.click('#m-avatar');
+      await pagina.waitForSelector('.avatar-opcao img');
+      assert.equal(await pagina.locator('.avatar-opcao.bloqueado').count(), 6);
+      await pagina.click('.avatar-opcao[data-avatar="robo"]');
+      await capturar(pagina, '29-avatares');
+      await pagina.locator('.avatares [data-fechar] >> nth=0').click();
+      assert.equal(await pagina.evaluate(() => globalThis.__TRUCO_DE_TURING__.progresso.avatar), 'robo');
+      assert.notEqual(await pagina.locator('#m-avatar-img').getAttribute('src'), antes);
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
   });

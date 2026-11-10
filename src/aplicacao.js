@@ -124,7 +124,10 @@ export const Aplicacao = {
     if (ctx.venceu) {
       p.vitorias++;
       if (ctx.completa && jogador.acoesUsadas === 0) p.vitoriasZen++;
-      if (ctx.completa) { p.terrenos[ctx.mao.config.terreno] = true; p.baralhos[ctx.mao.config.baralho] = true; }
+      if (ctx.completa) {
+        p.terrenos[ctx.mao.config.terreno] = true; p.baralhos[ctx.mao.config.baralho] = true;
+        p.arquiteturas = p.arquiteturas || {}; p.arquiteturas[ctx.mao.config.arquitetura || 'padrao'] = true;
+      }
     }
     ctx.progresso = p;
     const novas = [];

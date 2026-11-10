@@ -156,7 +156,7 @@ html, body { overscroll-behavior: none; }
 .ponto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
 .menu-acoes { display: grid; gap: 10px; margin-top: 6px; max-width: 520px; }
 .menu-acoes .botao.jogar { font-size: 20px; padding: 12px 20px; letter-spacing: 0.12em; }
-.menu-mais { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.menu-mais { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 .menu-mais .botao { font-size: 13px; padding: 9px 6px; white-space: nowrap; }
 @media (max-width: 520px) { .menu-mais { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .menu-painel { padding: 22px 24px; }
@@ -464,3 +464,19 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
 .cartao-acao h3 { display: flex; align-items: center; gap: 8px; }
 .cartao-acao .icone-acao { display: inline-flex; width: 34px; height: 34px; flex: none; }
 .cartao-acao .icone-acao svg { width: 100%; height: 100%; }
+
+/* avatares do jogador */
+.botao-avatar { display: inline-flex; align-items: center; gap: 8px; }
+.botao-avatar img { width: 26px; height: 26px; border-radius: 50%; }
+.avatares-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 12px; margin-top: 12px; }
+.avatar-opcao { display: grid; justify-items: center; gap: 4px; padding: 12px 10px; background: rgba(255, 248, 230, 0.7); border: 2px solid rgba(60, 40, 20, 0.2); border-radius: 12px; cursor: pointer; font: inherit; color: inherit; text-align: center; }
+.avatar-opcao[aria-pressed='true'] { border-color: #6b1a22; box-shadow: 0 0 0 3px rgba(107, 26, 34, 0.18); }
+.avatar-opcao:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.avatar-opcao small { font-size: 13px; color: #5a4630; }
+.avatar-opcao.bloqueado { cursor: not-allowed; }
+.avatar-opcao.bloqueado .avatar-retrato img { filter: grayscale(1) brightness(0.55); }
+.avatar-retrato { position: relative; width: 84px; height: 84px; }
+.avatar-retrato img { width: 100%; height: 100%; border-radius: 50%; }
+.avatar-retrato .cadeado { position: absolute; inset: 22px; }
+.avatar-retrato .cadeado svg { width: 100%; height: 100%; }
+.avatar-liberado { color: #2f6b2a; }

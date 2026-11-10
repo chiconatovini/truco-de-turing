@@ -23,11 +23,13 @@ Estado da aplicação fora da partida: opções do menu, progresso salvo, conqui
 
 ## `src/arte/avatares.js`
 
-Retratos redondos dos participantes: os três oponentes e o jogador (rosto com chapéu de palha). Convenção da arte: cada função desenha em coordenadas-base e recebe `S` (densidade). O canvas resultante tem (tamanho-base × S) pixels, o que mantém a arte nítida em qualquer tela.
+Retratos redondos dos participantes: os três oponentes, o jogador (rosto com chapéu de palha) e os avatares extras que o jogador escolhe (alguns liberados por conquistas, ver conteudo/avatares.js). Convenção da arte: cada função desenha em coordenadas-base e recebe `S` (densidade). O canvas resultante tem (tamanho-base × S) pixels, o que mantém a arte nítida em qualquer tela.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `desenharAvatar(tipo, cor, S)` | função (exportada) | Desenha um avatar redondo de 112x112 (base). |
+| `olho(ctx, x, y, r, iris)` | função | Olho redondo com brilho. |
+| `RETRATOS_EXTRAS` | constante (exportada) | Retratos extras, pelo tipo. Cada um desenha dentro do círculo já recortado (112x112). |
 
 ## `src/arte/botoes.js`
 
@@ -432,7 +434,7 @@ Parte da CenaMesa: o fluxo da mão. Começar a mão, executar jogadas, decidir q
 | `jogadorDeBaixo()` | método | Jogador mostrado embaixo (quem está vendo; o 0 enquanto o aparelho troca de mãos). |
 | `outrosJogadores()` | método | Os outros jogadores, na ordem em que jogam depois de quem está embaixo (mãos de cima, da esquerda para a direita). |
 | `ordemDoPlacar()` | método | Ordem dos blocos do placar, de cima para baixo: os outros jogadores e, por último, quem está vendo. |
-| `avatarDe(j)` | método | Textura do avatar do jogador. |
+| `avatarDe(j)` | método | Textura do avatar do jogador. O primeiro humano usa o avatar escolhido (tela de avatares); os outros humanos do aparelho usam o truqueiro que sobrar. |
 | `montarJogadores()` | método | Jogadores da mão: os humanos primeiro ("Você", ou "Jogador 1", "Jogador 2"… quando há mais de um), depois os oponentes do computador, numerados quando há mais de um do mesmo perfil. |
 | `ehVezDoHumano()` | método | O jogador humano que está vendo a tela pode jogar agora? |
 | `iniciarMao()` | método | Distribui uma mão nova: cria o estado, os neurônios na tela e começa o fluxo. |
@@ -480,6 +482,18 @@ Configurações visuais compartilhadas: tamanho do mundo do jogo, cores das rede
 | `DENSIDADE` | constante (exportada) | Densidade (fator sobre o tamanho-base) com que cada tipo de textura é gerado. |
 | `TAMANHO_CARTA` | constante (exportada) | Tamanho de exibição das cartas no mundo do jogo. |
 | `FORCAR_CANVAS` | constante (exportada) | Diz se a página foi aberta pedindo o renderizador Canvas (`?renderer=canvas`), útil em testes. |
+
+## `src/conteudo/avatares.js`
+
+Avatares que o jogador pode escolher. Os livres valem desde o início; os outros são liberados por uma conquista. A escolha fica no progresso salvo no navegador (`progresso.avatar`) até existirem contas (issue #11).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `AVATARES_DO_JOGADOR` | constante (exportada) | Avatares do jogador, na ordem da tela de escolha. `conquista` é o id da conquista que libera o avatar (null = livre). `tipo` é o desenho em arte/avatares.js. |
+| `avatarLiberado(avatar, progresso)` | função (exportada) | O avatar está liberado neste progresso? |
+| `avatarDoJogador(progresso)` | função (exportada) | Id do avatar do jogador: o escolhido, se estiver liberado; senão, o truqueiro. |
+| `conquistaQueLibera(avatar)` | função (exportada) | Nome da conquista que libera o avatar. |
+| `avataresDaConquista(id)` | função (exportada) | Avatares liberados por uma conquista (para avisar quando ela sai). |
 
 ## `src/conteudo/conquistas.js`
 
@@ -541,7 +555,7 @@ Mod de exemplo mostrado na tela "Mods" (interface/telas/mods.js). O código fica
 
 ## `src/conteudo/progresso.js`
 
-Progresso do jogador guardado no navegador (localStorage): contadores, conquistas, verbetes lidos, opções do menu e preferência de som. O armazenamento pode falhar (janela anônima, armazenamento bloqueado); por isso toda leitura e escrita é protegida e o jogo funciona normalmente sem ele.
+Progresso do jogador guardado no navegador (localStorage): contadores, conquistas, verbetes lidos, avatar escolhido, opções do menu e preferência de som. O armazenamento pode falhar (janela anônima, armazenamento bloqueado); por isso toda leitura e escrita é protegida e o jogo funciona normalmente sem ele.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -647,6 +661,16 @@ Ajuda das ações, como o botão "?" do NeuroDeck: um cartão por jogada com a r
 | `ACOES_DA_AJUDA` | constante (exportada) | Ações da ajuda, na ordem da barra da mesa. `motor` é o id da ação no NeuroDeck (de onde vêm a regra e o conceito); `verbete` é o verbete da Biblioteca de conceitos. |
 | `doMotor(id)` | função | Ação do NeuroDeck, ou um objeto vazio se o motor não tiver aquele id. |
 | `abrirAjudaDasAcoes(app, idInicial)` | função (exportada) | Abre a ajuda das ações. |
+
+## `src/interface/telas/avatares.js`
+
+Tela de avatares: o jogador escolhe o retrato que aparece no placar. Os bloqueados mostram a conquista que os libera.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `retratos` | constante | Retratos já desenhados (data URL), por id. |
+| `retratoDoAvatar(id)` | função (exportada) | Data URL do retrato do avatar, desenhado na primeira vez; vazio se não houver canvas. |
+| `abrirAvatares(app, aoMudar)` | função (exportada) | Abre a escolha de avatar. |
 
 ## `src/interface/telas/conquistas.js`
 

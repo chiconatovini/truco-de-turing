@@ -10,6 +10,7 @@ import { provocar } from '../../conteudo/textos.js';
 import { Som } from '../../interface/som.js';
 import { abrirPainel, escaparHtml } from '../../interface/paineis.js';
 import { medalhaHtml } from '../../interface/telas/conquistas.js';
+import { avataresDaConquista } from '../../conteudo/avatares.js';
 import { abrirRevisao } from '../../interface/telas/revisao.js';
 import { COR_JOGADOR_CSS, NOME_SITUACAO } from './layout.js';
 
@@ -167,7 +168,8 @@ export const metodosDoResultado = {
       html += '<h3>Conquistas desbloqueadas</h3><div class="desbloqueios">' + novas.map((c) => {
         const graduacao = GRADUACOES[c.graduacao];
         return '<div class="desbloqueio">' + medalhaHtml(c, true) + '<div><span class="selo" style="background:' + graduacao.cor + ';color:#24140a">' +
-          graduacao.nome + '</span> ' + escaparHtml(c.nome) + '<br><small>' + escaparHtml(c.descricao) + '</small></div></div>';
+          graduacao.nome + '</span> ' + escaparHtml(c.nome) + '<br><small>' + escaparHtml(c.descricao) + '</small>' +
+          avataresDaConquista(c.id).map((a) => '<br><small class="avatar-liberado">Avatar liberado: <b>' + escaparHtml(a.nome) + '</b> (escolha em Menu > Avatar)</small>').join('') + '</div></div>';
       }).join('') + '</div>';
     }
     if (!valeConquistas && !this.variosHumanos) html += '<p class="sem-conquistas">Mão jogada com dicas: não vale conquistas nem conta nas estatísticas.</p>';

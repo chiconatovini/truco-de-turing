@@ -70,6 +70,14 @@ describe('Nobreza e Backprop', () => {
   });
 });
 
+describe('avatares extras', () => {
+  it('cada avatar do jogador tem retrato desenhado', async () => {
+    const { desenharAvatar } = await import('../../src/arte/avatares.js');
+    const { AVATARES_DO_JOGADOR } = await import('../../src/conteudo/avatares.js');
+    for (const a of AVATARES_DO_JOGADOR) assert.ok(pixelsPintados(desenharAvatar(a.id, '#4aa3df', 0.5)) > 0.7, a.id);
+  });
+});
+
 describe('ícones das ações', () => {
   it('um SVG acessível para cada ação da barra e para o vanishing gradient', () => {
     for (const id of ['tunagem', 'overfit', 'earlystop', 'stackoverflow', 'dropout', 'transfer', 'passar', 'vanishing']) {
