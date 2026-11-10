@@ -1,13 +1,13 @@
 # Testes de unidade
 
-**Versão 1.1.2** · 09/11/2026, 19:51 (horário de Brasília)  
+**Versão 1.2.2** · commit `ba4cd88-dirty` (com as mudanças ainda não registradas) · 09/11/2026, 22:25 (horário de Brasília)  
 Ambiente: Node v22.23.4 · Chromium 153.0.8010.12 · Linux x64 · 2 núcleos
 
 Regras do jogo, oponentes, conteúdo (conquistas, dicas, Grimório), arte procedural desenhada num canvas de verdade, telas em HTML (jsdom), som e música (WebAudio de mentira), aplicação e ferramentas de linha de comando.
 
 | Testes | Aprovados | Reprovados | Pulados | Duração |
 |---:|---:|---:|---:|---:|
-| 169 | 169 | 0 | 0 | 38,2 s |
+| 210 | 210 | 0 | 0 | 45,8 s |
 
 Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](resultado.junit.xml).
 
@@ -15,30 +15,30 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | criarTela: tamanho multiplicado pela densidade, nunca menor que 1 pixel | pincel.js | 3 ms |
-| ✅ | hashDoTexto e geradorComSemente: estáveis e reprodutíveis | pincel.js | 1 ms |
-| ✅ | caminhos, degradês, texturas, sombras e brilho pintam a tela | pincel.js | 31,7 s |
-| ✅ | escreverComQuebra respeita a largura e "\n"; ajustarFonte encolhe até caber | pincel.js | 6 ms |
+| ✅ | criarTela: tamanho multiplicado pela densidade, nunca menor que 1 pixel | pincel.js | 2 ms |
+| ✅ | hashDoTexto e geradorComSemente: estáveis e reprodutíveis | pincel.js | 0 ms |
+| ✅ | caminhos, degradês, texturas, sombras e brilho pintam a tela | pincel.js | 38,5 s |
+| ✅ | escreverComQuebra respeita a largura e "\n"; ajustarFonte encolhe até caber | pincel.js | 8 ms |
 | ✅ | comAlfa e tonalizar | pincel.js | 0 ms |
 | ✅ | medidas e cores por naipe | paleta.js | 0 ms |
-| ✅ | corpo da moldura (comum e lendária), placa e gema | moldura.js, emblemas.js, figuras.js e cenarios.js | 31 ms |
-| ✅ | emblema de cada naipe, com e sem sombra | moldura.js, emblemas.js, figuras.js e cenarios.js | 9 ms |
-| ✅ | coroa e figura de Valete, Dama e Rei de cada naipe | moldura.js, emblemas.js, figuras.js e cenarios.js | 34 ms |
-| ✅ | cenários de cada naipe e peças de paisagem | moldura.js, emblemas.js, figuras.js e cenarios.js | 12 ms |
-| ✅ | dadosDaCarta: nome, pontos, tipo, regras, ambientação e raridade | cartas.js | 0 ms |
+| ✅ | corpo da moldura (comum e lendária), placa e gema | moldura.js, emblemas.js, figuras.js e cenarios.js | 40 ms |
+| ✅ | emblema de cada naipe, com e sem sombra | moldura.js, emblemas.js, figuras.js e cenarios.js | 13 ms |
+| ✅ | coroa e figura de Valete, Dama e Rei de cada naipe | moldura.js, emblemas.js, figuras.js e cenarios.js | 42 ms |
+| ✅ | cenários de cada naipe e peças de paisagem | moldura.js, emblemas.js, figuras.js e cenarios.js | 16 ms |
+| ✅ | dadosDaCarta: nome, pontos, tipo, regras, ambientação e raridade | cartas.js | 1 ms |
 | ✅ | símbolo de coleção de cada raridade | cartas.js | 3 ms |
-| ✅ | todas as 52 cartas do baralho classico (completa e da mesa) | cartas.js | 1,0 s |
-| ✅ | todas as 52 cartas do baralho truco (completa e da mesa) | cartas.js | 1,0 s |
-| ✅ | todas as 52 cartas do baralho fraternidade (completa e da mesa) | cartas.js | 1,0 s |
-| ✅ | todas as 52 cartas do baralho yinyang (completa e da mesa) | cartas.js | 931 ms |
-| ✅ | todas as 52 cartas do baralho powerbi (completa e da mesa) | cartas.js | 1,0 s |
-| ✅ | verso de cada baralho nos dois formatos | versos, terrenos, avatares, mesas e botões | 62 ms |
-| ✅ | carta de cada terreno | versos, terrenos, avatares, mesas e botões | 63 ms |
-| ✅ | avatar de cada oponente e dos jogadores | versos, terrenos, avatares, mesas e botões | 7 ms |
-| ✅ | feltro e mesa de cada terreno | versos, terrenos, avatares, mesas e botões | 35 ms |
-| ✅ | faísca e botões em cada variante e estado | versos, terrenos, avatares, mesas e botões | 9 ms |
-| ✅ | um ícone SVG válido para cada conquista, e o cadeado | icones.js e retrato.js | 30 ms |
-| ✅ | retrato do professor em moldura medieval | icones.js e retrato.js | 17 ms |
+| ✅ | todas as 52 cartas do baralho classico (completa e da mesa) | cartas.js | 1,1 s |
+| ✅ | todas as 52 cartas do baralho truco (completa e da mesa) | cartas.js | 1,1 s |
+| ✅ | todas as 52 cartas do baralho fraternidade (completa e da mesa) | cartas.js | 1,1 s |
+| ✅ | todas as 52 cartas do baralho yinyang (completa e da mesa) | cartas.js | 1,1 s |
+| ✅ | todas as 52 cartas do baralho powerbi (completa e da mesa) | cartas.js | 1,1 s |
+| ✅ | verso de cada baralho nos dois formatos | versos, terrenos, avatares, mesas e botões | 86 ms |
+| ✅ | carta de cada terreno | versos, terrenos, avatares, mesas e botões | 89 ms |
+| ✅ | avatar de cada oponente e dos jogadores | versos, terrenos, avatares, mesas e botões | 10 ms |
+| ✅ | feltro e mesa de cada terreno | versos, terrenos, avatares, mesas e botões | 52 ms |
+| ✅ | faísca e botões em cada variante e estado | versos, terrenos, avatares, mesas e botões | 11 ms |
+| ✅ | um ícone SVG válido para cada conquista, e o cadeado | icones.js e retrato.js | 38 ms |
+| ✅ | retrato do professor em moldura medieval | icones.js e retrato.js | 18 ms |
 
 ## `testes/unidade/configuracao-node.test.js`
 
@@ -56,7 +56,7 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | resolução pela tela × densidade, densidades das texturas e sem forçar Canvas | — | 1 ms |
+| ✅ | resolução pela tela × densidade, densidades das texturas e sem forçar Canvas | — | 2 ms |
 
 ## `testes/unidade/conteudo.test.js`
 
@@ -67,7 +67,7 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 | ✅ | provocar: situação desconhecida devolve texto vazio | textos.js | 0 ms |
 | ✅ | graduações com nome e cor | conquistas.js | 0 ms |
 | ✅ | toda conquista tem caso de teste, e VALEM_SEM_MAO_COMPLETA só cita conquistas existentes | conquistas.js | 1 ms |
-| ✅ | conquista "Primeira época" (primeira) | conquistas.js | 5 ms |
+| ✅ | conquista "Primeira época" (primeira) | conquistas.js | 3 ms |
 | ✅ | conquista "Convergiu" (dez) | conquistas.js | 1 ms |
 | ✅ | conquista "Estado da arte" (cinquenta) | conquistas.js | 1 ms |
 | ✅ | conquista "Gato curioso" (gato10) | conquistas.js | 1 ms |
@@ -80,24 +80,24 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 | ✅ | conquista "Artilheiro dos gols inúteis" (artilheiro) | conquistas.js | 1 ms |
 | ✅ | conquista "Pré-treinado" (transfer) | conquistas.js | 1 ms |
 | ✅ | conquista "Gradiente evaporado" (vanishing) | conquistas.js | 1 ms |
-| ✅ | conquista "Regularizador" (overfit) | conquistas.js | 4 ms |
+| ✅ | conquista "Regularizador" (overfit) | conquistas.js | 1 ms |
 | ✅ | conquista "Paciência de validação" (earlystop) | conquistas.js | 1 ms |
-| ✅ | conquista "Segmentation fault" (overflow) | conquistas.js | 0 ms |
-| ✅ | conquista "Atenção multi-cabeça" (trio) | conquistas.js | 1 ms |
+| ✅ | conquista "Segmentation fault" (overflow) | conquistas.js | 4 ms |
+| ✅ | conquista "Atenção multi-cabeça" (trio) | conquistas.js | 2 ms |
 | ✅ | conquista "Rede profunda" (sessenta) | conquistas.js | 1 ms |
 | ✅ | conquista "Truco, marreco!" (truco) | conquistas.js | 1 ms |
-| ✅ | conquista "Vale a partida" (doze) | conquistas.js | 0 ms |
-| ✅ | conquista "Corre que é cilada" (correu) | conquistas.js | 0 ms |
+| ✅ | conquista "Vale a partida" (doze) | conquistas.js | 1 ms |
+| ✅ | conquista "Corre que é cilada" (correu) | conquistas.js | 1 ms |
 | ✅ | conquista "Campeão da mesa" (campeao) | conquistas.js | 0 ms |
 | ✅ | conquista "Venceu a máquina" (maquina) | conquistas.js | 1 ms |
 | ✅ | conquista "Cartógrafo" (cartografo) | conquistas.js | 1 ms |
 | ✅ | conquista "Colecionador" (colecionador) | conquistas.js | 1 ms |
 | ✅ | conquista "Zap na saída" (zap) | conquistas.js | 1 ms |
-| ✅ | conquista "Bibliotecário" (biblio) | conquistas.js | 0 ms |
+| ✅ | conquista "Bibliotecário" (biblio) | conquistas.js | 4 ms |
 | ✅ | dicas gerais ligadas a verbetes existentes | dicasDeJogo.js | 0 ms |
-| ✅ | só usa informação pública: sortear de novo o que está escondido não muda a dica | dicasDeJogo.js | 120 ms |
-| ✅ | cobre todos os tipos de dica em situações montadas à mão | dicasDeJogo.js | 1 ms |
-| ✅ | sem nada salvo: progresso inicial com música ligada | progresso.js | 0 ms |
+| ✅ | só usa informação pública: sortear de novo o que está escondido não muda a dica | dicasDeJogo.js | 153 ms |
+| ✅ | cobre todos os tipos de dica em situações montadas à mão | dicasDeJogo.js | 2 ms |
+| ✅ | sem nada salvo: progresso inicial com música ligada | progresso.js | 1 ms |
 | ✅ | salvar e carregar de volta | progresso.js | 0 ms |
 | ✅ | migra o formato da versão 1 (nomes em inglês) | progresso.js | 0 ms |
 | ✅ | armazenamento quebrado ou ausente não derruba o jogo | progresso.js | 0 ms |
@@ -108,35 +108,36 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 |---|---|---|---:|
 | ✅ | tipoDeMudanca: rótulos e título decidem maior, menor ou correção | versionar.js | 1 ms |
 | ✅ | proximaVersao | versionar.js | 0 ms |
-| ✅ | --simular só mostra a próxima versão | versionar.js | 39 ms |
-| ✅ | sobe a versão em package.json, package-lock, src/versao.js, README e CHANGELOG | versionar.js | 38 ms |
-| ✅ | --atual publica a versão sem subir e não duplica a entrada do histórico | versionar.js | 40 ms |
+| ✅ | dataEmBrasilia: o dia no horário de Brasília, não em UTC | versionar.js | 15 ms |
+| ✅ | --simular só mostra a próxima versão | versionar.js | 49 ms |
+| ✅ | sobe a versão em package.json, package-lock, src/versao.js, README e CHANGELOG | versionar.js | 43 ms |
+| ✅ | --atual publica a versão sem subir e não duplica a entrada do histórico | versionar.js | 37 ms |
 | ✅ | sem PR nem título: correção, com "Atualização" no histórico | versionar.js | 36 ms |
-| ✅ | gera o HTML completo e a versão para artifact, com CSS e JS embutidos | empacotar.js | 164 ms |
-| ✅ | gera a referência com os módulos e as funções documentadas | documentar.js | 51 ms |
-| ✅ | roda mãos entre dois oponentes e mostra o placar | simular.js | 86 ms |
+| ✅ | gera o HTML completo e a versão para artifact, com CSS e JS embutidos | empacotar.js | 165 ms |
+| ✅ | gera a referência com os módulos e as funções documentadas | documentar.js | 49 ms |
+| ✅ | roda mãos entre dois oponentes e mostra o placar | simular.js | 107 ms |
 
 ## `testes/unidade/interface.test.js`
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | escaparHtml | paineis.js | 8 ms |
+| ✅ | escaparHtml | paineis.js | 10 ms |
 | ✅ | abrirPainel: fecha pelo botão data-fechar, por fora e por fecharTodos; chama aoFechar | paineis.js | 51 ms |
-| ✅ | mostrarAviso e mostrarDicaDeJogo: um por vez, somem sozinhos ou com um toque | paineis.js | 88 ms |
-| ✅ | confirmar: botões com ação, grito de truco e topo | paineis.js | 9 ms |
+| ✅ | mostrarAviso e mostrarDicaDeJogo: um por vez, somem sozinhos ou com um toque | paineis.js | 90 ms |
+| ✅ | confirmar: botões com ação, grito de truco e topo | paineis.js | 12 ms |
 | ✅ | dica flutuante: à esquerda, acima ou abaixo do alvo conforme o espaço | paineis.js | 4 ms |
-| ✅ | cada efeito sonoro agenda osciladores ou ruído; mudo não toca nada | som.js e musica.js | 11 ms |
+| ✅ | cada efeito sonoro agenda osciladores ou ruído; mudo não toca nada | som.js e musica.js | 13 ms |
 | ✅ | música: cada terreno agenda notas; trocar, repetir e parar | som.js e musica.js | 7,4 s |
-| ✅ | menu: mostra as escolhas, lê as mudanças, atualiza as miniaturas e abre cada tela | telas | 376 ms |
-| ✅ | regras: marca o tutorial como visto e chama aoFechar | telas | 37 ms |
-| ✅ | grimório: abre no verbete pedido, troca de verbete e marca como lido | telas | 16 ms |
+| ✅ | menu: mostra as escolhas, lê as mudanças, atualiza as miniaturas e abre cada tela | telas | 431 ms |
+| ✅ | regras: marca o tutorial como visto e chama aoFechar | telas | 45 ms |
+| ✅ | grimório: abre no verbete pedido, troca de verbete e marca como lido | telas | 19 ms |
 | ✅ | conquistas: medalhas bloqueadas e desbloqueadas, contagem e retrato | telas | 106 ms |
-| ✅ | sobre: versão, disciplina, professor e autores | telas | 13 ms |
-| ✅ | revisão: resumo, curva, linha do tempo comentada e placar da partida | telas | 72 ms |
+| ✅ | sobre: versão, disciplina, professor e autores | telas | 17 ms |
+| ✅ | revisão: resumo, curva, linha do tempo comentada e placar da partida | telas | 85 ms |
 | ✅ | iniciar: opções padrão, música ligada sem escolha e som conforme o progresso | aplicacao.js | 1 ms |
-| ✅ | salvarOpcoes, alternarMusica (liga com terreno, desliga sem) | aplicacao.js | 1 ms |
-| ✅ | jogar e irParaMenu trocam as cenas; modo imersivo pede tela cheia no toque | aplicacao.js | 2 ms |
-| ✅ | registrarMao: contadores, conquistas novas (uma vez só) e mão encerrada por truco | aplicacao.js | 1 ms |
+| ✅ | salvarOpcoes, alternarMusica (liga com terreno, desliga sem) | aplicacao.js | 7 ms |
+| ✅ | jogar e irParaMenu trocam as cenas; modo imersivo pede tela cheia no toque | aplicacao.js | 3 ms |
+| ✅ | registrarMao: contadores, conquistas novas (uma vez só) e mão encerrada por truco | aplicacao.js | 2 ms |
 | ✅ | marcarVerbeteLido: conta cada verbete uma vez e concede "Bibliotecário" no fim | aplicacao.js | 4 ms |
 
 ## `testes/unidade/nucleo-base.test.js`
@@ -148,7 +149,7 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 | ✅ | embaralhar: mesma lista em outra ordem, sem perder nem repetir itens | aleatorio.js | 0 ms |
 | ✅ | sementeNova: número inteiro | aleatorio.js | 0 ms |
 | ✅ | tabelas de valores e naipes | cartas.js | 0 ms |
-| ✅ | ehFigura: só J, Q e K | cartas.js | 0 ms |
+| ✅ | ehFigura: só J, Q e K | cartas.js | 1 ms |
 | ✅ | rotuloCarta: valor + símbolo do naipe | cartas.js | 0 ms |
 | ✅ | baralhoPadrao: 52 cartas com ids únicos | cartas.js | 0 ms |
 | ✅ | formato 3-5-5-5-5-5-4 e mão de 5 cartas | rede.js | 0 ms |
@@ -168,7 +169,7 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 | ✅ | oceano sorteia o vento; mesma semente, mesma mesa | novaMao | 0 ms |
 | ✅ | sem semente usa uma semente nova | novaMao | 0 ms |
 | ✅ | constantes de apoio | novaMao | 0 ms |
-| ✅ | cópia independente, sem eventos, em modo simulação | copiarMao | 1 ms |
+| ✅ | cópia independente, sem eventos, em modo simulação | copiarMao | 2 ms |
 | ✅ | fronteira: null sem rede; depois o último neurônio do caminho | consultas | 0 ms |
 | ✅ | alvosDeAtivacao: livres da próxima camada; vazio para rede finalizada | consultas | 0 ms |
 | ✅ | alvosDeEmpilhamento: só fronteiras ocultas de redes em construção | consultas | 1 ms |
@@ -185,14 +186,14 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 | ✅ | início "revela e descarta": as cartas vão para o cemitério; empate vai para o sorteio | aplicarJogada | 0 ms |
 | ✅ | ativar: revela, liga à rede e passa a vez | aplicarJogada | 0 ms |
 | ✅ | ativar na camada de saída conclui a rede | aplicarJogada | 1 ms |
-| ✅ | tunagem, overfit, early stop e stack overflow | aplicarJogada | 3 ms |
+| ✅ | tunagem, overfit, early stop e stack overflow | aplicarJogada | 97 ms |
 | ✅ | dropout: desvira, paga com cartas e não gasta o turno | aplicarJogada | 1 ms |
 | ✅ | transfer learning: troca quatro iguais por cartas do limbo | aplicarJogada | 0 ms |
 | ✅ | Power BI troca a mão depois de uma ação | aplicarJogada | 0 ms |
 | ✅ | passar: só sem neurônio livre; dois passes seguidos encerram a mão | aplicarJogada | 0 ms |
 | ✅ | erros: fora da vez, mão não iniciada, jogada desconhecida, carta fora da mão | aplicarJogada | 0 ms |
-| ✅ | rede travada antes da saída pode ser finalizada por early stop no próprio neurônio | aplicarJogada | 1 ms |
-| ✅ | mão jogada até o fim tem vencedor, somas e motivo | fim da mão e desempates | 1 ms |
+| ✅ | rede travada antes da saída pode ser finalizada por early stop no próprio neurônio | aplicarJogada | 0 ms |
+| ✅ | mão jogada até o fim tem vencedor, somas e motivo | fim da mão e desempates | 3 ms |
 | ✅ | 1º desempate: menos dropouts | fim da mão e desempates | 0 ms |
 | ✅ | 2º: quem ficou sem cartas perde | fim da mão e desempates | 0 ms |
 | ✅ | 3º: soma das melhores cartas da mão | fim da mão e desempates | 0 ms |
@@ -217,7 +218,7 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 
 | | Teste | Grupo | Duração |
 |---|---|---|---:|
-| ✅ | escada 1-3-6-9-12 e gritos | truco.js | 1 ms |
+| ✅ | escada 1-3-6-9-12 e gritos | truco.js | 2 ms |
 | ✅ | novaPartida e proximaMao zeram o valor e o pedido | truco.js | 0 ms |
 | ✅ | podeTrucar: não em mão única, não com pedido aberto, não quem aumentou por último, não na mão de onze | truco.js | 0 ms |
 | ✅ | responderTruco: aceitar sobe o valor; aumentar devolve o pedido; correr entrega o valor atual | truco.js | 0 ms |
@@ -228,11 +229,56 @@ Resultado em formato JUnit (para ferramentas de CI): [`resultado.junit.xml`](res
 | ✅ | avaliar: ±1000 no fim, vantagem projetada durante a mão | oponentes/comum.js | 1 ms |
 | ✅ | agruparEquivalentes e concretizar: ativações desconhecidas da mesma camada viram uma jogada com alternativas | oponentes/comum.js | 0 ms |
 | ✅ | simularAteOFim e chanceDeVitoria | oponentes/comum.js | 4 ms |
-| ✅ | jogadaAleatoria, jogadaGulosa e jogadaMonteCarlo devolvem jogadas legais | oponentes/estrategias.js | 97 ms |
+| ✅ | jogadaAleatoria, jogadaGulosa e jogadaMonteCarlo devolvem jogadas legais | oponentes/estrategias.js | 99 ms |
 | ✅ | Monte Carlo com uma jogada só devolve direto | oponentes/estrategias.js | 0 ms |
 | ✅ | três perfis com nome, nível, método, avatar e estilo | oponentes/index.js | 0 ms |
 | ✅ | escolherJogada: carta de início por perfil e jogada por estratégia | oponentes/index.js | 1 ms |
-| ✅ | querTrucar e responderAoTruco: respostas válidas para cada perfil | oponentes/index.js | 144 ms |
+| ✅ | querTrucar e responderAoTruco: respostas válidas para cada perfil | oponentes/index.js | 260 ms |
+
+## `testes/unidade/regras-de-negocio.test.js`
+
+| | Teste | Grupo | Duração |
+|---|---|---|---:|
+| ✅ | RN-01 mesa 3-5-5-5-5-5-4 virada, 5 cartas na mão de cada jogador e 10 no limbo (52 no total) | Preparação da mesa | 2 ms |
+| ✅ | RN-02 opção (a): cada um revela uma carta, a maior começa e as cartas vão para o cemitério | Quem começa | 1 ms |
+| ✅ | RN-03 opção (b): a maior começa e as cartas reveladas voltam para a mão | Quem começa | 0 ms |
+| ✅ | RN-04 opção (c): par ou ímpar sorteia quem começa e a mão já está em jogo | Quem começa | 0 ms |
+| ✅ | RN-05 força das cartas para começar: Ás > K > Q > J > 10 … 2 | Quem começa | 0 ms |
+| ✅ | RN-06 um neurônio por camada, só na próxima camada, e cada neurônio tem um único dono | Construção da rede | 1 ms |
+| ✅ | RN-07 ao chegar à camada de saída a rede está concluída, com 7 neurônios | Construção da rede | 2 ms |
+| ✅ | RN-08 números valem o valor, Ás vale 11 e figura isolada vale 0 | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-09 par de figuras iguais em camadas vizinhas vale 10 no total | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-10 trio de figuras iguais vizinhas vale 20 | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-11 figuras iguais não vizinhas, ou vizinhas e diferentes, não pontuam | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-12 quadra de figuras iguais vizinhas zera a rede inteira (vanishing gradient) | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-13 exemplo do enunciado: 8-K-K-3 vale 21; com tunagem num K vale 41 | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-14 tunar os dois Reis de um par forma quadra e zera a rede | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-15 tunagem numérica soma o valor da carta empilhada; em figura isolada soma 10 | Pontuação (baralho clássico) | 0 ms |
+| ✅ | RN-16 entrada e saída são imunes: só a fronteira em camada oculta aceita cartas | Ações com cartas da mão | 0 ms |
+| ✅ | RN-17 empilhar exige carta de mesmo valor; o naipe não importa | Ações com cartas da mão | 0 ms |
+| ✅ | RN-18 overfit: 1 carta no último neurônio do rival manda o neurônio ao cemitério e a rede dele recua | Ações com cartas da mão | 1 ms |
+| ✅ | RN-19 early stop: pilha de 3 cartas finaliza a rede do rival sem esse neurônio | Ações com cartas da mão | 0 ms |
+| ✅ | RN-20 neurônio já tunado (2 cartas) sofre early stop com uma única carta do rival | Ações com cartas da mão | 0 ms |
+| ✅ | RN-21 stack overflow: pilha de 4 finaliza a rede do rival e ele perde toda a mão | Ações com cartas da mão | 0 ms |
+| ✅ | RN-22 auto early stop e auto stack overflow: empilhar 2 ou 3 cartas na própria fronteira encerra a própria rede | Ações com cartas da mão | 0 ms |
+| ✅ | RN-23 rede finalizada não pode mais ser atacada | Ações com cartas da mão | 0 ms |
+| ✅ | RN-24 dropout custa uma carta por camada desfeita, não gasta o turno e conta no desempate | Dropout (GatoNet) e transfer learning | 0 ms |
+| ✅ | RN-25 o neurônio desfeito volta virado e livre, com valor conhecido; as tunagens vão ao cemitério | Dropout (GatoNet) e transfer learning | 0 ms |
+| ✅ | RN-26 dropout não desfaz a camada de entrada | Dropout (GatoNet) e transfer learning | 1 ms |
+| ✅ | RN-27 transfer learning: quadra na mão troca por cartas do limbo, uma vez por mão, e gasta o turno | Dropout (GatoNet) e transfer learning | 0 ms |
+| ✅ | RN-28 sem quadra na mão não há transfer learning | Dropout (GatoNet) e transfer learning | 0 ms |
+| ✅ | RN-29 com neurônio livre para ativar não é permitido passar | Passar a vez e fim da mão | 0 ms |
+| ✅ | RN-30 rede concluída pode passar mesmo tendo um ataque possível | Passar a vez e fim da mão | 0 ms |
+| ✅ | RN-31 rede travada (sem neurônio livre na próxima camada) continua aberta e conta a soma parcial | Passar a vez e fim da mão | 0 ms |
+| ✅ | RN-32 1º critério: menos dropouts | Desempates (soma igual) | 0 ms |
+| ✅ | RN-33 2º critério: maior soma das N melhores cartas da mão (N = tamanho da menor mão) | Desempates (soma igual) | 0 ms |
+| ✅ | RN-34 quem ficou sem cartas na mão perde para quem tem pelo menos uma | Desempates (soma igual) | 0 ms |
+| ✅ | RN-35 3º critério: carta mais alta da mão, comparada pelos pontos e depois pela força | Desempates (soma igual) | 0 ms |
+| ✅ | RN-36 último critério: vence quem jogou primeiro | Desempates (soma igual) | 0 ms |
+| ✅ | RN-37 escada TRUCO (3) → SEIS (6) → NOVE (9) → DOZE (12); correr entrega o valor atual | Camada de truco (partida até 12 tentos) | 0 ms |
+| ✅ | RN-38 quem aumentou por último não pede de novo; mão única e mão de onze não têm truco | Camada de truco (partida até 12 tentos) | 0 ms |
+| ✅ | RN-39 a partida termina quando alguém chega a 12 tentos | Camada de truco (partida até 12 tentos) | 0 ms |
+| ✅ | RN-40 em 200 mãos aleatórias (4 baralhos x 4 terrenos x 3 inícios) nenhuma carta some ou duplica, os donos batem com as redes e toda mão termina | Invariantes em partidas aleatórias | 181 ms |
 
 ## `testes/unidade/som-sem-audio.test.js`
 

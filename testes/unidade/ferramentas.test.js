@@ -9,7 +9,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tipoDeMudanca, proximaVersao } from '../../ferramentas/versionar.js';
+import { tipoDeMudanca, proximaVersao, dataEmBrasilia } from '../../ferramentas/versionar.js';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 let copia;
@@ -45,6 +45,12 @@ describe('versionar.js', () => {
     assert.equal(proximaVersao('1.4.2', 'maior'), '2.0.0');
     assert.equal(proximaVersao('1.4.2', 'menor'), '1.5.0');
     assert.equal(proximaVersao('1.4.2', 'correcao'), '1.4.3');
+  });
+  it('dataEmBrasilia: o dia no horário de Brasília, não em UTC', () => {
+    /* 01:21 UTC do dia 10 ainda é 22:21 do dia 9 em Brasília */
+    assert.equal(dataEmBrasilia(new Date('2026-11-10T01:21:00Z')), '2026-11-09');
+    assert.equal(dataEmBrasilia(new Date('2026-11-10T03:30:00Z')), '2026-11-10');
+    assert.match(dataEmBrasilia(), /^\d{4}-\d{2}-\d{2}$/);
   });
   it('--simular só mostra a próxima versão', () => {
     const antes = ler('package.json');

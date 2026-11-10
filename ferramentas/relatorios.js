@@ -195,6 +195,9 @@ function escreverResumo(suites, cobertura, medidas, contexto) {
       medidas.filter((m) => destaque.includes(m.nome)).map((m) => '| ' + m.nome + ' | ' + num(m.valor) + ' ' + m.unidade + ' | ' + (m.melhor === 'menor' ? '≤ ' : '≥ ') + num(m.limite) + ' |').join('\n') +
       '\n\nTodas as medidas em [performance/](performance/README.md).\n';
   }
+  if (existsSync(join(saida, 'validacao', 'README.md'))) {
+    md += '\n## Validação das regras de negócio\n\nTestes de aceitação RN-01 a RN-40 (dentro da suíte de unidade), testes funcionais no site e pontos de regra para validar com o professor: [validacao/](validacao/README.md).\n';
+  }
   md += '\n## Como rodar\n\n```bash\nnpm run testar              # unidade\nnpm run testar:interface    # interface (Chromium)\nnpm run testar:performance  # performance\nnpm run relatorios          # tudo + relatórios e cobertura\n```\n';
   writeFileSync(join(saida, 'README.md'), md);
 }

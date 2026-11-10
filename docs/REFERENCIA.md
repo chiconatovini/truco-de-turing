@@ -830,6 +830,7 @@ Versionamento do jogo (versionamento semântico MAIOR.MENOR.CORREÇÃO). Roda no
 | `lerArgumentos(lista)` | função | Lê os argumentos `--chave valor` (e `--chave` sozinho como verdadeiro). |
 | `tipoDeMudanca(titulo = '', rotulos = [])` | função (exportada) | Decide que parte da versão sobe. |
 | `proximaVersao(versao, tipo)` | função (exportada) | Soma uma versão: '1.4.2' + 'menor' → '1.5.0'. |
+| `dataEmBrasilia(agora = new Date()` | função (exportada) | Data de hoje (AAAA-MM-DD) no horário de Brasília. |
 | `gravarModuloDeVersao(versao, data)` | função | Grava a versão em src/versao.js. |
 | `gravarNoReadme(versao, data)` | função | Troca a linha de versão do README (entre os marcadores). |
 | `gravarNoHistorico(versao, data, titulo, pr, repositorio)` | função | Acrescenta a entrada da versão no topo do CHANGELOG.md. |

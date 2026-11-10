@@ -60,6 +60,11 @@ export function proximaVersao(versao, tipo) {
   return maior + '.' + menor + '.' + (correcao + 1);
 }
 
+/** Data de hoje (AAAA-MM-DD) no horário de Brasília. */
+export function dataEmBrasilia(agora = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(agora);
+}
+
 /** Grava a versão em src/versao.js. */
 function gravarModuloDeVersao(versao, data) {
   writeFileSync(caminho('src/versao.js'),
@@ -107,7 +112,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     console.log(versao);
     process.exit(0);
   }
-  const data = (process.env.DATA_DA_VERSAO || new Date().toISOString()).slice(0, 10);
+  /* data no horário de Brasília (o CI roda em UTC, o que adiantava o dia depois das 21h) */
+  const data = process.env.DATA_DA_VERSAO || dataEmBrasilia();
   pacote.version = versao;
   writeFileSync(caminho('package.json'), JSON.stringify(pacote, null, 2) + '\n');
   if (existsSync(caminho('package-lock.json'))) {

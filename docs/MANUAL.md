@@ -339,7 +339,7 @@ Os testes usam o executor nativo do Node (`node:test`), sem framework extra:
 
 | Pasta | O que testa | Como |
 |---|---|---|
-| `testes/unidade/` | regras, oponentes, conteúdo, arte, telas HTML, som, música, aplicação e ferramentas | Node; `testes/apoio/ambiente.js` cria um navegador de mentira (jsdom + canvas de verdade do `@napi-rs/canvas` + WebAudio que registra os nós) |
+| `testes/unidade/` | regras, oponentes, conteúdo, arte, telas HTML, som, música, aplicação e ferramentas; em `regras-de-negocio.test.js`, os testes de aceitação RN-01 a RN-40 (ver `relatorios/validacao/`) | Node; `testes/apoio/ambiente.js` cria um navegador de mentira (jsdom + canvas de verdade do `@napi-rs/canvas` + WebAudio que registra os nós) |
 | `testes/interface/` | o jogo inteiro: menu, partidas contra cada oponente, duas pessoas, cada ação, truco, dicas (mouse e toque), celular | Chromium via Playwright; `testes/apoio/navegador.js` sobe um servidor local, serve os módulos sem empacotar e acelera o tempo da cena |
 | `testes/performance/` | tempos e limites do motor, oponentes, arte, empacotamento e do jogo no navegador | `testes/apoio/medidas.js` cronometra e confere cada limite |
 
