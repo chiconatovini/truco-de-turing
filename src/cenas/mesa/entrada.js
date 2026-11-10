@@ -13,6 +13,7 @@ import { Som } from '../../interface/som.js';
 import { confirmar, abrirPainel } from '../../interface/paineis.js';
 import { abrirRegras } from '../../interface/telas/regras.js';
 import { abrirGrimorio } from '../../interface/telas/grimorio.js';
+import { abrirAjudaDasAcoes } from '../../interface/telas/ajudaDasAcoes.js';
 import { texturaDeInspecao } from '../recursos.js';
 import { colunaX, linhaY, NOME_DA_ACAO, cartaDaMesa } from './layout.js';
 
@@ -20,7 +21,6 @@ import { colunaX, linhaY, NOME_DA_ACAO, cartaDaMesa } from './layout.js';
 const ACAO_DO_MOTOR = { tunagem: 'tune', overfit: 'overfit', earlystop: 'earlystop', stackoverflow: 'stackoverflow', dropout: 'dropout', transfer: 'transfer', passar: 'pass' };
 
 export const metodosDeEntrada = {
-  /** Cursor sobre um neurônio: mostra a carta na inspeção e explica o efeito de clicar. */
   /** Aproxima a carta da mesa sob o cursor (zoom leve, por cima das vizinhas) e a devolve ao sair. */
   realcarNeuronio(id, entrando) {
     const v = this.visuais && this.visuais[id];
@@ -33,6 +33,7 @@ export const metodosDeEntrada = {
     this.tweens.add({ targets: v.imagem, scaleX: bx * f, scaleY: by * f, duration: 110, ease: 'Quad.easeOut' });
   },
 
+  /** Cursor sobre um neurônio: mostra a carta na inspeção e explica o efeito de clicar. */
   aoPassarNoNeuronio(id, entrando) {
     const mao = this.mao, n = mao.neuronios[id], baralho = mao.config.baralho;
     this.realcarNeuronio(id, entrando);
@@ -102,6 +103,7 @@ export const metodosDeEntrada = {
   explicarAcao(id) {
     const mao = this.mao;
     if (!mao) return '';
+    if (id !== 'limpar') this.ultimaAcaoExplicada = id; /* o "?" abre a ajuda nesta ação */
     const eu = this.quemVe, nome = NOME_DA_ACAO[id];
     const regra = ACAO_DO_MOTOR[id] ? ' Regra: ' + NeuroDeck.action(ACAO_DO_MOTOR[id]).rule : '';
     if (!this.ehVezDoHumano()) return nome + ': espere a sua vez.' + regra;
@@ -229,21 +231,23 @@ export const metodosDeEntrada = {
 
   /** Botão Menu: confirma antes de abandonar a partida. */
   /**
-   * Botão REGRAS da mesa: como jogar, Grimório e a chave das dicas, numa janela só.
+   * Botão REGRAS da mesa: como jogar, Biblioteca de conceitos e a chave das dicas, numa janela só.
    */
   abrirRegrasDaMesa() {
     const dicas = this.app.dicasLigadas;
     const painel = abrirPainel(
       '<div class="folha estreita janela-da-mesa"><h2>Regras</h2>' +
-      '<p>Consulte as regras, os conceitos de redes neurais do Grimório ou ligue as dicas durante a partida.</p>' +
+      '<p>Consulte as regras, a ajuda de cada ação, os conceitos de redes neurais da Biblioteca ou ligue as dicas durante a partida.</p>' +
       '<div class="grade-de-botoes">' +
       '<button class="botao" data-opcao="regras">Como jogar</button>' +
-      '<button class="botao" data-opcao="grimorio">Grimório</button>' +
+      '<button class="botao" data-opcao="ajuda">Ajuda das ações</button>' +
+      '<button class="botao" data-opcao="grimorio">Biblioteca de conceitos</button>' +
       '<button class="botao ' + (dicas ? 'discreto' : 'vinho') + '" data-opcao="dicas" data-chave="dicas">' + (dicas ? 'Desligar dicas' : 'Ativar dicas') + '</button>' +
       '<button class="botao discreto" data-fechar>Voltar ao jogo</button>' +
       '</div></div>', { fechaAoClicarFora: true });
     const acoes = {
-      regras: () => abrirRegras(null),
+      regras: () => abrirRegras(this.app),
+      ajuda: () => this.abrirAjudaDaMesa(),
       grimorio: () => abrirGrimorio(this.app),
       dicas: () => this.alternarDicas(),
     };
@@ -252,6 +256,11 @@ export const metodosDeEntrada = {
       acoes[b.dataset.opcao]();
     }));
     return painel;
+  },
+
+  /** Botão "?" da mesa: ajuda das ações, aberta na última ação explicada no quadro. */
+  abrirAjudaDaMesa() {
+    return abrirAjudaDasAcoes(this.app, this.ultimaAcaoExplicada);
   },
 
   /**

@@ -171,7 +171,7 @@ export const metodosDoCenario = {
     });
     p.dica = this.criarTexto(PAINEL_ESQ.x + 14, ESQ.dica, '', { fontSize: '13.5px', color: '#efe3c6', wordWrap: { width: PAINEL_ESQ.l - 28 }, lineSpacing: 1 });
 
-    /* só dois botões no rodapé: REGRAS (como jogar, Grimório e dicas) e MENU (som, música, sair) */
+    /* só dois botões no rodapé: REGRAS (como jogar, Biblioteca de conceitos e dicas) e MENU (som, música, sair) */
     const lb = (PAINEL_ESQ.l - 28 - 10) / 2, pedra = { tamanho: 17, variante: 'pedra' };
     p.botaoRegras = this.criarBotao(PAINEL_ESQ.x + 14 + lb / 2, ESQ.botoes, lb, ESQ.alturaBotao, 'REGRAS', () => this.abrirRegrasDaMesa(), pedra);
     p.botaoMenu = this.criarBotao(PAINEL_ESQ.x + PAINEL_ESQ.l - 14 - lb / 2, ESQ.botoes, lb, ESQ.alturaBotao, 'MENU', () => this.abrirMenuDaMesa(), pedra);
@@ -260,7 +260,13 @@ export const metodosDoCenario = {
    */
   criarBotoesDeAcao(p) {
     const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-    p.truco = this.criarBotao(rc, DIR.truco, rl, DIR.alturaTruco, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 20, dica: 'truco' });
+    /* TRUCO! e, ao lado, o "?" com a ajuda das ações (regra, quando acende e o conceito) */
+    const lado = DIR.alturaTruco + 4, lt = rl - lado - 6;
+    p.truco = this.criarBotao(rx + lt / 2, DIR.truco, lt, DIR.alturaTruco, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 20, dica: 'truco' });
+    p.botaoAjuda = this.criarBotao(rx + rl - lado / 2, DIR.truco, lado, DIR.alturaTruco, '?', () => this.abrirAjudaDaMesa(), {
+      variante: 'pedra', tamanho: 22,
+      explicar: () => 'Ajuda das ações: a regra de cada jogada, quando o botão acende e o conceito de redes neurais por trás dela.',
+    });
     const espaco = 6, bl = (rl - espaco * 3) / 4, coluna = (i) => rx + bl / 2 + i * (bl + espaco);
     const acoes = {
       tunagem: () => this.executarAcao('tunagem'), overfit: () => this.executarAcao('overfit'),

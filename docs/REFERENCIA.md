@@ -8,7 +8,8 @@ Estado da aplicação fora da partida: opções do menu, progresso salvo, conqui
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `OPCOES_PADRAO` | constante | Opções usadas na primeira visita. |
+| `OPCOES_PADRAO` | constante (exportada) | Opções usadas na primeira visita. `jogadores` é o total na mesa (2 a 5), `humanos` quantos deles jogam no mesmo aparelho (os outros são oponentes do perfil `oponente`), `arquitetura` é uma das arquiteturas do NeuroDeck e `baralhos` quantos baralhos entram na partida. |
+| `normalizarOpcoes(opcoes)` | função (exportada) | Normaliza as opções do menu: completa as que faltam (progresso de versões antigas) e converte o antigo oponente "2 humanos no mesmo aparelho" em `humanos: 2`. |
 | `iniciar()` | método | Carrega opções e preferência de som. |
 | `salvar()` | método | Grava o progresso. |
 | `salvarOpcoes()` | método | Grava as escolhas do menu para a próxima visita. |
@@ -211,7 +212,7 @@ Cena do menu: fundo animado (uma rede neural pulsando e cartas flutuando) atrás
 
 ## `src/cenas/mesa/CenaMesa.js`
 
-Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos do Grimório | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
+Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.numJogadores`, `this.humanos`, `this.variosHumanos`: quem está na mesa (os humanos são os primeiros índices; os demais são oponentes do computador); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -226,12 +227,13 @@ Parte da CenaMesa: elementos fixos da tela (molduras dos painéis, colunas das c
 |---|---|---|
 | `COR_ROTULO` | constante | Cor do rótulo de cada variante de botão. |
 | `desenharCenarioFixo()` | método | Molduras dos painéis laterais, divisórias e colunas das camadas com seus nomes. |
-| `criarBotao(x, y, l, a, rotulo, acao, opcoes = {})` | método | Cria um botão com textura própria e rótulo que se ajusta à largura. O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`. Com `opcoes.dica`, o botão mostra uma dica flutuante (modo "dicas" ligado): ao passar o mouse, ou, no celular, ao segurar o botão apertado. Soltar depois de segurar não executa a ação, para que dê para ler a dica sem jogar sem querer. A ação roda ao soltar o toque/clique. |
+| `criarBotao(x, y, l, a, rotulo, acao, opcoes = {})` | método | Cria um botão com textura própria e rótulo que se ajusta à largura. O objeto devolvido ganha `definirRotulo(texto)` e `habilitar(sim)`. Com `opcoes.dica`, o botão mostra uma dica flutuante (modo "dicas" ligado): ao passar o mouse, ou, no celular, ao segurar o botão apertado. Soltar depois de segurar não executa a ação, para que dê para ler a dica sem jogar sem querer. A ação roda ao soltar o toque/clique. `explicar`, quando dado, devolve o texto que aparece no quadro de instruções (painel esquerdo) enquanto o cursor está sobre o botão: o que a ação faria agora, antes de confirmar. |
 | `criarPaineis()` | método | Cria os textos, imagens e botões dos painéis. Ficam em `this.painel`. |
 | `criarTexto(x, y, s, estilo)` | método | Atalho para criar texto na fonte do corpo, já na profundidade dos painéis. |
 | `criarPainelEsquerdo(p)` | método | Painel esquerdo: inspeção, limbo e cemitério (como pilhas), terreno e dica do turno. |
-| `criarPlacar(p)` | método | Placar (painel direito): título da mão e um bloco por jogador com avatar, nome, nível, situação, detalhes, tentos e soma da rede. O bloco de cima é o adversário de quem está vendo. |
-| `criarBotoesDeAcao(p)` | método | Botão de truco (logo acima das ações) e os três botões de ação, grandes e quase quadrados. |
+| `criarPlacar(p)` | método | Placar (painel direito): título da mão e um bloco por jogador com avatar, nome, nível, situação, detalhes, tentos e soma da rede. Os blocos de cima são os adversários de quem está vendo; o dele fica por último. Com mais de 2 jogadores os blocos são compactos (ver `blocosDoPlacar` em layout.js). |
+| `criarBlocoCompacto(rx, y, rl, a)` | método | Bloco compacto do placar (mesas com 3 a 5 jogadores): avatar pequeno, nome, uma linha com a situação e a mão, e a soma à direita. Tem os mesmos campos do bloco grande, para que `atualizarBlocoDoJogador` sirva aos dois. |
+| `criarBotoesDeAcao(p)` | método | Botão de truco e a barra de ações, como no NeuroDeck: selecione cartas da mão e acendem só os botões das jogadas possíveis com elas; passar o cursor num botão explica o efeito no quadro de instruções antes de confirmar. Os botões ficam em `p.acoes[id]`; dropout, transfer e passar também em `p.botaoDropout`, `p.botaoTransfer` e `p.botaoPassar`. |
 | `atualizarChaves()` | método | Atualiza os rótulos das chaves (som, música e dicas) nas janelas REGRAS e MENU, se abertas. O botão REGRAS ganha uma estrela quando as dicas estão ligadas. |
 
 ## `src/cenas/mesa/desenho.js`
@@ -244,24 +246,29 @@ Parte da CenaMesa: desenhar o estado da mão na tela. Neurônios, mãos, placar,
 | `mostrarDica(texto)` | método | Mostra a dica do turno no rodapé do painel esquerdo. |
 | `redesenhar()` | método | Redesenha tudo a partir do estado: pontuações, alvos, neurônios, mãos e painéis. |
 | `desenharMaos()` | método | Desenha a mão do jogador de baixo (aberta) e a do de cima (versos). |
+| `posicaoDaMaoDeCima(k, n)` | método | Centro e largura do leque de cartas de um adversário no alto da mesa. |
 | `notaDaCartaDaMao(carta)` | método | Nota da inspeção para uma carta da mão: onde ela pode ser usada agora. |
 | `atualizarPaineis()` | método | Atualiza os textos e botões dos painéis. |
 | `textoComDicaDeJogo()` | método | Dica do turno e, com as dicas ligadas, o título da dica de jogo atual. |
 | `atualizarPilha(pilha, nome, quantidade, texturaDoTopo)` | método | Desenha uma pilha (limbo ou cemitério): a carta do topo (ou o verso), bordas de cartas empilhadas por baixo quando há mais de uma, o contador e o rótulo. |
 | `atualizarBlocoDoJogador(b, j)` | método | Bloco de placar de um jogador: avatar, nome, nível, situação, detalhes, tentos e soma. |
+| `textoDaSituacao(j)` | método | Situação da rede do jogador e a camada em que está: "em construção · camada 3/6". |
+| `atualizarBlocoCompacto(b, j, naVez)` | método | Bloco compacto do placar (3 a 5 jogadores): nome, situação, mão e tentos numa linha, e a soma. |
 | `estaNaVez(j)` | método | O jogador `j` está na vez (e a mão está em andamento)? |
 | `desenharDestaqueDaVez(tempo)` | método | Brilho pulsante em volta do bloco de placar de quem está na vez (desenhado a cada quadro). |
 | `atualizarBotoes()` | método | Habilita os botões conforme o que o jogador pode fazer agora. |
 | `atualizarRegistro()` | método | Registro de jogadas: as linhas mais recentes que couberem. |
 | `desenharCurva()` | método | Curva de treino: soma de cada rede a cada turno. |
 | `textoDaDica()` | método | Texto de ajuda do momento, conforme a fase e o modo de seleção. |
+| `alvosDaAcao(tipo)` | método | Neurônios onde a ação da barra pode ser feita com a seleção atual. "Tunagem" é qualquer pilha na própria rede (inclusive a de 3 e 4 cartas, que aplica early stop ou stack overflow em si); os outros três são ataques à rede de um rival. |
+| `dropoutPossivel()` | método | Dá para fazer dropout agora? Com cartas selecionadas, desfazendo uma camada por carta. |
 | `valorSelecionado()` | método | Valor (A, 2…K) das cartas selecionadas na mão. |
 | `calcularAlvos()` | método | Calcula quais neurônios podem ser clicados agora e com que efeito (em `this.alvos`). |
 | `desenharConexoesEAlvos(tempo)` | método | Desenho contínuo (a cada quadro): contorno e conexões de cada rede, com espessura proporcional ao valor, pulsos de "sinal" percorrendo as ligações e o contorno pulsante dos alvos. |
 
 ## `src/cenas/mesa/dicas.js`
 
-Parte da CenaMesa: o modo "dicas". Com as dicas ligadas, o jogador recebe: - a cada vez, uma **dica de jogo** (conteudo/dicasDeJogo.js) no estilo do Grimório: uma oportunidade, um risco ou uma estratégia geral, sempre com o conceito de redes neurais por trás. As dicas usam só informação pública e nunca apontam qual neurônio oculto ativar; - **dicas flutuantes** nos botões de ação (Dropout, Transfer, Passar e TRUCO): ao passar o mouse ou, no celular, ao segurar o botão. Explicam a ação, o que vale fazer agora (no truco, a chance estimada por simulação) e o conceito do Grimório; - a chance estimada de vitória também na caixa de resposta ao truco. Em troca, a mão jogada com dicas (ligadas em algum momento) não vale conquistas nem conta nas estatísticas. O aviso aparece ao ligar.
+Parte da CenaMesa: o modo "dicas". Com as dicas ligadas, o jogador recebe: - a cada vez, uma **dica de jogo** (conteudo/dicasDeJogo.js) no estilo da Biblioteca de conceitos: uma oportunidade, um risco ou uma estratégia geral, sempre com o conceito de redes neurais por trás. As dicas usam só informação pública e nunca apontam qual neurônio oculto ativar; - **dicas flutuantes** nos botões de ação (Dropout, Transfer, Passar e TRUCO): ao passar o mouse ou, no celular, ao segurar o botão. Explicam a ação, o que vale fazer agora (no truco, a chance estimada por simulação) e o conceito da Biblioteca de conceitos; - a chance estimada de vitória também na caixa de resposta ao truco. Em troca, a mão jogada com dicas (ligadas em algum momento) não vale conquistas nem conta nas estatísticas. O aviso aparece ao ligar.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -278,14 +285,14 @@ Parte da CenaMesa: o modo "dicas". Com as dicas ligadas, o jogador recebe: - a c
 
 ## `src/cenas/mesa/efeitos.js`
 
-Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo/partida.js) em giros de carta, cartas voando, faíscas, faixas de texto, tremidas de câmera, balão de fala do oponente e avisos do Grimório.
+Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo/partida.js) em giros de carta, cartas voando, faíscas, faixas de texto, tremidas de câmera, balão de fala do oponente e avisos da Biblioteca de conceitos.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `ATAQUES` | constante | Cor e título de cada ataque. |
 | `corCss` | constante | Número de cor 0xRRGGBB para texto CSS. |
 | `posicaoDoNeuronio(id)` | método | Centro do neurônio na tela. |
-| `origemDasCartas(j)` | método | Ponto de onde saem as cartas jogadas por `j` (a mão de baixo ou a de cima). |
+| `origemDasCartas(j)` | método | Ponto de onde saem as cartas jogadas por `j` (a mão de baixo ou o leque dele no alto). |
 | `animarEventos(eventos, jogada)` | método | Anima uma lista de eventos das regras. |
 | `animar_ativacao(evento)` | método | Neurônio revelado: gira a carta e mostra os pontos ganhos. |
 | `animar_tunagem(evento)` | método | Tunagem: cartas voam para o neurônio e somam pontos. |
@@ -303,9 +310,9 @@ Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo
 | `explodir(x, y, cor, quantidade)` | método | Explosão de `quantidade` faíscas da cor dada. A faísca colorida é uma textura própria (Canvas não tem tint). |
 | `textoFlutuante(x, y, texto, cor = '#fff', tamanho = 20)` | método | Texto que sobe e desaparece. |
 | `faixa(texto, cor = '#f6dc8f', tamanho = 48)` | método | Faixa grande no centro do tabuleiro (gritos de truco, ataques). |
-| `falar(texto)` | método | Balão de fala do oponente. Fica à esquerda do placar, na altura do bloco do oponente, com a ponta virada para o avatar dele. |
+| `falar(texto, quem)` | método | Balão de fala de um oponente. Fica à esquerda do placar, na altura do bloco dele, com a ponta virada para o avatar. |
 | `impactoDoTruco(valor)` | método | Impacto do grito de truco: tapa na mesa, flash e tremor de tela mais fortes que o do stack overflow, crescendo a cada degrau (TRUCO 3, SEIS 6, NOVE 9, DOZE 12). |
-| `avisarVerbete(id)` | método | Mostra uma vez por sessão o resumo do verbete do Grimório ligado ao que aconteceu. |
+| `avisarVerbete(id)` | método | Mostra uma vez por sessão o resumo do verbete da Biblioteca de conceitos ligado ao que aconteceu. |
 
 ## `src/cenas/mesa/entrada.js`
 
@@ -313,19 +320,25 @@ Parte da CenaMesa: respostas a toques e cliques do jogador. Passar o cursor nos 
 
 | Nome | Tipo | Descrição |
 |---|---|---|
+| `ACAO_DO_MOTOR` | constante | Ação do motor do NeuroDeck correspondente a cada botão (para o texto da regra). |
+| `realcarNeuronio(id, entrando)` | método | Aproxima a carta da mesa sob o cursor (zoom leve, por cima das vizinhas) e a devolve ao sair. |
 | `aoPassarNoNeuronio(id, entrando)` | método | Cursor sobre um neurônio: mostra a carta na inspeção e explica o efeito de clicar. |
+| `executarAcao(tipo)` | método | Botão de empilhar da barra (tunagem, overfit, early stop, stack overflow): com um alvo só, joga direto; com mais de um (vários rivais), destaca só os alvos dessa ação e espera o clique. |
+| `acionarDropout()` | método | Botão Dropout: com cartas selecionadas, desfaz uma camada por carta e paga com elas (como no NeuroDeck); sem seleção, entra no modo de escolher até onde desfazer no tabuleiro. |
+| `explicarAcao(id)` | método | Texto do quadro de instruções para um botão da barra: o que ele faria agora, com as cartas selecionadas, ou o que falta para ele acender; depois, a regra do NeuroDeck. |
 | `aoClicarNoNeuronio(id)` | método | Clique num neurônio: ativa, empilha as cartas selecionadas ou escolhe o alcance do dropout. |
 | `aoClicarNaCarta(idCarta)` | método | Clique numa carta da mão: escolhe a carta de início, paga o dropout ou monta a seleção. |
 | `cancelarSelecao()` | método | Esc: limpa a seleção e sai do modo de dropout. |
 | `alternarDropout()` | método | Botão Dropout: entra ou sai do modo de escolher o alcance. |
 | `fazerTransfer()` | método | Botão Transfer: troca as quatro cartas iguais da mão. |
 | `passarAVez()` | método | Botão Passar a vez. |
-| `abrirRegrasDaMesa()` | método | Botão REGRAS da mesa: como jogar, Grimório e a chave das dicas, numa janela só. |
+| `abrirRegrasDaMesa()` | método | Botão REGRAS da mesa: como jogar, Biblioteca de conceitos e a chave das dicas, numa janela só. |
+| `abrirAjudaDaMesa()` | método | Botão "?" da mesa: ajuda das ações, aberta na última ação explicada no quadro. |
 | `abrirMenuDaMesa()` | método | Botão MENU da mesa: som e música (a janela fica aberta para ligar e desligar), voltar ao jogo ou abandonar a partida. |
 
 ## `src/cenas/mesa/layout.js`
 
-Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coordenadas do mundo (1280x720). Painel esquerdo: inspeção, pilhas e dica. Centro: as sete camadas da rede e as mãos. Painel direito: placar, truco, curva e ações. Os botões são grandes (≥ 52 de altura) para o toque no celular, e a área de toque passa um pouco da borda desenhada (`FOLGA_DE_TOQUE`).
+Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coordenadas do mundo (1280x720). Painel esquerdo: inspeção, pilhas e dica. Centro: as camadas da rede e as mãos. Painel direito: placar, truco, curva e ações. A geometria do tabuleiro depende da mesa (arquitetura e número de jogadores): `definirMesa` calcula, uma vez por partida, o espaço entre colunas e linhas e o tamanho das cartas da mesa, e `colunaX`, `linhaY` e `cartaDaMesa` passam a responder para essa mesa. Os botões são grandes (≥ 52 de altura) para o toque no celular, e a área de toque passa um pouco da borda desenhada (`FOLGA_DE_TOQUE`).
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -333,16 +346,35 @@ Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coor
 | `PAINEL_DIR` | constante (exportada) | Painel direito (placar, curva, registro e ações). |
 | `ESQ` | constante (exportada) | Posições verticais dentro do painel esquerdo, de cima para baixo. `pilha` é o tamanho das cartas do limbo e do cemitério. |
 | `DIR` | constante (exportada) | Posições verticais dentro do painel direito. Os blocos de placar ficam empilhados a partir de `blocos`, cada um com altura `alturaBloco`; o botão de truco fica logo acima das ações. |
+| `NOME_DA_ACAO` | constante (exportada) | Nome de cada ação da barra, para dicas e explicações. |
+| `BARRA_DE_ACOES` | constante (exportada) | Ações da barra, na ordem: [id, rótulo, linha]. O id é o tipo de alvo (ver calcularAlvos) ou a ação. |
+| `blocosDoPlacar(n)` | função (exportada) | Posição dos blocos do placar. Com 2 jogadores, os dois blocos grandes de sempre; com mais, blocos compactos dividindo o mesmo espaço (do topo dos blocos até a curva de treino). |
 | `FOLGA_DE_TOQUE` | constante (exportada) | Quanto a área de toque de um botão passa da borda desenhada, de cada lado. |
-| `ESPACO_LINHA` | constante | Distância vertical entre neurônios e centro vertical do tabuleiro. |
+| `TABULEIRO` | constante (exportada) | Área do tabuleiro: entre os painéis, abaixo dos nomes das camadas e acima da mão de baixo. Na mesa padrão (7 camadas de até 5 neurônios) as colunas ficam a 97 e as linhas a 95, com as cartas no tamanho cheio; mesas maiores encolhem espaço e cartas para caber. |
+| `mesa` | constante | Geometria da mesa em uso (ver `definirMesa`). Começa pela mesa padrão. |
+| `definirMesa(tamanhos)` | função (exportada) | Calcula a geometria do tabuleiro para os tamanhos de camada da mesa. |
+| `geometria` | constante (exportada) | Geometria da mesa em uso. |
+| `totalDeCamadasDaMesa` | constante (exportada) | Número de camadas da mesa em uso. |
 | `colunaX` | constante (exportada) | X do centro da coluna da camada. |
 | `linhaY` | constante (exportada) | Y do centro do neurônio `posicao` na camada. |
-| `COR_JOGADOR` | constante (exportada) | Cor de cada jogador, em número (Phaser) e em texto (CSS). |
+| `cartaDaMesa()` | função (exportada) | Tamanho de exibição de uma carta da mesa (`l` x `a`) e as metades, para contornos e ligações. |
+| `COR_JOGADOR` | constante (exportada) | Cor de cada jogador (até 5), em número (Phaser) e em texto (CSS). |
 | `COR_DO_ALVO` | constante (exportada) | Cor do contorno que destaca cada tipo de alvo. |
 | `NOME_SITUACAO` | constante (exportada) | Texto da situação de cada rede. |
 | `ajustarCartaDaMesa(imagem)` | função (exportada) | Ajusta a imagem de um neurônio ao tamanho da carta da mesa e guarda a escala-base (para animar o giro). |
 | `ajustarLinha(texto, conteudo, tamanho, larguraMax, minimo)` | função (exportada) | Texto de uma linha que encolhe até caber em `larguraMax`; se ainda não couber, corta com "…". Não refaz o cálculo se nada mudou. |
 | `ajustarBloco(texto, conteudo, tamanho, larguraMax, alturaMax, minimo)` | função (exportada) | Bloco de texto com quebra de linha que encolhe até caber na altura. |
+
+## `src/cenas/mesa/paineis.js`
+
+Painéis de leitura da mesa, como no NeuroDeck: placar por camada (clique num bloco do placar), registro completo da mão (clique no registro) e lista do cemitério e do limbo (clique na pilha). São só leitura: abrem por cima da mesa e fecham com Esc, no X ou clicando fora.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `listaDeCartas(cartas, vazio)` | função | Lista de cartas como selos "7♥", ou um aviso quando a pilha está vazia. |
+| `abrirPlacarPorCamada()` | método | Placar por camada: uma coluna por jogador, uma linha por camada, com a carta ativada e os pontos de cada neurônio, os combos de figuras e a soma. |
+| `abrirRegistroCompleto()` | método | Registro completo da mão, da primeira jogada à última (o painel da mesa mostra só o fim). |
+| `abrirCemiterio()` | método | Cartas fora de jogo: o cemitério (abertas) e o limbo (só a quantidade, porque são ocultas). |
 
 ## `src/cenas/mesa/resultado.js`
 
@@ -377,8 +409,10 @@ Parte da CenaMesa: o fluxo da mão. Começar a mão, executar jogadas, decidir q
 |---|---|---|
 | `verso(uso)` | método | Chave da textura do verso do baralho em uso. |
 | `jogadorDeBaixo()` | método | Jogador mostrado embaixo (quem está vendo; o 0 enquanto o aparelho troca de mãos). |
-| `jogadorDeCima()` | método | Jogador mostrado em cima. |
+| `outrosJogadores()` | método | Os outros jogadores, na ordem em que jogam depois de quem está embaixo (mãos de cima, da esquerda para a direita). |
+| `ordemDoPlacar()` | método | Ordem dos blocos do placar, de cima para baixo: os outros jogadores e, por último, quem está vendo. |
 | `avatarDe(j)` | método | Textura do avatar do jogador. |
+| `montarJogadores()` | método | Jogadores da mão: os humanos primeiro ("Você", ou "Jogador 1", "Jogador 2"… quando há mais de um), depois os oponentes do computador, numerados quando há mais de um do mesmo perfil. |
 | `ehVezDoHumano()` | método | O jogador humano que está vendo a tela pode jogar agora? |
 | `iniciarMao()` | método | Distribui uma mão nova: cria o estado, os neurônios na tela e começa o fluxo. |
 | `criarNeuronios()` | método | Cria uma imagem clicável para cada neurônio, com a animação de distribuição. |
@@ -418,6 +452,7 @@ Configurações visuais compartilhadas: tamanho do mundo do jogo, cores das rede
 | `MUNDO` | constante (exportada) | O mundo do jogo tem sempre 1280x720 unidades; a câmera aplica o zoom para cada tela. |
 | `CORES` | constante (exportada) | Cores das duas redes (padrão do TensorFlow Playground), do dourado e afins, em número (Phaser). |
 | `CORES_CSS` | constante (exportada) | As mesmas cores em texto CSS. |
+| `CORES_JOGADORES` | constante (exportada) | Cor da rede de cada jogador, até 5 (azul e laranja do Playground, depois verde, lilás e rosa). Com 2 jogadores, ficam as duas primeiras. |
 | `FONTES` | constante (exportada) | Fontes dos textos desenhados pelo Phaser. |
 | `RESOLUCAO` | constante (exportada) | Resolução interna: o canvas tem os pixels físicos que a tela consegue mostrar em tela cheia (tamanho da tela × densidade de pixels), até 3x o mundo. Pode ser forçada com `?res=2` na URL. |
 | `DENSIDADE` | constante (exportada) | Densidade (fator sobre o tamanho-base) com que cada tipo de textura é gerado. |
@@ -436,17 +471,51 @@ Conquistas e suas graduações (bronze a antimatéria, como sugere a especifica�
 
 ## `src/conteudo/dicasDeJogo.js`
 
-Dicas de jogo do modo "dicas": como jogar bem e o conceito de redes neurais por trás. Regra de ouro: as dicas usam **só informação pública** — as cartas da mão de quem pede a dica, os neurônios já revelados na mesa, as somas e o placar. Nunca apontam qual neurônio oculto ativar nem dizem o que há embaixo de uma carta virada; isso seria trapaça, não dica. `escolherDicaDeJogo` olha a situação e devolve a dica mais útil agora (oportunidades e riscos primeiro), ou uma dica geral de estratégia ligada a um verbete do Grimório. Não depende do Phaser: roda também no Node (testes).
+Dicas de jogo do modo "dicas": como jogar bem e o conceito de redes neurais por trás. Regra de ouro: as dicas usam **só informação pública** — as cartas da mão de quem pede a dica, os neurônios já revelados na mesa, as somas e o placar. Nunca apontam qual neurônio oculto ativar nem dizem o que há embaixo de uma carta virada; isso seria trapaça, não dica. `escolherDicaDeJogo` olha a situação e devolve a dica mais útil agora (oportunidades e riscos primeiro), ou uma dica geral de estratégia ligada a um verbete da Biblioteca de conceitos. Não depende do Phaser: roda também no Node (testes).
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `DICAS_GERAIS` | constante (exportada) | Dicas gerais de estratégia, usadas quando nenhuma situação especial aparece. Cada uma liga uma boa prática do jogo a um conceito do Grimório (`verbete`). |
+| `DICAS_GERAIS` | constante (exportada) | Dicas gerais de estratégia, usadas quando nenhuma situação especial aparece. Cada uma liga uma boa prática do jogo a um verbete da Biblioteca de conceitos (`verbete`). |
 | `contarValores(mao)` | função | Contagem de cartas da mão por valor. |
 | `escolherDicaDeJogo(mao, j, partida, recentes = [])` | função (exportada) | Escolhe a dica de jogo para o jogador `j` agora. |
 
+## `src/conteudo/figurasDaBiblioteca.js`
+
+Figuras da Biblioteca de conceitos: diagramas em SVG, desenhados à mão e embutidos no verbete. Usam as cores do papel das telas (tinta marrom, vinho, azul e laranja das redes) e escalam com a largura do verbete.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `svg` | constante | Abre um SVG responsivo com título acessível. |
+| `traco` | constante | Linha de uma polilinha a partir de pontos [[x, y], ...]. |
+| `eixos` | constante | Eixos x e y com rótulos. |
+| `amostrar(f, a, b, n, paraTela)` | função | Amostra uma função em [a, b] e devolve os pontos já na tela. |
+| `neuronio()` | função | Neurônio artificial: entradas, pesos, soma com viés e ativação. |
+| `ativacoes()` | função | As três ativações mais conhecidas lado a lado. |
+| `rede()` | função | Rede densa (todas as ligações) e, por cima, o caminho de uma rede do jogo. |
+| `curvas()` | função | Perda de treino e de validação ao longo das épocas, com o ponto de parada antecipada. |
+| `sobreajuste()` | função | Os mesmos pontos ajustados por uma curva simples e por uma que decora o ruído. |
+| `dropout()` | função | Dropout: alguns neurônios ocultos desligados e as ligações deles apagadas. |
+| `vanishing()` | função | Tamanho do gradiente camada a camada, da saída para a entrada, com sigmoide. |
+| `FIGURAS` | constante (exportada) | Figuras disponíveis, pelo nome usado nos verbetes. |
+| `figuraDaBiblioteca(nome)` | função (exportada) | SVG da figura `nome`, ou texto vazio se não existir. |
+
 ## `src/conteudo/grimorio.js`
 
-Grimório: cada mecânica do jogo explicada como conceito de aprendizado de máquina. Cada verbete tem `id`, `titulo`, `categoria`, `conceito` (o que é em ML) e `noJogo` (como aparece na mesa). A mesa mostra o verbete como aviso na primeira vez que a mecânica acontece.
+Biblioteca de conceitos (antes "Grimório"): cada mecânica do jogo explicada como conceito de aprendizado de máquina. O arquivo e os ids continuam com o nome antigo para não perder os verbetes já lidos (conquista "Bibliotecário") salvos no navegador. Cada verbete tem `id`, `titulo`, `categoria`, `conceito` (o que é em ML), `equacao` (MathML, em bloco), `figura` (nome em figurasDaBiblioteca.js, opcional), `noJogo` (como aparece na mesa), `limite` (até onde a comparação vale) e `fonte` (referência, opcional). A mesa mostra o verbete como aviso na primeira vez que a mecânica acontece; a ajuda de cada ação leva ao verbete dela.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `NOME_DA_BIBLIOTECA` | constante (exportada) | Nome da tela, num lugar só. |
+| `mspace()` | função | Espaço entre duas equações na mesma linha. |
+| `mover(x)` | função | Variável com til (versão perturbada ou mascarada). |
+
+## `src/conteudo/modExemplo.js`
+
+Mod de exemplo mostrado na tela "Mods" (interface/telas/mods.js). O código fica num texto para a tela poder exibi-lo e copiá-lo; o teste `testes/unidade/mods.test.js` carrega esse mesmo texto como módulo e confere que ele funciona com o motor do NeuroDeck.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `CODIGO_DO_MOD_DE_EXEMPLO` | constante (exportada) | Código do mod de exemplo: o terreno "Regularização L1". |
 
 ## `src/conteudo/progresso.js`
 
@@ -471,18 +540,21 @@ Textos de ambientação das cartas e falas dos oponentes.
 
 ## `src/interface/menu.js`
 
-Menu principal: apresentação do jogo, botões das telas e configuração da mesa (oponente, baralho, terreno, quem começa e tipo de partida).
+Menu principal: apresentação do jogo, botões das telas e configuração da mesa. A mesa reúne as configurações do NeuroDeck (jogadores, humanos no aparelho, oponentes do computador, arquitetura da rede e número de baralhos) com as do Truco de Turing (baralho, terreno, quem começa e tipo de partida).
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `ESCOLHAS_OPONENTE` | constante | Opções da lista "Oponente", incluindo o modo de dois humanos. |
+| `ESCOLHAS_OPONENTE` | constante | Opções da lista de oponentes do computador (todos os oponentes da mesa têm o mesmo perfil). |
+| `ESCOLHAS_JOGADORES` | constante | Jogadores na mesa (2 a 5, como no NeuroDeck). |
+| `ESCOLHAS_BARALHOS` | constante | Baralhos na partida: a mão e o limbo crescem junto. |
+| `escolhasDeHumanos(n)` | função | Opções da lista "Humanos no aparelho" para uma mesa de `n` jogadores. |
 | `miniaturas` | constante | Miniaturas do verso e da mesa já desenhadas (evita redesenhar a cada troca). |
 | `mostrarMiniatura(elemento, chave, desenhar)` | função | Mostra a miniatura `chave` dentro do elemento, desenhando-a na primeira vez com `desenhar()`. |
 | `opcoesHtml(rotulos, selecionado)` | função | Gera as `<option>` de uma lista. `rotulos` mapeia valor → texto (ou objeto com `nome`). |
 | `htmlDoMenu(opcoes)` | função | HTML do menu. |
 | `abrirMenu(app)` | função (exportada) | Abre o menu principal. |
-| `atualizarDicas()` | função | Atualiza descrições e miniaturas conforme as escolhas. |
-| `lerEscolhas()` | função | Guarda as escolhas atuais na aplicação. |
+| `atualizarDicas()` | função | Atualiza descrições, listas dependentes e miniaturas conforme as escolhas. |
+| `lerEscolhas()` | função | Guarda as escolhas atuais na aplicação (as opções que não estão nesta tela continuam como estavam). |
 
 ## `src/interface/musica.js`
 
@@ -514,9 +586,9 @@ Base dos painéis HTML sobrepostos ao canvas: abrir e fechar telas, avisos rápi
 | `abrirPainel(html, opcoes = {})` | função (exportada) | Abre uma tela sobre o jogo. |
 | `fecharTodos()` | função (exportada) | Fecha todas as telas abertas. |
 | `mostrarAviso(titulo, texto, tipo, duracaoMs = 5200)` | função (exportada) | Mostra um aviso rápido no topo da tela (só um por vez). |
-| `mostrarDicaDeJogo(titulo, texto, tituloDoConceito, conceito)` | função (exportada) | Dica de jogo do modo "dicas", no estilo do Grimório: título, conselho e o conceito de redes neurais relacionado. Usa a mesma área dos avisos e fica 9 segundos (um toque fecha). |
+| `mostrarDicaDeJogo(titulo, texto, tituloDoConceito, conceito)` | função (exportada) | Dica de jogo do modo "dicas", no estilo da Biblioteca de conceitos: título, conselho e o conceito de redes neurais relacionado. Usa a mesma área dos avisos e fica 9 segundos (um toque fecha). |
 | `confirmar(titulo, texto, botoes, opcoes = {})` | função (exportada) | Caixa de confirmação com botões. |
-| `mostrarDicaFlutuante(titulo, html, alvo)` | função (exportada) | Mostra uma dica no estilo do Grimório ao lado de um elemento da mesa (botão, carta). Fica à esquerda do retângulo quando há espaço; senão, acima ou abaixo. |
+| `mostrarDicaFlutuante(titulo, html, alvo)` | função (exportada) | Mostra uma dica no estilo da Biblioteca de conceitos ao lado de um elemento da mesa (botão, carta). Fica à esquerda do retângulo quando há espaço; senão, acima ou abaixo. |
 | `esconderDicaFlutuante()` | função (exportada) | Esconde a dica flutuante, se houver. |
 
 ## `src/interface/som.js`
@@ -534,6 +606,16 @@ Efeitos sonoros sintetizados com WebAudio (nenhum arquivo de áudio). O navegado
 | `fanfarra()` | método | Fanfarra de vitória da mão, no espírito dos fins de fase dos jogos de 8 bits dos anos 80 (melodia original): escalas rápidas em onda quadrada subindo por três acordes, um rufar e o acorde final sustentado com o baixo. |
 | `campeao()` | método | Vitória da partida: a fanfarra seguida de um hino mais longo, com tambores. |
 
+## `src/interface/telas/ajudaDasAcoes.js`
+
+Ajuda das ações, como o botão "?" do NeuroDeck: um cartão por jogada com a regra (texto do próprio motor), quando o botão acende e, no verso, o conceito de machine learning, com um botão "Ver o conceito" que abre o verbete certo da Biblioteca de conceitos.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `ACOES_DA_AJUDA` | constante (exportada) | Ações da ajuda, na ordem da barra da mesa. `motor` é o id da ação no NeuroDeck (de onde vêm a regra e o conceito); `verbete` é o verbete da Biblioteca de conceitos. |
+| `doMotor(id)` | função | Ação do NeuroDeck, ou um objeto vazio se o motor não tiver aquele id. |
+| `abrirAjudaDasAcoes(app, idInicial)` | função (exportada) | Abre a ajuda das ações. |
+
 ## `src/interface/telas/conquistas.js`
 
 Quadro de conquistas: retrato do professor em moldura medieval à esquerda e as medalhas à direita (desbloqueadas coloridas; bloqueadas em cinza, com cadeado).
@@ -546,33 +628,47 @@ Quadro de conquistas: retrato do professor em moldura medieval à esquerda e as 
 
 ## `src/interface/telas/grimorio.js`
 
-Tela do Grimório: lista de verbetes à esquerda e o verbete escolhido à direita. Ler um verbete conta para a conquista "Bibliotecário".
+Tela da Biblioteca de conceitos (antes "Grimório"): lista de verbetes à esquerda e o verbete escolhido à direita, com o conceito, a equação, a figura, como aparece no jogo e até onde a comparação vale. Ler um verbete conta para a conquista "Bibliotecário".
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `abrirGrimorio(app, idInicial, aoFechar)` | função (exportada) | Abre o Grimório. |
+| `abrirGrimorio(app, idInicial, aoFechar)` | função (exportada) | Abre a Biblioteca de conceitos. |
 | `desenharLista(ativo)` | função | Desenha a lista com o verbete ativo destacado. |
 | `mostrar(id)` | função | Mostra um verbete e o marca como lido. |
 
-## `src/interface/telas/regras.js`
+## `src/interface/telas/mods.js`
 
-Tela "Como jogar": resumo das regras, ações, desempates, truco, baralhos e terrenos.
+Tela "Mods": como criar baralhos, terrenos e ações para o motor do NeuroDeck, com um mod de exemplo comentado (conteudo/modExemplo.js). A API é a do registro do motor (src/motor/engine/registry.js, apiVersion 2). A tela é honesta sobre o estado atual: o motor aceita mods, mas a interface do jogo unificado ainda não os carrega.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `listaDeExtensoes()` | função | Lista "nome: resumo" de baralhos e terrenos (o terreno neutro fica de fora). |
-| `abrirRegras(app, aoFechar)` | função (exportada) | Abre a tela de regras. Na primeira partida ela abre sozinha; ao fechar, chama `aoFechar`. |
+| `TIPOS` | constante | Campos de cada tipo de mod, resumidos do registro do motor. |
+| `abrirMods()` | função (exportada) | Abre a tela "Mods". |
+
+## `src/interface/telas/regras.js`
+
+Tela de regras, com o conteúdo do manual do NeuroDeck e as decisões da fusão, em abas: Como jogar, Ações, Pontuação, Baralhos e terrenos (com a arte do Truco de Turing) e Dicas e estratégias. As abas "Cartas" e "Decisões de regra" do NeuroDeck ficaram de fora a pedido do professor; as decisões estão no repositório (docs e testes).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `AMOSTRA` | constante | Carta de amostra de cada baralho (a que melhor mostra a arte dele). |
+| `ABAS_DAS_REGRAS` | constante (exportada) | Abas da tela, na ordem. |
+| `abaDeAcoes()` | função | Linha "nome: resumo" de cada ação, com o botão da ajuda. |
+| `abaDeExtensoes()` | função | Baralhos e terrenos com a arte do jogo (verso, carta de amostra e carta de terreno). |
+| `desenharArte(raiz)` | função | Desenha a arte de uma aba de extensões uma vez (fica guardada como imagem). |
+| `abrirRegras(app, aoFechar, abaInicial = 'jogar')` | função (exportada) | Abre a tela de regras. Na primeira partida ela abre sozinha; ao fechar, chama `aoFechar`. |
 
 ## `src/interface/telas/revisao.js`
 
-Tela de revisão didática do fim da mão (e da partida). Mostra, a partir da linha do tempo guardada pela mesa (cenas/mesa/turnos.js): - um resumo com os momentos-chave (maior salto, golpe mais duro, a virada) e o que cada um fez; - a curva de treino das duas redes, passo a passo, com marcas nas ações importantes; - a linha do tempo comentada, ligando cada ação ao conceito de redes neurais do Grimório; - na partida com várias mãos, o placar mão a mão.
+Tela de revisão didática do fim da mão (e da partida). Mostra, a partir da linha do tempo guardada pela mesa (cenas/mesa/turnos.js): - um resumo com os momentos-chave (maior salto, golpe mais duro, a virada) e o que cada um fez; - a curva de treino das duas redes, passo a passo, com marcas nas ações importantes; - a linha do tempo comentada, ligando cada ação ao conceito de redes neurais da Biblioteca de conceitos; - na partida com várias mãos, o placar mão a mão.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `COR` | constante | Cor das redes. |
+| `COR` | constante | Cor das redes (até 5 jogadores). |
+| `placar` | constante | Junta números com ' × ' (placar de 2 a 5 jogadores). |
 | `MARCAS` | constante | Cor e rótulo de cada tipo de acontecimento marcado na curva. |
 | `tipoDoPasso(passo)` | função | Tipo principal de um passo: o evento mais marcante, ou o tipo da jogada. |
-| `VERBETE_DO_TIPO` | constante | Verbete do Grimório ligado a cada tipo de passo. |
+| `VERBETE_DO_TIPO` | constante | Verbete da Biblioteca de conceitos ligado a cada tipo de passo. |
 | `variacoes(passos)` | função | Diferença das somas em relação ao passo anterior. |
 | `momentosChave(passos, nomes)` | função | Momentos-chave da mão, em frases curtas. |
 | `contagens(passos)` | função | Quantas vezes cada jogador fez cada tipo de ação. |
@@ -583,7 +679,7 @@ Tela de revisão didática do fim da mão (e da partida). Mostra, a partir da li
 
 ## `src/interface/telas/sobre.js`
 
-Tela "Sobre": versão, o jogo, a disciplina, a especificação, o professor, os autores e a licença.
+Tela "Sobre": versão, o jogo unificado (NeuroDeck + Truco de Turing), a disciplina, as regras originais, o professor, os autores e a licença.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -704,7 +800,7 @@ Ponto de entrada dos oponentes: perfis (nome, nível, estilo), escolha de jogada
 
 ## `src/nucleo/partida.js`
 
-Uma mão do jogo, vista pela interface do Truco de Turing e jogada pelo motor do NeuroDeck. Este arquivo é a **camada de tradução** da fusão: as telas e os testes continuam chamando as mesmas funções de antes (`novaMao`, `jogadasLegais`, `aplicarJogada`…), mas as regras agora são as do motor em `src/motor/` (ver `src/motor/ORIGEM.md`). Nenhuma regra é decidida aqui. ## Como funciona A mão guarda o estado do motor em `mao.nd` e uma **visão** dele no formato que a interface conhece (os campos abaixo). Cada jogada é traduzida (`traducao.js`), aplicada pelo motor e, em seguida, a visão é refeita por `atualizarVisao`. Os eventos de animação e as linhas do registro são gerados aqui, comparando o antes e o depois. ## Visão da mão ``` { config: { baralho, terreno, inicio }, // opções escolhidas no menu semente, // aleatoriedade reproduzível nd, // estado do motor do NeuroDeck (fonte da verdade) indiceDeCartas, // cartas da interface por id do motor, e vice-versa camadas: Neuronio[][], // a mesa, camada a camada neuronios: { [id]: Neuronio }, // índice dos neurônios por id jogadores: Jogador[], limbo: Carta[], cemiterio: Carta[], vez, primeiro, rodada, turno, vento, fase: 'inicio' | 'jogo' | 'fim', eventos: Evento[], // fila consumida pela interface para animar registro: string[], // texto do histórico de jogadas historico: number[][], // soma de cada rede a cada jogada (curva de treino) resultado: { somas, vencedor, motivo, travados } | null, simulacao: boolean, // em simulações, não gera eventos nem textos } ``` Neurônio: `{ id, camada, posicao, cartas, revelado, dono, removido, conhecido, rodadaRevelada }`. Jogador: `{ indice, nome, tipo: 'humano'|'oponente', oponente, mao, caminho, situacao, dropouts, acoesUsadas, transferUsado, cartaInicial, estatisticas }`. `situacao` é 'construindo', 'concluida', 'earlystop', 'overflow' ou 'travada' (ficou sem neurônio livre na camada seguinte). ## Jogadas `{ tipo: 'inicio', jogador, carta }`, `{ tipo: 'ativar', jogador, neuronio }`, `{ tipo: 'empilhar', jogador, neuronio, cartas }`, `{ tipo: 'dropout', jogador, n, pagamento }`, `{ tipo: 'transfer', jogador, cartas }`, `{ tipo: 'passar', jogador }`. ## O que mudou nas regras com o motor do NeuroDeck - dropout: o neurônio desfeito vai para o cemitério e sai da mesa (antes voltava virado); - quem fica sem neurônio livre na camada seguinte tem a rede finalizada ('travada'); - transfer learning não gasta a vez; - só passa a vez quem teve a rede interrompida por early stop (com cartas na mão) ou quem não tem nenhuma outra jogada; quem não pode jogar é pulado automaticamente; - pontuação, terrenos e desempates: ver `pontuacao.js` e `src/motor/engine/`.
+Uma mão do jogo, vista pela interface do Truco de Turing e jogada pelo motor do NeuroDeck. Este arquivo é a **camada de tradução** da fusão: as telas e os testes continuam chamando as mesmas funções de antes (`novaMao`, `jogadasLegais`, `aplicarJogada`…), mas as regras agora são as do motor em `src/motor/` (ver `src/motor/ORIGEM.md`). Nenhuma regra é decidida aqui. ## Como funciona A mão guarda o estado do motor em `mao.nd` e uma **visão** dele no formato que a interface conhece (os campos abaixo). Cada jogada é traduzida (`traducao.js`), aplicada pelo motor e, em seguida, a visão é refeita por `atualizarVisao`. Os eventos de animação e as linhas do registro são gerados aqui, comparando o antes e o depois. ## Visão da mão ``` { config: { baralho, terreno, inicio, arquitetura, baralhos }, // opções escolhidas no menu semente, // aleatoriedade reproduzível nd, // estado do motor do NeuroDeck (fonte da verdade) indiceDeCartas, // cartas da interface por id do motor, e vice-versa camadas: Neuronio[][], // a mesa, camada a camada neuronios: { [id]: Neuronio }, // índice dos neurônios por id jogadores: Jogador[], limbo: Carta[], cemiterio: Carta[], vez, primeiro, rodada, turno, vento, fase: 'inicio' | 'jogo' | 'fim', eventos: Evento[], // fila consumida pela interface para animar registro: string[], // texto do histórico de jogadas historico: number[][], // soma de cada rede a cada jogada (curva de treino) resultado: { somas, vencedor, motivo, travados } | null, simulacao: boolean, // em simulações, não gera eventos nem textos } ``` Neurônio: `{ id, camada, posicao, cartas, revelado, dono, removido, conhecido, rodadaRevelada }`. Jogador: `{ indice, nome, tipo: 'humano'|'oponente', oponente, mao, caminho, situacao, dropouts, acoesUsadas, transferUsado, cartaInicial, estatisticas }`. `situacao` é 'construindo', 'concluida', 'earlystop', 'overflow' ou 'travada' (ficou sem neurônio livre na camada seguinte). ## Jogadas `{ tipo: 'inicio', jogador, carta }`, `{ tipo: 'ativar', jogador, neuronio }`, `{ tipo: 'empilhar', jogador, neuronio, cartas }`, `{ tipo: 'dropout', jogador, n, pagamento }`, `{ tipo: 'transfer', jogador, cartas }`, `{ tipo: 'passar', jogador }`. ## O que mudou nas regras com o motor do NeuroDeck - dropout: o neurônio desfeito vai para o cemitério e sai da mesa (antes voltava virado); - quem fica sem neurônio livre na camada seguinte tem a rede finalizada ('travada'); - transfer learning não gasta a vez; - só passa a vez quem teve a rede interrompida por early stop (com cartas na mão) ou quem não tem nenhuma outra jogada; quem não pode jogar é pulado automaticamente; - pontuação, terrenos e desempates: ver `pontuacao.js` e `src/motor/engine/`.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -721,6 +817,7 @@ Uma mão do jogo, vista pela interface do Truco de Turing e jogada pelo motor do
 | `anotar(mao, texto)` | função | Acrescenta uma linha ao registro de jogadas (ignorado em simulação). |
 | `somas(mao)` | função | Soma atual da rede de cada jogador, pelo motor. |
 | `anotarHistorico(mao)` | função | Guarda a soma atual de cada rede para a curva de treino. |
+| `totalDeCamadas(mao)` | função (exportada) | Total de camadas da mesa desta mão. |
 | `fronteira(mao, j)` | função (exportada) | Último neurônio do caminho do jogador (a "fronteira"), ou null. |
 | `alvosDeAtivacao(mao, j)` | função (exportada) | Neurônios livres que o jogador pode ativar na próxima camada da sua rede. |
 | `alvosDeEmpilhamento(mao)` | função (exportada) | Neurônios que aceitam cartas empilhadas: a fronteira oculta das redes ainda em construção. |
@@ -753,16 +850,18 @@ Soma da rede de um jogador (o "forward pass" do jogo), calculada pelo motor do N
 
 ## `src/nucleo/rede.js`
 
-Arquitetura da rede neural montada na mesa. Camada 0 é a entrada (3 neurônios), 1 a 5 são ocultas (5 cada) e 6 é a saída (4). Cada jogador recebe `TAMANHO_MAO` cartas; o que sobra vai para o limbo.
+Arquitetura da rede neural montada na mesa. Na arquitetura padrão, a camada 0 é a entrada (3 neurônios), 1 a 5 são ocultas (5 cada) e 6 é a saída (4). As arquiteturas do NeuroDeck (curta, larga, profunda) mudam o número e o tamanho das camadas; com mais de 2 jogadores, cada camada ganha um neurônio por jogador a mais (ver `tamanhosDaMesa`). Por isso as funções abaixo recebem o total de camadas da mesa em uso. Cada jogador recebe `TAMANHO_MAO` cartas por baralho; o que sobra vai para o limbo.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `TAMANHOS_CAMADAS` | constante (exportada) | Neurônios por camada, da entrada à saída. |
+| `TAMANHOS_CAMADAS` | constante (exportada) | Neurônios por camada da arquitetura padrão, da entrada à saída. |
+| `ARQUITETURAS` | constante (exportada) | Arquiteturas oferecidas no menu (as do NeuroDeck), com o nome para a interface. |
+| `tamanhosDaMesa(arquitetura = 'padrao', jogadores = 2)` | função (exportada) | Tamanho de cada camada da mesa para a arquitetura e o número de jogadores: com mais de 2 jogadores, cada camada ganha um neurônio por jogador a mais (regra do NeuroDeck). |
 | `TOTAL_CAMADAS` | constante (exportada) | Quantidade de camadas (7). |
 | `CAMADA_SAIDA` | constante (exportada) | Índice da camada de saída (6). |
 | `TAMANHO_MAO` | constante (exportada) | Cartas na mão de cada jogador no início. |
-| `ehOculta(camada)` | função (exportada) | Diz se a camada é oculta (só nelas valem as ações com cartas). |
-| `nomeCamada(camada)` | função (exportada) | Nome da camada para a interface: 'Entrada', 'Oculta 3', 'Saída'. |
+| `ehOculta(camada, total = TOTAL_CAMADAS)` | função (exportada) | Diz se a camada é oculta (só nelas valem as ações com cartas). |
+| `nomeCamada(camada, total = TOTAL_CAMADAS)` | função (exportada) | Nome da camada para a interface: 'Entrada', 'Oculta 3', 'Saída'. |
 
 ## `src/nucleo/terrenos.js`
 
@@ -792,13 +891,14 @@ Tradução entre o vocabulário do Truco de Turing (interface) e o do motor do N
 
 ## `src/nucleo/truco.js`
 
-Camada de truco: a partida vale tentos e cada mão pode ser trucada. TRUCO! (3) → SEIS! (6) → NOVE! (9) → DOZE! (12). Quem corre entrega o valor atual. Mão de onze: com alguém a um tento da vitória, ninguém pode trucar. Estado da partida: `{ alvo, tentos: [n, n], numeroMao, valor, aumentadoPor, pedido, encerrada, vencedor }`. `pedido` é `{ por, para }` enquanto um truco espera resposta.
+Camada de truco: a partida vale tentos e cada mão pode ser trucada. TRUCO! (3) → SEIS! (6) → NOVE! (9) → DOZE! (12). Quem corre entrega o valor atual. Mão de onze: com alguém a um tento da vitória, ninguém pode trucar. Estado da partida: `{ alvo, tentos: [n, n, …], numeroMao, valor, aumentadoPor, pedido, encerrada, vencedor }`. `pedido` é `{ por, para }` enquanto um truco espera resposta. O truco é de um contra um: com mais de 2 jogadores a partida continua valendo tentos (cada mão vale 1 para quem vence), mas ninguém pode trucar.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `ESCADA_TRUCO` | constante (exportada) | Valores possíveis de uma mão. |
 | `GRITO_TRUCO` | constante (exportada) | O que se grita ao pedir cada valor. |
-| `novaPartida(alvo)` | função (exportada) | Cria uma partida. `alvo` é o número de tentos para vencer (1 = mão única, sem truco). |
+| `novaPartida(alvo, jogadores = 2)` | função (exportada) | Cria uma partida. |
+| `temTruco(partida)` | função (exportada) | A partida aceita pedidos de truco (só entre 2 jogadores e valendo mais de uma mão)? |
 | `proximoValor(valor)` | função (exportada) | Próximo degrau da escada a partir de `valor`, ou null no topo. |
 | `ehMaoDeOnze(partida)` | função (exportada) | Mão de onze: alguém está a um tento da vitória. |
 | `podeTrucar(partida, j)` | função (exportada) | Diz se o jogador pode pedir truco agora (quem aumentou por último não aumenta de novo). |
