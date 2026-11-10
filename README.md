@@ -153,7 +153,6 @@ Autores:
 - Welyngton Jose Vinicius Dal Pra ([@welyngton](https://github.com/welyngton))
 - Diego Casagrande ([@diegocasagrande](https://github.com/diegocasagrande))
 - Suzy Arcanjo ([@SuzyArcanjo](https://github.com/SuzyArcanjo))
-- Claude ([@claude](https://github.com/claude))
 <!-- /autores -->
 
 Regras originais: Peng Yaohao - FPO-UNB - 2026-2
