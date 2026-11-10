@@ -8,7 +8,7 @@ Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
 ## 1.2.2 — 2026-11-09
 
-- test: testes de aceitação das regras de negócio em `testes/unidade/regras-de-negocio.test.js`: 40 cenários (RN-01 a RN-40) cobrindo preparação da mesa, quem começa, construção da rede, pontuação, ações com cartas, dropout, transfer learning, passar a vez, desempates, truco e invariantes em 200 mãos aleatórias. Onde o enunciado deixa margem, os testes fixam a leitura adotada no README.
+- test: testes de aceitação das regras de negócio em `testes/unidade/regras-de-negocio.test.js`: 40 cenários (RN-01 a RN-40) cobrindo preparação da mesa, quem começa, construção da rede, pontuação, ações com cartas, dropout, transfer learning, passar a vez, desempates, truco e invariantes em 200 mãos aleatórias. Onde o enunciado deixa margem, os testes fixam a leitura adotada no README. ([#1](https://github.com/welyngton/truco-de-turing/pull/1), por [@diegocasagrande](https://github.com/diegocasagrande))
 - Planilha de validação em `relatorios/validacao/testes-regras-de-negocio.xlsx`: os 40 testes automatizados, 24 testes funcionais feitos no site publicado, números de robustez de 3.000 mãos aleatórias e os pontos de regra para validar com o professor.
 
 ## 1.2.1 — 2026-11-09

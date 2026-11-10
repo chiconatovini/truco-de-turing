@@ -303,6 +303,12 @@ O tipo vem do pull request: rótulo `versao:maior`/`versao:menor`, ou o título 
 menor; `!:` ou BREAKING → maior); nos demais casos, correção. À mão:
 `node ferramentas/versionar.js --tipo menor --titulo "Descrição"` (ou `--simular` para só ver o número).
 
+**Autores.** Em cada merge de pull request, o workflow junta quem abriu o PR e quem fez commits nele
+(sem robôs) e passa para `versionar.js` (variável `AUTORES`, `login:Nome` por linha). Quem ainda não
+está na lista do README, entre `<!-- autores -->` e `<!-- /autores -->`, é acrescentado com o nome do
+perfil do GitHub e o @login; a entrada do CHANGELOG ganha "por @login". As linhas já existentes, inclusive
+as escritas à mão, ficam como estão: a pessoa é reconhecida pelo `[@login]` da linha.
+
 ## 8. Como estender
 
 ### Novo baralho

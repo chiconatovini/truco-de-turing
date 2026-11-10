@@ -149,7 +149,9 @@ modo online (o estado é serializável), tutorial guiado e um laboratório de si
 Distribuído sob a [GPL-3.0](https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file). Código-fonte: https://github.com/welyngton/truco-de-turing
 
 Autores:
-Welyngton Jose Vinicius Dal Pra
-...
+<!-- autores -->
+- Welyngton Jose Vinicius Dal Pra ([@welyngton](https://github.com/welyngton))
+- Diego Casagrande ([@diegocasagrande](https://github.com/diegocasagrande))
+<!-- /autores -->
 
 Regras originais: Peng Yaohao - FPO-UNB - 2026-2

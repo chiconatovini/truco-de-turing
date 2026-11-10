@@ -8,6 +8,7 @@
 #
 # Que parte da versão sobe: rótulo "versao:maior" ou "versao:menor" no PR, ou o título do PR
 # (feat/nova/novo → menor; "!:" ou BREAKING → maior); nos demais casos, correção (X.Y.Z+1).
+# Quem abriu o PR e quem fez commits nele entram na lista de autores do README e no CHANGELOG.
 name: Versão
 
 on:
@@ -71,13 +72,29 @@ jobs:
             fs.writeFileSync('titulo.txt', p ? p.title : (process.env.MENSAGEM || '').split('\n')[0]);
             fs.writeFileSync('rotulos.txt', p ? p.labels.map(l => l.name).join(',') : '');"
           rm pr.json
+          # autores do PR: quem abriu e quem fez commits (sem robôs), como "login:Nome Completo"
+          : > autores.txt
+          if [ -n "$NUMERO" ]; then
+            REPO="${{ github.repository }}"
+            { gh api "repos/$REPO/pulls/$NUMERO" --jq '.user.login'
+              gh api "repos/$REPO/pulls/$NUMERO/commits" --paginate --jq '.[] | select(.author != null) | .author.login'
+            } | grep -v '\[bot\]$' | awk '!visto[tolower($0)]++' > logins.txt || true
+            while read -r LOGIN; do
+              NOME=$(gh api "users/$LOGIN" --jq '.name // ""' 2>/dev/null || true)
+              if [ -z "$NOME" ]; then
+                NOME=$(gh api "repos/$REPO/pulls/$NUMERO/commits" --paginate --jq ".[] | select(.author.login == \"$LOGIN\") | .commit.author.name" | head -n 1 || true)
+              fi
+              echo "$LOGIN:$NOME" >> autores.txt
+            done < logins.txt
+            rm -f logins.txt
+          fi
 
       - name: Subir a versão
         id: versao
         run: |
           ATUAL=$(node -p "require('./package.json').version")
-          export TITULO="$(cat titulo.txt)" ROTULOS="$(cat rotulos.txt)"
-          rm titulo.txt rotulos.txt
+          export TITULO="$(cat titulo.txt)" ROTULOS="$(cat rotulos.txt)" AUTORES="$(cat autores.txt)"
+          rm titulo.txt rotulos.txt autores.txt
           if git rev-parse "v$ATUAL" >/dev/null 2>&1; then
             VERSAO=$(node ferramentas/versionar.js --tipo auto --pr "${{ steps.pr.outputs.numero }}" | tail -n 1)
           else

@@ -5,8 +5,9 @@
  * também à mão. Atualiza, de uma vez:
  * - package.json e package-lock.json (`version`);
  * - src/versao.js (mostrada na tela "Sobre");
- * - README.md (a linha entre os marcadores `<!-- versao -->` e `<!-- /versao -->`);
- * - CHANGELOG.md (uma entrada nova no topo, com o título do pull request).
+ * - README.md (a linha entre os marcadores `<!-- versao -->` e `<!-- /versao -->` e, a cada pull
+ *   request, os autores novos entre `<!-- autores -->` e `<!-- /autores -->`);
+ * - CHANGELOG.md (uma entrada nova no topo, com o título do pull request e quem o fez).
  *
  * Que parte da versão sobe é decidido pelo pull request (ou pela mensagem do commit, sem PR):
  * - rótulo `versao:maior`, ou título com `!:`/"BREAKING" → MAIOR (2.0.0);
@@ -19,6 +20,7 @@
  *   node ferramentas/versionar.js --atual            (publica a versão atual sem subir; 1ª versão)
  *   node ferramentas/versionar.js --simular ...      (só mostra a próxima versão, sem gravar)
  * O título e os rótulos também podem vir das variáveis de ambiente TITULO e ROTULOS (mais seguro no CI).
+ * AUTORES (uma pessoa por linha, `login:Nome Completo`) traz quem abriu o PR e quem fez commits nele.
  * A versão final é impressa na última linha da saída.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
@@ -65,6 +67,44 @@ export function dataEmBrasilia(agora = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit' }).format(agora);
 }
 
+/**
+ * Lê a lista AUTORES (`login:Nome`, uma por linha ou separada por vírgula), sem robôs nem repetidos.
+ * @returns {{login: string, nome: string}[]}
+ */
+export function lerAutores(texto = '') {
+  const vistos = new Set();
+  return texto.split(/[\n,]/).map((linha) => linha.trim()).filter(Boolean).map((linha) => {
+    const [login, ...resto] = linha.split(':');
+    return { login: login.trim().replace(/^@/, ''), nome: resto.join(':').trim() };
+  }).filter((a) => a.login && !/\[bot\]$/.test(a.login) && !vistos.has(a.login.toLowerCase()) && vistos.add(a.login.toLowerCase()));
+}
+
+/**
+ * Acrescenta à lista de autores do README (entre `<!-- autores -->` e `<!-- /autores -->`) quem
+ * ainda não está nela. Reconhece a pessoa pelo @login do GitHub; as linhas que já existem (inclusive
+ * as escritas à mão) ficam como estão.
+ * @param {string} readme
+ * @param {{login: string, nome: string}[]} autores
+ * @returns {string}
+ */
+export function registrarAutores(readme, autores) {
+  const marcador = /(<!-- autores -->\n)([\s\S]*?)(<!-- \/autores -->)/;
+  const achado = readme.match(marcador);
+  if (!achado) return readme;
+  const lista = achado[2].toLowerCase();
+  const novos = autores.filter((a) => !lista.includes('@' + a.login.toLowerCase() + ']'));
+  if (!novos.length) return readme;
+  const linhas = novos.map((a) => '- ' + (a.nome || a.login) + ' ([@' + a.login + '](https://github.com/' + a.login + '))\n').join('');
+  return readme.replace(marcador, (_, abre, corpo, fecha) => abre + corpo + linhas + fecha);
+}
+
+/** Créditos de quem fez o PR, para o CHANGELOG: "por @a e @b". */
+export function creditos(autores) {
+  if (!autores.length) return '';
+  const nomes = autores.map((a) => '[@' + a.login + '](https://github.com/' + a.login + ')');
+  return 'por ' + (nomes.length > 1 ? nomes.slice(0, -1).join(', ') + ' e ' + nomes[nomes.length - 1] : nomes[0]);
+}
+
 /** Grava a versão em src/versao.js. */
 function gravarModuloDeVersao(versao, data) {
   writeFileSync(caminho('src/versao.js'),
@@ -77,8 +117,8 @@ function gravarModuloDeVersao(versao, data) {
 }
 
 /** Troca a linha de versão do README (entre os marcadores). */
-function gravarNoReadme(versao, data) {
-  const readme = readFileSync(caminho('README.md'), 'utf8');
+function gravarNoReadme(versao, data, autores = []) {
+  const readme = registrarAutores(readFileSync(caminho('README.md'), 'utf8'), autores);
   const linha = '<!-- versao -->\n**Versão ' + versao + '** (' + data + ') · [histórico de versões](CHANGELOG.md)\n<!-- /versao -->';
   const novo = /<!-- versao -->[\s\S]*?<!-- \/versao -->/.test(readme)
     ? readme.replace(/<!-- versao -->[\s\S]*?<!-- \/versao -->/, linha)
@@ -87,12 +127,14 @@ function gravarNoReadme(versao, data) {
 }
 
 /** Acrescenta a entrada da versão no topo do CHANGELOG.md. */
-function gravarNoHistorico(versao, data, titulo, pr, repositorio) {
+function gravarNoHistorico(versao, data, titulo, pr, repositorio, autores = []) {
   const arquivo = caminho('CHANGELOG.md');
   const cabecalho = '# Histórico de versões\n\nCada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).\n';
   let atual = existsSync(arquivo) ? readFileSync(arquivo, 'utf8') : cabecalho;
   if (atual.includes('## ' + versao + ' ')) return; /* já registrada */
-  const link = pr && repositorio ? ' ([#' + pr + '](https://github.com/' + repositorio + '/pull/' + pr + '))' : pr ? ' (#' + pr + ')' : '';
+  const numero = pr && repositorio ? '[#' + pr + '](https://github.com/' + repositorio + '/pull/' + pr + ')' : pr ? '#' + pr : '';
+  const partes = [numero, creditos(autores)].filter(Boolean);
+  const link = partes.length ? ' (' + partes.join(', ') + ')' : '';
   const entrada = '\n## ' + versao + ' — ' + data + '\n\n- ' + (titulo || 'Atualização') + link + '\n';
   const corpo = atual.startsWith(cabecalho) ? atual.slice(cabecalho.length) : atual.replace(/^# .*\n+(.*\n)?/, '');
   writeFileSync(arquivo, cabecalho + entrada + corpo);
@@ -123,7 +165,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
     writeFileSync(caminho('package-lock.json'), JSON.stringify(trava, null, 2) + '\n');
   }
   gravarModuloDeVersao(versao, data);
-  gravarNoReadme(versao, data);
-  gravarNoHistorico(versao, data, titulo.split('\n')[0], args.pr !== true ? args.pr : '', process.env.GITHUB_REPOSITORY);
+  const autores = lerAutores((args.autores !== true && args.autores) || process.env.AUTORES || '');
+  gravarNoReadme(versao, data, autores);
+  gravarNoHistorico(versao, data, titulo.split('\n')[0], args.pr !== true ? args.pr : '', process.env.GITHUB_REPOSITORY, autores);
   console.log(versao);
 }

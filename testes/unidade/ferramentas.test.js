@@ -9,7 +9,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { tipoDeMudanca, proximaVersao, dataEmBrasilia } from '../../ferramentas/versionar.js';
+import { tipoDeMudanca, proximaVersao, dataEmBrasilia, lerAutores, registrarAutores, creditos } from '../../ferramentas/versionar.js';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 let copia;
@@ -74,6 +74,31 @@ describe('versionar.js', () => {
     const saida = rodar('versionar.js', ['--atual', '--titulo', 'Repetida'], { DATA_DA_VERSAO: '2030-01-02' });
     assert.equal(saida.trim(), atual);
     assert.equal(ler('CHANGELOG.md').split('## ' + atual + ' ').length, 2);
+  });
+  it('lerAutores: login e nome, sem robôs nem repetidos', () => {
+    assert.deepEqual(lerAutores('diego:Diego Casagrande\n@Ana:Ana: a Grande, robo[bot]:Robô\nDIEGO:Outro\n\n'),
+      [{ login: 'diego', nome: 'Diego Casagrande' }, { login: 'Ana', nome: 'Ana: a Grande' }]);
+    assert.deepEqual(lerAutores(), []);
+  });
+  it('registrarAutores: acrescenta só quem falta e mantém as linhas escritas à mão', () => {
+    const readme = 'Autores:\n<!-- autores -->\n- Fulano ([@fulano](https://github.com/fulano))\n<!-- /autores -->\nfim';
+    const novo = registrarAutores(readme, [{ login: 'Fulano', nome: 'Outro nome' }, { login: 'bia', nome: '' }]);
+    assert.equal(novo, 'Autores:\n<!-- autores -->\n- Fulano ([@fulano](https://github.com/fulano))\n- bia ([@bia](https://github.com/bia))\n<!-- /autores -->\nfim');
+    assert.equal(registrarAutores(novo, [{ login: 'bia', nome: 'Bia' }]), novo);
+    assert.equal(registrarAutores('sem marcadores', [{ login: 'x', nome: 'X' }]), 'sem marcadores');
+  });
+  it('creditos: um, dois ou mais autores', () => {
+    assert.equal(creditos([]), '');
+    assert.equal(creditos([{ login: 'a' }]), 'por [@a](https://github.com/a)');
+    assert.equal(creditos([{ login: 'a' }, { login: 'b' }, { login: 'c' }]),
+      'por [@a](https://github.com/a), [@b](https://github.com/b) e [@c](https://github.com/c)');
+  });
+  it('pull request de outra pessoa: entra nos autores do README e nos créditos do histórico', () => {
+    rodar('versionar.js', ['--tipo', 'correcao', '--titulo', 'Testes novos', '--pr', '9'],
+      { DATA_DA_VERSAO: '2030-01-04', GITHUB_REPOSITORY: 'dono/repo', AUTORES: 'nova-pessoa:Nova Pessoa\ngithub-actions[bot]:' });
+    assert.match(ler('README.md'), /- Nova Pessoa \(\[@nova-pessoa\]\(https:\/\/github.com\/nova-pessoa\)\)\n<!-- \/autores -->/);
+    assert.ok(!ler('README.md').includes('[bot]'));
+    assert.match(ler('CHANGELOG.md'), /- Testes novos \(\[#9\]\(https:\/\/github.com\/dono\/repo\/pull\/9\), por \[@nova-pessoa\]/);
   });
   it('sem PR nem título: correção, com "Atualização" no histórico', () => {
     const atual = JSON.parse(ler('package.json')).version;

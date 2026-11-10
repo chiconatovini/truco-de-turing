@@ -822,7 +822,7 @@ Laboratório de Monte Carlo no terminal: oponentes jogam entre si e as estatíst
 
 ## `ferramentas/versionar.js`
 
-Versionamento do jogo (versionamento semântico MAIOR.MENOR.CORREÇÃO). Roda no GitHub Actions a cada merge (ou push) na main — ver .github/workflows/versao.yml — e também à mão. Atualiza, de uma vez: - package.json e package-lock.json (`version`); - src/versao.js (mostrada na tela "Sobre"); - README.md (a linha entre os marcadores `<!-- versao -->` e `<!-- /versao -->`); - CHANGELOG.md (uma entrada nova no topo, com o título do pull request). Que parte da versão sobe é decidido pelo pull request (ou pela mensagem do commit, sem PR): - rótulo `versao:maior`, ou título com `!:`/"BREAKING" → MAIOR (2.0.0); - rótulo `versao:menor`, ou título começando com `feat`, `nova` ou `novo` → MENOR (1.1.0); - qualquer outro caso → CORREÇÃO (1.0.1). Uso: node ferramentas/versionar.js --tipo auto --titulo "feat: dicas" --rotulos "versao:menor" --pr 12 node ferramentas/versionar.js --tipo correcao node ferramentas/versionar.js --atual (publica a versão atual sem subir; 1ª versão) node ferramentas/versionar.js --simular ... (só mostra a próxima versão, sem gravar) O título e os rótulos também podem vir das variáveis de ambiente TITULO e ROTULOS (mais seguro no CI). A versão final é impressa na última linha da saída.
+Versionamento do jogo (versionamento semântico MAIOR.MENOR.CORREÇÃO). Roda no GitHub Actions a cada merge (ou push) na main — ver .github/workflows/versao.yml — e também à mão. Atualiza, de uma vez: - package.json e package-lock.json (`version`); - src/versao.js (mostrada na tela "Sobre"); - README.md (a linha entre os marcadores `<!-- versao -->` e `<!-- /versao -->` e, a cada pull request, os autores novos entre `<!-- autores -->` e `<!-- /autores -->`); - CHANGELOG.md (uma entrada nova no topo, com o título do pull request e quem o fez). Que parte da versão sobe é decidido pelo pull request (ou pela mensagem do commit, sem PR): - rótulo `versao:maior`, ou título com `!:`/"BREAKING" → MAIOR (2.0.0); - rótulo `versao:menor`, ou título começando com `feat`, `nova` ou `novo` → MENOR (1.1.0); - qualquer outro caso → CORREÇÃO (1.0.1). Uso: node ferramentas/versionar.js --tipo auto --titulo "feat: dicas" --rotulos "versao:menor" --pr 12 node ferramentas/versionar.js --tipo correcao node ferramentas/versionar.js --atual (publica a versão atual sem subir; 1ª versão) node ferramentas/versionar.js --simular ... (só mostra a próxima versão, sem gravar) O título e os rótulos também podem vir das variáveis de ambiente TITULO e ROTULOS (mais seguro no CI). AUTORES (uma pessoa por linha, `login:Nome Completo`) traz quem abriu o PR e quem fez commits nele. A versão final é impressa na última linha da saída.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -831,7 +831,10 @@ Versionamento do jogo (versionamento semântico MAIOR.MENOR.CORREÇÃO). Roda no
 | `tipoDeMudanca(titulo = '', rotulos = [])` | função (exportada) | Decide que parte da versão sobe. |
 | `proximaVersao(versao, tipo)` | função (exportada) | Soma uma versão: '1.4.2' + 'menor' → '1.5.0'. |
 | `dataEmBrasilia(agora = new Date()` | função (exportada) | Data de hoje (AAAA-MM-DD) no horário de Brasília. |
+| `lerAutores(texto = '')` | função (exportada) | Lê a lista AUTORES (`login:Nome`, uma por linha ou separada por vírgula), sem robôs nem repetidos. |
+| `registrarAutores(readme, autores)` | função (exportada) | Acrescenta à lista de autores do README (entre `<!-- autores -->` e `<!-- /autores -->`) quem ainda não está nela. Reconhece a pessoa pelo @login do GitHub; as linhas que já existem (inclusive as escritas à mão) ficam como estão. |
+| `creditos(autores)` | função (exportada) | Créditos de quem fez o PR, para o CHANGELOG: "por @a e @b". |
 | `gravarModuloDeVersao(versao, data)` | função | Grava a versão em src/versao.js. |
-| `gravarNoReadme(versao, data)` | função | Troca a linha de versão do README (entre os marcadores). |
-| `gravarNoHistorico(versao, data, titulo, pr, repositorio)` | função | Acrescenta a entrada da versão no topo do CHANGELOG.md. |
+| `gravarNoReadme(versao, data, autores = [])` | função | Troca a linha de versão do README (entre os marcadores). |
+| `gravarNoHistorico(versao, data, titulo, pr, repositorio, autores = [])` | função | Acrescenta a entrada da versão no topo do CHANGELOG.md. |
 
