@@ -81,7 +81,10 @@ export const metodosDeEfeitos = {
     evento.cartas.forEach((c, i) => this.voarCarta(c, origem.x, origem.y, x, y, i * 120));
     /* quanto a soma da rede subiu (a figura empilhada entra na sequência de figuras) */
     const soma = evento.ganho != null ? evento.ganho : evento.cartas.reduce((t, c) => t + (ehFigura(c) ? 10 : pontosDaCarta(c, baralho)), 0);
-    this.time.delayedCall(320, () => { Som.tunagem(); this.textoFlutuante(x, y - 50, 'Tunagem +' + soma, '#7fe08a', 20); this.explodir(x, y, 0x7fe08a, 14); });
+    this.time.delayedCall(320, () => {
+      Som.tunagem(); this.textoFlutuante(x, y - 50, '+' + soma, '#7fe08a', 20); this.explodir(x, y, 0x7fe08a, 14);
+      this.faixa('TUNAGEM +' + soma, '#7fe08a', 40, 'tunagem');
+    });
     this.avisarVerbete('tunagem');
     return 800;
   },
@@ -110,7 +113,7 @@ export const metodosDeEfeitos = {
       this.explodir(x, y, cor, explosao ? 50 : 26);
       if (explosao) { Som.explosao(); this.cameras.main.shake(450, 0.012); }
       else { Som.golpe(); this.cameras.main.shake(220, evento.tipo === 'earlystop' ? 0.007 : 0.003); }
-      this.faixa(titulo + (evento.proprio ? ' (na própria rede)' : ''), corCss(cor), explosao ? 58 : 50);
+      this.faixa(titulo + (evento.proprio ? ' (na própria rede)' : ''), corCss(cor), explosao ? 58 : 50, evento.tipo);
     });
     if (!evento.proprio) {
       if (mao.jogadores[evento.jogador].tipo === 'oponente') this.falar(provocar(evento.tipo), evento.jogador);
@@ -131,7 +134,7 @@ export const metodosDeEfeitos = {
       this.time.delayedCall(i * 120, () => this.explodir(x, y, 0x6fe7ff, 12));
     });
     Som.dropout();
-    this.faixa('GatoNet! Dropout ×' + evento.neuronios.length, '#6fe7ff', 40);
+    this.faixa('GatoNet! Dropout ×' + evento.neuronios.length, '#6fe7ff', 40, 'dropout');
     this.avisarVerbete('dropout');
     return 700;
   },
@@ -139,7 +142,7 @@ export const metodosDeEfeitos = {
   /** Transfer learning. */
   animar_transfer() {
     Som.medalha();
-    this.faixa('TRANSFER LEARNING', '#9fe3e0', 46);
+    this.faixa('TRANSFER LEARNING', '#9fe3e0', 46, 'transfer');
     this.avisarVerbete('transfer');
     this.avisarVerbete('ruido');
     return 1000;
@@ -209,7 +212,7 @@ export const metodosDeEfeitos = {
       const pontuacao = this.pontuacoes[j];
       if (pontuacao.vanishing && !this.vanishingAvisado[j]) {
         this.vanishingAvisado[j] = true;
-        this.time.delayedCall(500, () => { Som.explosao(); this.faixa('VANISHING GRADIENT', '#ff6b7a', 52); this.falar(provocar('vanishing'), j); });
+        this.time.delayedCall(500, () => { Som.explosao(); this.faixa('VANISHING GRADIENT', '#ff6b7a', 52, 'vanishing'); this.falar(provocar('vanishing'), j); });
         this.avisarVerbete('vanishing');
         espera = 1400;
       } else if (!pontuacao.vanishing) this.vanishingAvisado[j] = false;
@@ -249,11 +252,24 @@ export const metodosDeEfeitos = {
   },
 
   /** Faixa grande no centro do tabuleiro (gritos de truco, ataques). */
-  faixa(texto, cor = '#f6dc8f', tamanho = 48) {
-    const t = this.add.text(610, MUNDO.altura * 0.46, texto, { fontFamily: FONTES.titulo, fontStyle: '900', fontSize: tamanho + 'px', color: cor, stroke: '#0d0a08', strokeThickness: 8, align: 'center' })
+  faixa(texto, cor = '#f6dc8f', tamanho = 48, icone = null) {
+    const y = MUNDO.altura * 0.46;
+    const t = this.add.text(610, y, texto, { fontFamily: FONTES.titulo, fontStyle: '900', fontSize: tamanho + 'px', color: cor, stroke: '#0d0a08', strokeThickness: 8, align: 'center' })
       .setOrigin(0.5).setDepth(40).setScale(0.6).setAlpha(0);
+    const alvos = [t];
+    /* ícone da ação acima do nome, num disco escuro para destacar da mesa */
+    const chave = icone && 'icone-acao:' + icone;
+    if (chave && this.textures.exists(chave)) {
+      const lado = Math.round(tamanho * 1.7), iy = y - tamanho * 0.5 - lado * 0.62;
+      const disco = this.add.circle(610, iy, lado * 0.62, 0x0d0a08, 0.72).setStrokeStyle(3, Phaser.Display.Color.HexStringToColor(cor).color).setDepth(40);
+      const img = this.add.image(610, iy, chave).setDisplaySize(lado, lado).setDepth(41);
+      for (const o of [disco, img]) { o.setAlpha(0); o.setScale(o.scaleX * 0.6, o.scaleY * 0.6); }
+      this.tweens.add({ targets: disco, scale: 1, alpha: 1, duration: 220, ease: 'Back.out' });
+      this.tweens.add({ targets: img, scaleX: lado / img.width, scaleY: lado / img.height, alpha: 1, duration: 220, ease: 'Back.out' });
+      alvos.push(disco, img);
+    }
     this.tweens.add({ targets: t, scale: 1, alpha: 1, duration: 220, ease: 'Back.out' });
-    this.tweens.add({ targets: t, alpha: 0, y: t.y - 30, duration: 380, delay: 1050, onComplete: () => t.destroy() });
+    this.tweens.add({ targets: alvos, alpha: 0, y: '-=30', duration: 380, delay: 1050, onComplete: () => alvos.forEach((o) => o.destroy()) });
   },
 
   /**

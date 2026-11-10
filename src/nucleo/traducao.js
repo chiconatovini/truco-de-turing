@@ -19,7 +19,7 @@
  */
 
 /** Baralhos: chave do Truco de Turing → id no motor. */
-export const BARALHO_ND = { classico: 'classic', truco: 'truco', fraternidade: 'fraternidade', yinyang: 'yinyang', powerbi: 'powerbi' };
+export const BARALHO_ND = { classico: 'classic', truco: 'truco', nobreza: 'nobreza', backprop: 'backprop', fraternidade: 'fraternidade', yinyang: 'yinyang', powerbi: 'powerbi' };
 
 /** Terrenos: chave do Truco de Turing → id no motor. */
 export const TERRENO_ND = { neutro: 'none', montanha: 'montanha', pantano: 'pantano', oceano: 'oceano' };

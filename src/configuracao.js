@@ -41,7 +41,7 @@ export const RESOLUCAO = (() => {
 /** Densidade (fator sobre o tamanho-base) com que cada tipo de textura é gerado. */
 export const DENSIDADE = {
   mesa: Math.max(1, RESOLUCAO * 0.62),     /* carta da mesa: base 120x168, exibida a 62x87 */
-  mao: Math.max(1, RESOLUCAO * 0.5),       /* carta na mão: base 240x336, exibida a 96x134 */
+  mao: Math.max(1, RESOLUCAO * 0.95),      /* carta na mão: face limpa, base 120x168, exibida a 104x145 */
   inspecao: Math.max(1, RESOLUCAO * 0.95), /* carta ampliada: base 240x336, exibida a ~197x276 */
   avatar: Math.max(1, RESOLUCAO * 0.7),
 };

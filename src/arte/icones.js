@@ -1,5 +1,6 @@
 /**
- * @file Ícones das conquistas em SVG (nítidos em qualquer tamanho) e cadeado das bloqueadas.
+ * @file Ícones em SVG (nítidos em qualquer tamanho): conquistas, cadeado das bloqueadas e um ícone
+ * para cada ação da mesa (faixa no centro da mesa e ajuda das ações).
  */
 /** Cor do traço dos ícones. */
 const I = '#24140a';
@@ -48,3 +49,23 @@ export const ICONES_CONQUISTAS = {
 };
 /** Cadeado das conquistas bloqueadas. */
 export const ICONE_CADEADO = svg('<rect x="12" y="21" width="24" height="19" rx="3" fill="#6b5a40" stroke="' + I + '" stroke-width="2"/><path d="M17 21v-5a7 7 0 0114 0v5" fill="none" stroke="' + I + '" stroke-width="3"/><circle cx="24" cy="30" r="2.6" fill="#24140a"/>');
+
+/** Ícone SVG de cada ação da mesa, pelo id da barra de ações (mais `vanishing`). */
+export const ICONES_DAS_ACOES = {
+  /* raio sobre duas cartas empilhadas */
+  tunagem: svg('<rect x="9" y="12" width="20" height="28" rx="3" fill="#fff6dc" stroke="' + I + '" stroke-width="2" transform="rotate(-8 19 26)"/><rect x="15" y="9" width="20" height="28" rx="3" fill="#fff6dc" stroke="' + I + '" stroke-width="2"/><path d="M29 4l-9 18h7l-4 20 15-24h-8l5-14z" fill="#ffd23a" stroke="' + I + '" stroke-width="1.8"/>'),
+  /* curva que decora o ruído, passando por todos os pontos */
+  overfit: svg('<rect x="4" y="6" width="40" height="36" rx="4" fill="#fff6dc" stroke="' + I + '" stroke-width="2"/><path d="M8 34C11 14 14 40 18 22s6 14 9-4 6 18 9 0 4 6 5 4" fill="none" stroke="#e0602a" stroke-width="2.6"/><path d="M8 33L40 13" stroke="#4aa3df" stroke-width="1.8" stroke-dasharray="3 3"/><g fill="' + I + '"><circle cx="11" cy="23" r="2"/><circle cx="18" cy="22" r="2"/><circle cx="27" cy="18" r="2"/><circle cx="36" cy="18" r="2"/></g>'),
+  /* placa de pare */
+  earlystop: svg('<path d="M17 4h14l10 10v14L31 38H17L7 28V14z" fill="#c0283c" stroke="' + I + '" stroke-width="2"/><path d="M18 7h12l8 8v12l-8 8H18l-8-8V15z" fill="none" stroke="#fff6dc" stroke-width="1.6"/><text x="24" y="25.5" font-family="Cinzel,serif" font-weight="900" font-size="9" text-anchor="middle" fill="#fff6dc">STOP</text><path d="M24 38v8" stroke="' + I + '" stroke-width="3"/>'),
+  /* pilha de cartas que estoura */
+  stackoverflow: svg('<path d="M24 2l3 7 7-3-3 7 7 3-7 3 3 7-7-3-3 7-3-7-7 3 3-7-7-3 7-3-3-7 7 3z" fill="#ffb347" stroke="' + I + '" stroke-width="1.4"/><rect x="11" y="27" width="26" height="5" rx="1.5" fill="#fff6dc" stroke="' + I + '" stroke-width="1.6"/><rect x="11" y="32" width="26" height="5" rx="1.5" fill="#fff6dc" stroke="' + I + '" stroke-width="1.6"/><rect x="11" y="37" width="26" height="5" rx="1.5" fill="#fff6dc" stroke="' + I + '" stroke-width="1.6"/><rect x="13" y="22" width="26" height="5" rx="1.5" fill="#fff6dc" stroke="' + I + '" stroke-width="1.6" transform="rotate(12 26 24)"/>'),
+  /* o gato do GatoNet */
+  dropout: svg(gato('')),
+  /* duas setas trocando cartas com o limbo */
+  transfer: svg('<rect x="5" y="12" width="14" height="20" rx="2.5" fill="#fff6dc" stroke="' + I + '" stroke-width="1.8"/><rect x="29" y="16" width="14" height="20" rx="2.5" fill="#3a3550" stroke="' + I + '" stroke-width="1.8"/><path d="M14 9c4-6 16-6 20 0" fill="none" stroke="#3fae6a" stroke-width="2.6"/><path d="M35 3l-1 7-7-2" fill="none" stroke="#3fae6a" stroke-width="2.6"/><path d="M34 39c-4 6-16 6-20 0" fill="none" stroke="#4aa3df" stroke-width="2.6"/><path d="M13 45l1-7 7 2" fill="none" stroke="#4aa3df" stroke-width="2.6"/>'),
+  /* ampulheta */
+  passar: svg('<path d="M12 5h24M12 43h24" stroke="' + I + '" stroke-width="3"/><path d="M14 6c0 10 8 12 8 18s-8 8-8 18h20c0-10-8-12-8-18s8-8 8-18z" fill="#fff6dc" stroke="' + I + '" stroke-width="2"/><path d="M17 11h14c-1 5-7 7-7 10-0-3-6-5-7-10zM16 41c1-6 8-8 8-11 0 3 7 5 8 11z" fill="#e2b04a"/>'),
+  /* setas que desbotam da saída para a entrada */
+  vanishing: svg('<path d="M42 24H30" stroke="#c0283c" stroke-width="4"/><path d="M33 18l-6 6 6 6" fill="none" stroke="#c0283c" stroke-width="4"/><path d="M27 24H17" stroke="#c0283c" stroke-width="3" opacity=".55"/><path d="M20 19l-5 5 5 5" fill="none" stroke="#c0283c" stroke-width="3" opacity=".55"/><path d="M14 24H6" stroke="#c0283c" stroke-width="2" opacity=".25"/><path d="M9 20l-4 4 4 4" fill="none" stroke="#c0283c" stroke-width="2" opacity=".25"/>'),
+};

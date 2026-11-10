@@ -142,7 +142,7 @@ Pontos em que o enunciado deixa margem e o que ficou decidido (professor e grupo
   - *Zé do Ruído* (fácil): sorteia uma jogada válida; bom para aprender as regras.
   - *Gradiente Guloso* (médio): como a descida de gradiente, escolhe o lance que mais melhora o placar agora, sem olhar adiante.
   - *Mestre Monte Carlo* (difícil): sorteia as cartas ocultas, simula dezenas de partidas para cada lance e escolhe o que mais venceu; mostra a própria chance de vitória e truca com base nas simulações.
-- **5 baralhos e 4 terrenos** da seção de extensões (Truco com manilhas, Fraternidade, Yin-yang, Power BI; Montanha, Pântano, Oceano).
+- **7 baralhos e 4 terrenos**: Clássico, Truco com manilhas, Nobreza, Backprop (o naipe é o peso, as figuras são ativações e a rede vale a saída do forward pass), Fraternidade, Yin-yang e Power BI; mesa neutra, Montanha, Pântano e Oceano, cada terreno com ambiente animado (neve, neblina e vaga-lumes, ondas e vento).
 - **27 conquistas** em graduações de bronze a antimatéria, incluindo as do enunciado (Desk rejection, Marcha dos patos, Contra tudo e contra todos, Artilheiro dos gols inúteis, 100 dropouts…).
 - **Modo dicas**: dicas de estratégia a cada vez, sempre com o conceito de redes neurais por trás, e explicações nos botões (mouse ou segurar no celular); só usam o que está à vista e nunca dizem qual carta virada escolher. Mãos com dicas não valem conquistas.
 - **Mesa pensada para o toque**: no painel esquerdo, só REGRAS (regras, ajuda das ações, Biblioteca de conceitos e dicas) e MENU (som, música e sair); botões de ação grandes e quase quadrados.
@@ -161,9 +161,8 @@ vale. O botão "?" da mesa abre a ajuda das ações, com a regra de cada jogada 
 
 ## Ideias de extensão
 
-Próximas etapas da fusão: menu com todas as configurações do NeuroDeck (arquiteturas, 2 a 5 jogadores,
-vários baralhos; o motor já suporta), baralhos Backprop e Nobreza, mods (o motor tem um registro de
-baralhos, terrenos e ações), contas e partidas online (o estado é serializável).
+Próximas etapas da fusão: carregar mods na interface (o motor já tem o registro de baralhos, terrenos e ações),
+contas e partidas online (o estado é serializável).
 
 ## Licença
 

@@ -232,7 +232,7 @@ describe('telas', () => {
     assert.equal($('section.aba[data-aba="pontuacao"]').hidden, false);
     assert.equal($('section.aba[data-aba="jogar"]').hidden, true);
     clicar($('.abas [data-aba="extensoes"]'));
-    assert.equal($$('section.aba[data-aba="extensoes"] .extensao').length, 9); /* 5 baralhos e 4 terrenos */
+    assert.equal($$('section.aba[data-aba="extensoes"] .extensao').length, 11); /* 7 baralhos e 4 terrenos */
     clicar($('#r-ajuda-acoes'));
     assert.equal($$('.cartao-acao').length, 8);
     assert.match($('.cartao-acao[data-acao="earlystop"]').textContent, /Early stopping/);

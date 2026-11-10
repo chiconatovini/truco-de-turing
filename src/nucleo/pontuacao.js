@@ -48,6 +48,7 @@ const arredondar = (x) => Math.round(x * 100) / 100;
  */
 export function pontuarRede(mao, j) {
   const resultado = ND.score(mao.nd, j);
+  if (resultado.kind === 'forward') return pontuarForward(mao, resultado);
   /* no baralho de truco as figuras valem pontos próprios e não formam par nem trio */
   const figurasValem = !!BARALHOS[mao.config.baralho].figurasValem;
   const neuronios = resultado.items.map((item, camada) => {
@@ -73,6 +74,31 @@ export function pontuarRede(mao, j) {
     if (quantidade >= 4) combos.push({ de: inicio, ate: k, valor, quantidade, pontos: 0, rotulo: 'Quadra de ' + PLURAL_FIGURA[valor] + ': vanishing gradient' });
     else if (quantidade >= 2 && !figurasValem) combos.push({ de: inicio, ate: k, valor, quantidade, pontos, rotulo: (quantidade === 2 ? 'Par' : 'Trio') + ' de ' + PLURAL_FIGURA[valor] + ' +' + pontos });
   }
+  return { total: resultado.total, neuronios, combos, vanishing: !!resultado.vanishing };
+}
+
+/** Número com vírgula decimal e no máximo 2 casas ("1,2", "23,45"). */
+const decimal = (x) => String(arredondar(x)).replace('.', ',');
+
+/**
+ * Baralho Backprop: a rede vale a ativação da saída. Cada neurônio mostra a ativação depois da
+ * camada dele (`pontos`) e, nas notas, o peso do naipe, o viés e a função de ativação. Não há
+ * combos de figuras: o vanishing gradient é a saída baixa depois de uma ativação não linear.
+ */
+function pontuarForward(mao, resultado) {
+  const neuronios = resultado.items.map((item, camada) => {
+    const carta = mao.indiceDeCartas.tt.get(item.card.id);
+    const notas = [(camada ? 'w ' + decimal(item.w) + ' · ' : '') + 'b ' + decimal(item.bias) + ' · ' + item.fn];
+    if (item.stack) notas.push('tunado ×' + (1 + item.stack));
+    notas.push(...item.notes);
+    return {
+      neuronio: mao.neuronios[idDoNeuronio(item.slot.layer, item.slot.slotIndex)], camada, carta, pilha: 1 + item.stack,
+      figura: ehFigura(carta), pontos: arredondar(item.a), notas,
+    };
+  });
+  const combos = resultado.vanishing && neuronios.length
+    ? [{ de: 0, ate: neuronios.length - 1, valor: '', quantidade: neuronios.length, pontos: 0, rotulo: 'Saída baixa depois de ativações: vanishing gradient' }]
+    : [];
   return { total: resultado.total, neuronios, combos, vanishing: !!resultado.vanishing };
 }
 
