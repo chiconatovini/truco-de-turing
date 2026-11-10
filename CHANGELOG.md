@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.2.3 — 2026-11-09
+
+- Revisão pós-merge do PR #1: changelog, datas da versão e relatórios
+
 ## 1.2.2 — 2026-11-09
 
 - test: testes de aceitação das regras de negócio em `testes/unidade/regras-de-negocio.test.js`: 40 cenários (RN-01 a RN-40) cobrindo preparação da mesa, quem começa, construção da rede, pontuação, ações com cartas, dropout, transfer learning, passar a vez, desempates, truco e invariantes em 200 mãos aleatórias. Onde o enunciado deixa margem, os testes fixam a leitura adotada no README.
