@@ -14,7 +14,7 @@
  * ## Visão da mão
  * ```
  * {
- *   config: { baralho, terreno, inicio },     // opções escolhidas no menu
+ *   config: { baralho, terreno, inicio, arquitetura, baralhos },  // opções escolhidas no menu
  *   semente,                                   // aleatoriedade reproduzível
  *   nd,                                        // estado do motor do NeuroDeck (fonte da verdade)
  *   indiceDeCartas,                            // cartas da interface por id do motor, e vice-versa
@@ -52,7 +52,7 @@
 import * as ND from '../motor/engine.js';
 import { sementeNova } from './aleatorio.js';
 import { rotuloCarta } from './cartas.js';
-import { ehOculta, nomeCamada } from './rede.js';
+import { ehOculta, nomeCamada, tamanhosDaMesa, ARQUITETURAS } from './rede.js';
 import {
   BARALHO_ND, TERRENO_ND, INICIO_ND, ATAQUE_PELO_TAMANHO,
   cartaParaTT, naipeParaTT, idDoNeuronio, lugarDoNeuronio, situacaoDaRede, motivoDaVitoria,
@@ -139,18 +139,26 @@ function montar(nd, config, jogadores, simulacao, cartas) {
  * @param {string} [opcoes.baralho='classico']
  * @param {string} [opcoes.terreno='neutro']
  * @param {string} [opcoes.inicio='revela-descarta']
+ * @param {string} [opcoes.arquitetura='padrao'] Uma das `ARQUITETURAS` (padrão, curta, larga, profunda).
+ * @param {number} [opcoes.baralhos=1] Quantos baralhos: a mão e o limbo crescem junto (5 e 10 cartas por baralho).
  * @param {number} [opcoes.semente] Para partidas reproduzíveis.
- * @param {{nome:string, tipo?:string, oponente?:string}[]} opcoes.jogadores
+ * @param {{nome:string, tipo?:string, oponente?:string}[]} opcoes.jogadores De 2 a 5.
  */
 export function novaMao(opcoes) {
-  const config = { baralho: opcoes.baralho || 'classico', terreno: opcoes.terreno || 'neutro', inicio: opcoes.inicio || 'revela-descarta' };
+  const config = {
+    baralho: opcoes.baralho || 'classico', terreno: opcoes.terreno || 'neutro', inicio: opcoes.inicio || 'revela-descarta',
+    arquitetura: opcoes.arquitetura || 'padrao', baralhos: Math.max(1, Math.min(4, Number(opcoes.baralhos) || 1)),
+  };
   if (!BARALHO_ND[config.baralho]) throw new Error('Baralho desconhecido: ' + config.baralho);
   if (!TERRENO_ND[config.terreno]) throw new Error('Terreno desconhecido: ' + config.terreno);
   if (!INICIO_ND[config.inicio]) throw new Error('Forma de início desconhecida: ' + config.inicio);
+  if (!ARQUITETURAS[config.arquitetura]) throw new Error('Arquitetura desconhecida: ' + config.arquitetura);
+  const n = opcoes.jogadores.length;
+  if (n < 2 || n > ND.MAX_PLAYERS) throw new Error('A mesa aceita de 2 a ' + ND.MAX_PLAYERS + ' jogadores');
   const semente = opcoes.semente != null ? opcoes.semente | 0 : sementeNova();
   const nd = ND.newGame({
     deck: BARALHO_ND[config.baralho], terrain: TERRENO_ND[config.terreno], firstRule: INICIO_ND[config.inicio],
-    seed: semente, players: opcoes.jogadores.length,
+    seed: semente, players: n, copies: config.baralhos, layers: tamanhosDaMesa(config.arquitetura, n),
   });
   const mao = montar(nd, config, opcoes.jogadores.map(novoJogador), false);
   mao.semente = semente;
@@ -232,6 +240,9 @@ function anotarHistorico(mao) {
 
 /* ======================================================================== consultas */
 
+/** Total de camadas da mesa desta mão. */
+export function totalDeCamadas(mao) { return mao.camadas.length; }
+
 /** Último neurônio do caminho do jogador (a "fronteira"), ou null. */
 export function fronteira(mao, j) {
   const caminho = mao.jogadores[j].caminho;
@@ -253,7 +264,7 @@ export function alvosDeEmpilhamento(mao) {
   mao.jogadores.forEach((jogador, j) => {
     if (jogador.situacao !== 'construindo') return;
     const f = fronteira(mao, j);
-    if (f && ehOculta(f.camada) && f.cartas.length < 4) alvos.push(f);
+    if (f && ehOculta(f.camada, mao.camadas.length) && f.cartas.length < 4) alvos.push(f);
   });
   return alvos;
 }
@@ -415,7 +426,7 @@ function narrarAtivacao(mao, jogada) {
   const j = jogada.jogador, jogador = mao.jogadores[j], neuronio = mao.neuronios[jogada.neuronio];
   jogador.estatisticas.ativacoes++;
   emitir(mao, { tipo: 'ativacao', jogador: j, neuronio: neuronio.id, carta: neuronio.cartas[0] });
-  anotar(mao, jogador.nome + ' ativou ' + rotuloCarta(neuronio.cartas[0]) + ' na camada ' + nomeCamada(neuronio.camada) + '.');
+  anotar(mao, jogador.nome + ' ativou ' + rotuloCarta(neuronio.cartas[0]) + ' na camada ' + nomeCamada(neuronio.camada, mao.camadas.length) + '.');
   if (jogador.situacao === 'concluida') {
     emitir(mao, { tipo: 'completa', jogador: j });
     anotar(mao, jogador.nome + ' chegou à camada de saída!');
@@ -556,7 +567,7 @@ export function aplicarJogada(mao, jogada) {
   mao.jogadores.forEach((outro, i) => {
     if (outro.situacao !== 'travada' || antes.finalizadas[i]) return;
     emitir(mao, { tipo: 'travada', jogador: i, camada: outro.caminho.length });
-    anotar(mao, outro.nome + ' ficou sem neurônio livre na camada ' + nomeCamada(outro.caminho.length) + ': a rede foi finalizada.');
+    anotar(mao, outro.nome + ' ficou sem neurônio livre na camada ' + nomeCamada(outro.caminho.length, mao.camadas.length) + ': a rede foi finalizada.');
   });
   if (mao.config.terreno === 'oceano' && nd.round > antes.rodada && mao.fase === 'jogo') emitir(mao, { tipo: 'vento', naipe: mao.vento });
   anotarHistorico(mao);

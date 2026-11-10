@@ -19,12 +19,16 @@
  * - `this.partida`: placar de tentos e truco (nucleo/truco.js);
  * - `this.mao`: estado da mão atual (nucleo/partida.js);
  * - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos);
+ * - `this.numJogadores`, `this.humanos`, `this.variosHumanos`: quem está na mesa (os humanos são os
+ *   primeiros índices; os demais são oponentes do computador);
  * - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo;
  * - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques);
  * - `this.encerrada`: a mão acabou.
  */
-import { Aplicacao } from '../../aplicacao.js';
+import { Aplicacao, normalizarOpcoes } from '../../aplicacao.js';
 import { novaPartida } from '../../nucleo/truco.js';
+import { tamanhosDaMesa } from '../../nucleo/rede.js';
+import { definirMesa } from './layout.js';
 import { abrirRegras } from '../../interface/telas/regras.js';
 import { ajustarCamera, colocarFundo } from '../recursos.js';
 import { metodosDoCenario } from './cenario.js';
@@ -44,9 +48,13 @@ export class CenaMesa extends Phaser.Scene {
   /** Monta a mesa e começa a primeira mão (depois das regras, na primeira visita). */
   create() {
     this.app = Aplicacao;
-    this.opcoes = { ...this.app.opcoes };
-    this.doisHumanos = this.opcoes.oponente === 'doisHumanos';
-    this.partida = novaPartida(this.opcoes.alvo);
+    this.opcoes = normalizarOpcoes(this.app.opcoes);
+    this.numJogadores = this.opcoes.jogadores;
+    this.humanos = this.opcoes.humanos;
+    this.variosHumanos = this.humanos > 1;
+    /* a geometria da mesa vale para a partida inteira: arquitetura e número de jogadores não mudam */
+    definirMesa(tamanhosDaMesa(this.opcoes.arquitetura, this.numJogadores));
+    this.partida = novaPartida(this.opcoes.alvo, this.numJogadores);
     this.mao = null;
 
     ajustarCamera(this);

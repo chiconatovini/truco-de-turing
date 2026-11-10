@@ -6,14 +6,13 @@
 import { MUNDO, RESOLUCAO, FONTES, TAMANHO_CARTA } from '../../configuracao.js';
 import { NAIPE, ehFigura } from '../../nucleo/cartas.js';
 import { pontosDaCarta, nomeDaCarta } from '../../nucleo/baralhos.js';
-import { CAMADA_SAIDA } from '../../nucleo/rede.js';
 import { VERBETES } from '../../conteudo/grimorio.js';
 import { provocar } from '../../conteudo/textos.js';
 import { desenharFaisca } from '../../arte/botoes.js';
 import { Som } from '../../interface/som.js';
 import { mostrarAviso } from '../../interface/paineis.js';
 import { texturaDaCartaNaMesa, texturaDaCartaMedia, texturaDeInspecao } from '../recursos.js';
-import { colunaX, linhaY, COR_JOGADOR_CSS, PAINEL_DIR } from './layout.js';
+import { colunaX, linhaY, COR_JOGADOR_CSS, PAINEL_DIR, TABULEIRO, cartaDaMesa, ajustarLinha } from './layout.js';
 
 /** Cor e título de cada ataque. */
 const ATAQUES = {
@@ -32,9 +31,11 @@ export const metodosDeEfeitos = {
     return { x: colunaX(n.camada), y: linhaY(n.camada, n.posicao) };
   },
 
-  /** Ponto de onde saem as cartas jogadas por `j` (a mão de baixo ou a de cima). */
+  /** Ponto de onde saem as cartas jogadas por `j` (a mão de baixo ou o leque dele no alto). */
   origemDasCartas(j) {
-    return j === this.jogadorDeBaixo() ? { x: 610, y: 652 } : { x: 560, y: 40 };
+    if (j === this.jogadorDeBaixo()) return { x: 610, y: 652 };
+    const outros = this.outrosJogadores();
+    return { x: this.posicaoDaMaoDeCima(Math.max(0, outros.indexOf(j)), outros.length).x, y: 40 };
   },
 
   /**
@@ -95,11 +96,12 @@ export const metodosDeEfeitos = {
       const carta = evento.cartas[evento.cartas.length - 1 - k];
       if (carta) this.voarCarta(carta, origem.x, origem.y, x, y, k * 110);
     }
+    const carta = cartaDaMesa();
     const fantasma = this.add.image(x, y, texturaDaCartaNaMesa(this, evento.cartas[0], baralho))
-      .setDisplaySize(TAMANHO_CARTA.mesaL, TAMANHO_CARTA.mesaA).setDepth(15);
+      .setDisplaySize(carta.l, carta.a).setDepth(15);
     this.tweens.add({ targets: fantasma, x: '+=6', yoyo: true, repeat: 4, duration: 50, delay: 300 });
     this.tweens.add({
-      targets: fantasma, alpha: 0, displayWidth: TAMANHO_CARTA.mesaL * 1.5, displayHeight: TAMANHO_CARTA.mesaA * 1.5, angle: 25,
+      targets: fantasma, alpha: 0, displayWidth: carta.l * 1.5, displayHeight: carta.a * 1.5, angle: 25,
       duration: 500, delay: 560, onComplete: () => fantasma.destroy(),
     });
     const { cor, titulo } = ATAQUES[evento.tipo];
@@ -111,8 +113,8 @@ export const metodosDeEfeitos = {
       this.faixa(titulo + (evento.proprio ? ' (na própria rede)' : ''), corCss(cor), explosao ? 58 : 50);
     });
     if (!evento.proprio) {
-      if (mao.jogadores[evento.jogador].tipo === 'oponente') this.falar(provocar(evento.tipo));
-      else if (mao.jogadores[evento.dono].tipo === 'oponente') this.falar(provocar(evento.tipo === 'overfit' ? 'sofreuOverfit' : 'sofreuParada'));
+      if (mao.jogadores[evento.jogador].tipo === 'oponente') this.falar(provocar(evento.tipo), evento.jogador);
+      else if (mao.jogadores[evento.dono].tipo === 'oponente') this.falar(provocar(evento.tipo === 'overfit' ? 'sofreuOverfit' : 'sofreuParada'), evento.dono);
     }
     this.avisarVerbete(evento.tipo);
     if (evento.tipo !== 'overfit') this.avisarVerbete('overfit');
@@ -146,7 +148,7 @@ export const metodosDeEfeitos = {
   /** Rede chegou à camada de saída. */
   animar_completa(evento) {
     Som.medalha();
-    this.textoFlutuante(colunaX(CAMADA_SAIDA), 590, 'Rede completa!', COR_JOGADOR_CSS[evento.jogador], 22);
+    this.textoFlutuante(colunaX(this.mao.camadas.length - 1), 590, 'Rede completa!', COR_JOGADOR_CSS[evento.jogador], 22);
     return 600;
   },
 
@@ -172,8 +174,8 @@ export const metodosDeEfeitos = {
 
   /** Alguém passou a vez. */
   animar_passe(evento) {
-    const embaixo = evento.jogador === this.jogadorDeBaixo();
-    this.textoFlutuante(embaixo ? 610 : 560, embaixo ? 570 : 90, this.mao.jogadores[evento.jogador].nome + ' passou', '#efe3c6', 18);
+    const embaixo = evento.jogador === this.jogadorDeBaixo(), origem = this.origemDasCartas(evento.jogador);
+    this.textoFlutuante(origem.x, embaixo ? 570 : 90, this.mao.jogadores[evento.jogador].nome + ' passou', '#efe3c6', 18);
     return 0;
   },
 
@@ -185,10 +187,15 @@ export const metodosDeEfeitos = {
       this.faixa(nome + ' começa (sorteio)', cor, 36);
       return 900;
     }
+    /* as cartas reveladas lado a lado no centro do tabuleiro; com muitos jogadores, menores */
+    const n = evento.cartas.length, passo = Math.min(180, (TABULEIRO.x1 - TABULEIRO.x0 - 40) / n), escala = Math.min(1, passo / 150);
     evento.cartas.forEach((carta, i) => {
-      const imagem = this.add.image(520 + i * 180, 330, texturaDaCartaMedia(this, carta, baralho)).setDisplaySize(120, 168).setDepth(25).setAlpha(0);
+      if (!carta) return;
+      const cx = TABULEIRO.centroX + (i - (n - 1) / 2) * passo;
+      const imagem = this.add.image(cx, 330, texturaDaCartaMedia(this, carta, baralho)).setDisplaySize(120 * escala, 168 * escala).setDepth(25).setAlpha(0);
       this.tweens.add({ targets: imagem, alpha: 1, duration: 200 });
-      const rotulo = this.add.text(520 + i * 180, 430, mao.jogadores[i].nome, { fontFamily: FONTES.titulo, fontStyle: '700', fontSize: '16px', color: COR_JOGADOR_CSS[i] }).setOrigin(0.5).setDepth(25);
+      const rotulo = this.add.text(cx, 330 + 84 * escala + 16, mao.jogadores[i].nome, { fontFamily: FONTES.titulo, fontStyle: '700', fontSize: '16px', color: COR_JOGADOR_CSS[i] }).setOrigin(0.5).setDepth(25);
+      ajustarLinha(rotulo, rotulo.text, 16, passo - 8, 9);
       this.time.delayedCall(1700, () => this.tweens.add({ targets: [imagem, rotulo], alpha: 0, duration: 300, onComplete: () => { imagem.destroy(); rotulo.destroy(); } }));
     });
     this.time.delayedCall(700, () => this.faixa(nome + ' começa' + (evento.empate ? ' (empate: sorteio)' : ''), cor, 36));
@@ -202,7 +209,7 @@ export const metodosDeEfeitos = {
       const pontuacao = this.pontuacoes[j];
       if (pontuacao.vanishing && !this.vanishingAvisado[j]) {
         this.vanishingAvisado[j] = true;
-        this.time.delayedCall(500, () => { Som.explosao(); this.faixa('VANISHING GRADIENT', '#ff6b7a', 52); this.falar(provocar('vanishing')); });
+        this.time.delayedCall(500, () => { Som.explosao(); this.faixa('VANISHING GRADIENT', '#ff6b7a', 52); this.falar(provocar('vanishing'), j); });
         this.avisarVerbete('vanishing');
         espera = 1400;
       } else if (!pontuacao.vanishing) this.vanishingAvisado[j] = false;
@@ -216,8 +223,9 @@ export const metodosDeEfeitos = {
   /** Uma carta voa de (x0, y0) até (x1, y1) e some. */
   voarCarta(carta, x0, y0, x1, y1, atraso = 0) {
     const imagem = this.add.image(x0, y0, texturaDaCartaNaMesa(this, carta, this.mao.config.baralho)).setDisplaySize(72, 101).setDepth(16);
+    const { l, a } = cartaDaMesa();
     this.tweens.add({
-      targets: imagem, x: x1 + 8, y: y1 - 8, displayWidth: TAMANHO_CARTA.mesaL, displayHeight: TAMANHO_CARTA.mesaA, angle: 8,
+      targets: imagem, x: x1 + 8, y: y1 - 8, displayWidth: l, displayHeight: a, angle: 8,
       duration: 320, delay: atraso, ease: 'Cubic.out', onComplete: () => imagem.destroy(),
     });
   },
@@ -249,11 +257,16 @@ export const metodosDeEfeitos = {
   },
 
   /**
-   * Balão de fala do oponente. Fica à esquerda do placar, na altura do bloco do oponente,
-   * com a ponta virada para o avatar dele.
+   * Balão de fala de um oponente. Fica à esquerda do placar, na altura do bloco dele, com a ponta
+   * virada para o avatar.
+   * @param {string} texto
+   * @param {number} [quem] Jogador que fala; por padrão, o primeiro oponente do computador.
    */
-  falar(texto) {
+  falar(texto, quem) {
     if (!texto) return;
+    const ordem = this.ordemDoPlacar(), jogadores = this.mao.jogadores;
+    if (quem == null || !jogadores[quem] || jogadores[quem].tipo !== 'oponente') quem = ordem.find((j) => jogadores[j].tipo === 'oponente');
+    if (quem == null) return;
     const p = this.painel, g = p.fundoBalao;
     p.textoBalao.setText(texto);
     const l = Math.min(250, p.textoBalao.width + 28), a = p.textoBalao.height + 18;
@@ -261,7 +274,7 @@ export const metodosDeEfeitos = {
     g.fillStyle(0xefe3c6, 1); g.fillRoundedRect(-l / 2, -a / 2, l, a, 10);
     g.fillTriangle(l / 2 - 10, -6, l / 2 + 14, 0, l / 2 - 10, 8);
     g.lineStyle(2, 0x0d0a08, 1); g.strokeRoundedRect(-l / 2, -a / 2, l, a, 10);
-    const avatar = p.blocos[0].avatar;
+    const avatar = p.blocos[Math.max(0, ordem.indexOf(quem))].avatar;
     p.balao.setPosition(PAINEL_DIR.x - 18 - l / 2, Math.max(a / 2 + 6, avatar.y - 30)).setVisible(true).setAlpha(1);
     this.tweens.killTweensOf(p.balao);
     this.tweens.add({ targets: p.balao, alpha: 0, delay: 2600, duration: 400, onComplete: () => p.balao.setVisible(false) });

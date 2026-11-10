@@ -11,7 +11,7 @@
  */
 import { ehFigura, PLURAL_FIGURA, NAIPE } from '../nucleo/cartas.js';
 import { pontosDaCarta } from '../nucleo/baralhos.js';
-import { ehOculta, CAMADA_SAIDA } from '../nucleo/rede.js';
+import { ehOculta } from '../nucleo/rede.js';
 import { fronteira, valorParaTransfer } from '../nucleo/partida.js';
 import { pontuarRede } from '../nucleo/pontuacao.js';
 import { podeTrucar } from '../nucleo/truco.js';
@@ -55,14 +55,20 @@ function contarValores(mao) {
  * @returns {{id: string, titulo: string, texto: string, verbete: string}}
  */
 export function escolherDicaDeJogo(mao, j, partida, recentes = []) {
-  const eu = mao.jogadores[j], outro = mao.jogadores[1 - j];
-  const baralho = mao.config.baralho;
+  const eu = mao.jogadores[j];
+  const baralho = mao.config.baralho, total = mao.camadas.length;
   const conta = contarValores(eu.mao);
-  const minha = fronteira(mao, j), dele = fronteira(mao, 1 - j);
-  const somas = [pontuarRede(mao, j).total, pontuarRede(mao, 1 - j).total];
+  /* com mais de 2 jogadores, o rival das dicas é quem dá para atacar agora; senão, quem lidera */
+  const rivais = mao.jogadores.map((_, k) => k).filter((k) => k !== j);
+  const soma = (k) => pontuarRede(mao, k).total;
+  const podeAtacar = (k) => { const f = fronteira(mao, k); return !!f && ehOculta(f.camada, total) && f.cartas.length < 4 && mao.jogadores[k].situacao === 'construindo' && !!conta[f.cartas[0].valor]; };
+  const r = rivais.find(podeAtacar) ?? rivais.reduce((a, b) => (soma(b) > soma(a) ? b : a));
+  const outro = mao.jogadores[r];
+  const minha = fronteira(mao, j), dele = fronteira(mao, r);
+  const somas = [soma(j), soma(r)];
   const candidatas = [];
   const dica = (id, verbete, titulo, texto) => candidatas.push({ id, verbete, titulo, texto });
-  const atacavel = (n) => n && ehOculta(n.camada) && n.cartas.length < 4 && outro.situacao === 'construindo';
+  const atacavel = (n) => n && ehOculta(n.camada, total) && n.cartas.length < 4 && outro.situacao === 'construindo';
 
   /* 1. oportunidades de ataque na fronteira do adversário (carta revelada, cartas na sua mão) */
   if (atacavel(dele) && conta[dele.cartas[0].valor]) {
@@ -82,13 +88,13 @@ export function escolherDicaDeJogo(mao, j, partida, recentes = []) {
     dica('risco-vanishing', 'vanishing', 'Cuidado com a quadra de ' + PLURAL_FIGURA[ultimas[0].valor],
       'Suas duas últimas camadas são ' + ultimas[0].valor + '. Um terceiro dá trio (30), mas quatro (contando as empilhadas) zeram a rede: vanishing gradient.');
   }
-  if (minha && ehOculta(minha.camada) && minha.cartas.length >= 2 && eu.situacao === 'construindo' && outro.mao.length) {
+  if (minha && ehOculta(minha.camada, total) && minha.cartas.length >= 2 && eu.situacao === 'construindo' && outro.mao.length) {
     dica('risco-tunado', 'earlystop', 'Seu neurônio tunado está exposto',
       'O último neurônio da sua rede tem ' + minha.cartas.length + ' cartas. Mais uma do mesmo valor, vinda do adversário, aplica early stop em você. Avançar a rede o protege.');
   }
 
   /* 3. tunagem na sua fronteira */
-  if (minha && ehOculta(minha.camada) && minha.cartas.length === 1 && eu.situacao === 'construindo' && conta[minha.cartas[0].valor]) {
+  if (minha && ehOculta(minha.camada, total) && minha.cartas.length === 1 && eu.situacao === 'construindo' && conta[minha.cartas[0].valor]) {
     const valor = minha.cartas[0].valor;
     dica('tunagem', 'tunagem', 'Hora de tunar?',
       'Você tem outro ' + valor + ' na mão, igual ao seu último neurônio. Empilhar ' + (ehFigura(minha.cartas[0]) ? 'põe mais uma figura na sequência (cada uma vale 10; quatro zeram a rede)' : 'soma ' + pontosDaCarta(minha.cartas[0], baralho) + ' pontos') +
@@ -96,7 +102,7 @@ export function escolherDicaDeJogo(mao, j, partida, recentes = []) {
   }
 
   /* 4. corrida e placar */
-  if (outro.situacao === 'construindo' && outro.caminho.length >= CAMADA_SAIDA && somas[1] > somas[0]) {
+  if (outro.situacao === 'construindo' && outro.caminho.length >= total - 1 && somas[1] > somas[0]) {
     dica('corrida', 'camadas', 'O adversário está perto da saída',
       'Na camada de saída a rede dele fica imune. Se você tem cartas para atacá-lo, a hora é agora.');
   }
