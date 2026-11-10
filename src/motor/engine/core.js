@@ -11,6 +11,7 @@
 //   copies                 numero de baralhos: mao e limbo multiplicam junto
 //   layers                 tamanhos das camadas, padrao [3,5,5,5,5,5,4] ampliado por jogador extra
 //   firstRule              'reveal' (cada um escolhe uma carta da mao para revelar) | 'random'
+//   rules                  conjunto de regras: 'fusao' (padrao) | 'nd-2.0.0' (motor original)
 //   seed
 //
 // O estado e um objeto simples (JSON). O gerador aleatorio fica em
@@ -28,6 +29,21 @@ export const MAX_FREE_STREAK = 20;
 export const LIMBO_SIZE = 10;
 export const MAX_PLAYERS = 5;
 const MAX_COPIES = 8;
+
+// Conjuntos de regras. 'fusao' e o padrao do jogo unificado (NeuroDeck + Truco de
+// Turing), com as decisoes do professor e do grupo de 10/11/2026. 'nd-2.0.0'
+// reproduz o motor original publicado e serve para conferir a equivalencia.
+//   trio                pontos de um trio de figuras iguais em camadas adjacentes
+//   stackInRun          carta empilhada conta na sequencia de figuras (par, trio, quadra)
+//   highCardByStrength  desempate "carta mais alta" compara a forca da carta (A > K > Q > J > 10...),
+//                       nao os pontos (em que K e J valem 0 e caem no naipe)
+//   passReasons         motivos de fim de rede que liberam o passar com cartas na mao
+export const RULESETS = {
+  fusao: { trio: 30, stackInRun: true, highCardByStrength: true, passReasons: ['earlystop', 'auto-earlystop'] },
+  'nd-2.0.0': { trio: 20, stackInRun: false, highCardByStrength: false, passReasons: ['earlystop'] },
+};
+export const DEFAULT_RULES = 'fusao';
+export function rulesOf(state) { return RULESETS[state.rules] || RULESETS[DEFAULT_RULES]; }
 
 export const ARCHITECTURES = {
   padrao: { name: 'Padrão 3-5-5-5-5-5-4', layers: [3, 5, 5, 5, 5, 5, 4] },
@@ -54,6 +70,8 @@ export function newGame(opts = {}) {
   const terrainId = opts.terrain || 'none';
   const deck = NeuroDeck.deck(deckId);
   const terrain = NeuroDeck.terrain(terrainId);
+  const rules = opts.rules || DEFAULT_RULES;
+  if (!RULESETS[rules]) throw new Error('conjunto de regras desconhecido: ' + rules);
   let copies = Math.max(1, Number(opts.copies) || 1, deck.minCopies || 1);
   const layerSizes = (opts.layers ? opts.layers.map(Number) : scaleLayers(LAYER_SIZES, players));
   if (layerSizes.length < 3 || layerSizes.some(n => !(n >= 1))) throw new Error('arquitetura invalida: precisa de entrada, ao menos uma camada oculta e saida');
@@ -88,7 +106,7 @@ export function newGame(opts = {}) {
 
   const state = {
     version: ENGINE_VERSION,
-    seed, deck: deckId, terrain: terrainId, players, copies, handCopies, layerSizes, firstRule: opts.firstRule || 'reveal',
+    seed, deck: deckId, terrain: terrainId, players, copies, handCopies, layerSizes, firstRule: opts.firstRule || 'reveal', rules,
     rngState: gen.rngState,
     totalCards: cards.length,
     layers, hands, limbo, unused, graveyard: [], log: [], moves: [],
@@ -264,13 +282,15 @@ export function legalMoves(state, p, opts = {}) {
 }
 
 // Passar (regra do professor): "so existe se ele sofre um early-stop e tiver
-// carta na mao": atacar nao e obrigatorio para quem teve a rede interrompida
-// pelo rival. Fora isso, so quando nao ha nenhuma jogada que gaste o turno.
-// Fonte unica: legalMoves e a acao 'pass' (validate) usam esta funcao.
-export const PASS_REASONS = ['earlystop'];
+// carta na mao": atacar nao e obrigatorio para quem teve a rede interrompida.
+// Na fusao vale para qualquer early stop, do rival ou aplicado na propria rede
+// (o professor deixou a escolha pela regra mais intuitiva); no motor original,
+// so para o early stop do rival. Fora isso, so quando nao ha nenhuma jogada que
+// gaste o turno. Fonte unica: legalMoves e a acao 'pass' (validate) usam esta funcao.
+export const PASS_REASONS = RULESETS[DEFAULT_RULES].passReasons;
 export function canPass(state, p, moves) {
   const net = state.nets[p];
-  if (net.finished && PASS_REASONS.includes(net.reason) && state.hands[p].length) return true;
+  if (net.finished && rulesOf(state).passReasons.includes(net.reason) && state.hands[p].length) return true;
   const turnMoves = moves || NeuroDeck.actionList().filter(a => a.id !== 'pass' && a.consumesTurn !== false).flatMap(a => a.generate(state, p, {}).map(m => ({ ...m, type: a.id })));
   return !turnMoves.some(m => m.type !== 'pass' && NeuroDeck.actions[m.type].consumesTurn !== false);
 }
@@ -444,7 +464,9 @@ export function compareTwo(state, a, b, scores) {
   if (N > 0) {
     const best = hd => hd.reduce((bst, c) => strengthOf(state, c) > strengthOf(state, bst) ? c : bst);
     const ba = best(ha), bb = best(hb);
-    if (val(ba) !== val(bb)) return { winner: val(ba) > val(bb) ? a : b, tiebreak: 'carta-alta' };
+    // fusao: a carta mais alta e comparada pela forca, sem o naipe (K > J, embora as duas valham 0)
+    const high = rulesOf(state).highCardByStrength ? c => strengthOf(state, c) - SUIT_RANK[c.suit] : val;
+    if (high(ba) !== high(bb)) return { winner: high(ba) > high(bb) ? a : b, tiebreak: 'carta-alta' };
     if (SUIT_RANK[ba.suit] !== SUIT_RANK[bb.suit]) return { winner: SUIT_RANK[ba.suit] > SUIT_RANK[bb.suit] ? a : b, tiebreak: 'naipe' };
   }
   // 5) quem jogou primeiro (mais perto do primeiro jogador na ordem da mesa)

@@ -50,4 +50,15 @@ base das regras do jogo unificado; o Truco de Turing entra com a interface.
 
 As mudanças de regra da fusão ficam registradas aqui, cada uma com teste em
 `testes/unidade/motor-regras.test.js`. O conjunto de regras original continua disponível com
-`newGame({ rules: 'nd-2.0.0' })`, e é com ele que o teste de equivalência roda.
+`newGame({ rules: 'nd-2.0.0' })`, e é com ele que o teste de equivalência roda. O padrão do
+jogo unificado é `rules: 'fusao'`.
+
+| Mudança | No motor original | Na fusão | Onde |
+|---|---|---|---|
+| B1: desempate "carta mais alta" | Comparava os pontos da carta: K contra J (0 a 0) caía no naipe | Compara a força da carta (A > K > Q > J > 10 … 2); o naipe só decide entre cartas iguais | `core.js`, `compareTwo` |
+| B2: valor do trio | 20 no total, igual ao par | 30 (10 por figura) | `decks.js`, `sumScore` |
+| R1: carta empilhada (decisão do professor) | Não entrava na sequência de figuras; somava +10 | Entra na sequência (par, trio, quadra) e vale 10 como as outras figuras, sem bônus extra. O exemplo do slide (8-K-K-3 com um K tunado) continua valendo 41; tunar os dois Ks de um par forma quadra e zera a rede | `decks.js`, `sumScore` |
+| R2: passar | Só quem sofreu early stop do rival | Qualquer early stop, do rival ou aplicado na própria rede | `core.js`, `canPass` |
+
+Também mudaram os textos de regra que descreviam o comportamento antigo (baralho Clássico,
+Tunagem e Passar), e `sim.js` passou a aceitar a opção `rules`.

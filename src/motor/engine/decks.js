@@ -7,16 +7,23 @@
 // (o nucleo usa o que sobrar como "fora da partida") e minCopies.
 
 import { isFace, nominalValue, SUITS, SUIT_RANK, round2, rand } from './util.js';
-import { cardValue, stackValue, neuronBonus } from './core.js';
+import { cardValue, stackValue, neuronBonus, rulesOf } from './core.js';
 
 // ---------- soma classica, reutilizavel ----------
-// Regras confirmadas pelo professor: par de figuras iguais em camadas adjacentes
-// vale 10 por figura (exemplo do slide 8-K-K-3 = 41); trio vale 20 no total;
-// quadra zera a rede inteira (vanishing gradient). Tunagem soma stackValue.
+// Regras da fusao (rules 'fusao'), confirmadas pelo professor em 10/11/2026:
+// figuras iguais em camadas adjacentes formam uma sequencia, e a carta empilhada
+// por tunagem conta nela. Cada figura da sequencia vale 10: par 20, trio 30;
+// quadra zera a rede inteira (vanishing gradient). Exemplo do slide: 8-K-K-3 com
+// um K tunado tem tres Ks (trio) e vale 8 + 30 + 3 = 41. Tunar os dois Ks de um
+// par forma quadra. A figura empilhada conta so na sequencia (sem stackValue).
+// Regras originais (rules 'nd-2.0.0'): so as cartas do caminho formam a sequencia,
+// par vale 10 por figura, trio 20 no total, e a figura empilhada soma stackValue.
+// Tunagem de carta numerica soma stackValue nos dois conjuntos.
 // opts.faceAsValue: figuras usam cardValue em vez da regra de par/trio (Truco, Nobreza).
 export function sumScore(state, p, adjust, opts = {}) {
   const slots = state.nets[p].path.map(r => state.layers[r.layer][r.slotIndex]);
   const runBonus = new Array(slots.length).fill(null);
+  const rules = rulesOf(state);
   let vanishing = false;
   let i = 0;
   while (i < slots.length) {
@@ -24,8 +31,15 @@ export function sumScore(state, p, adjust, opts = {}) {
     if (isFace(c)) {
       let j = i;
       while (j + 1 < slots.length && slots[j + 1].card.rank === c.rank) j++;
-      const len = j - i + 1;
+      let len = j - i + 1;
+      if (rules.stackInRun) for (let k = i; k <= j; k++) len += slots[k].stack.length;
       if (len >= 4) vanishing = true;
+      else if (rules.stackInRun) {
+        // cada figura da sequencia vale o mesmo, no caminho ou empilhada: 10 no par, trio / 3 no trio
+        const each = len === 3 ? rules.trio / 3 : 10;
+        const note = len === 3 ? `trio +${rules.trio}` : 'par +20';
+        if (len >= 2) for (let k = i; k <= j; k++) runBonus[k] = { v: each, tune: each * slots[k].stack.length, note };
+      }
       else if (len === 3) { runBonus[i] = { v: 20, note: 'trio +20' }; runBonus[i + 1] = { v: 0, note: 'trio' }; runBonus[i + 2] = { v: 0, note: 'trio' }; }
       else if (len === 2) { runBonus[i] = { v: 10, note: 'par +10' }; runBonus[i + 1] = { v: 10, note: 'par +10' }; }
       i = j + 1;
@@ -36,7 +50,8 @@ export function sumScore(state, p, adjust, opts = {}) {
     let base;
     if (isFace(s.card) && !opts.faceAsValue) { base = runBonus[idx]?.v || 0; if (runBonus[idx]) notes.push(runBonus[idx].note); }
     else base = cardValue(state, s.card);
-    const tune = s.stack.reduce((acc, c) => acc + stackValue(state, c), 0);
+    const faceRun = rules.stackInRun && isFace(s.card) && !opts.faceAsValue;
+    const tune = faceRun ? (runBonus[idx]?.tune || 0) : s.stack.reduce((acc, c) => acc + stackValue(state, c), 0);
     return { layer: s.layer, card: s.card, slot: s, base, tune, stack: s.stack.length, subtotal: base + tune, notes };
   });
   if (adjust) adjust(items, slots, state);
@@ -53,7 +68,7 @@ export function sumScore(state, p, adjust, opts = {}) {
 
 export const classic = {
   id: 'classic', name: 'Clássico', emoji: '🃏', scoreLabel: 'soma',
-  desc: 'Regras do slide: 2 a 10 valem o número, Ás 11, figuras 0. Par de figuras iguais adjacentes vale 10 por figura, trio vale 20 no total, quadra zera a rede.',
+  desc: 'Regras do slide: 2 a 10 valem o número, Ás 11, figuras 0. Figuras iguais em camadas adjacentes valem 10 cada: par 20, trio 30. Quadra zera a rede. Figura empilhada por tunagem conta na sequência.',
   score: (state, p) => sumScore(state, p),
 };
 

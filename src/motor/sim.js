@@ -3,8 +3,8 @@ import { newGame, applyMove, endGame, mulberry32 } from './engine.js';
 import { chooseMove } from './bot.js';
 
 // bots: um tipo por assento; o numero de jogadores e o tamanho da lista
-export function runGame({ bots, deck, terrain, mode, seed, firstRule, rollouts, copies, layers }) {
-  const state = newGame({ deck: deck || mode, terrain, seed, firstRule, copies, layers, players: bots.length });
+export function runGame({ bots, deck, terrain, mode, seed, firstRule, rollouts, copies, layers, rules }) {
+  const state = newGame({ deck: deck || mode, terrain, seed, firstRule, copies, layers, rules, players: bots.length });
   const rng = mulberry32(seed ^ 0x9E3779B9);
   let guard = 0;
   while (!state.over && guard++ < 300) {

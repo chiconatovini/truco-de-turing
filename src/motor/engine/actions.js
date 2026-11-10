@@ -44,7 +44,7 @@ export const advance = {
 
 export const tune = {
   id: 'tune', name: 'Tunagem', emoji: '⚡', order: 20,
-  rule: 'Empilhe 1 carta do mesmo valor sobre o seu último neurônio (camada oculta). Ela soma pontos à sua rede; sobre figura, soma 10. Com 3 cartas no total você aplica early stop em si; com 4, stack overflow em si.',
+  rule: 'Empilhe 1 carta do mesmo valor sobre o seu último neurônio (camada oculta). Ela soma pontos à sua rede; sobre figura, entra na sequência de figuras (forma par com ela). Com 3 cartas no total você aplica early stop em si; com 4, stack overflow em si.',
   ml: 'Ajuste fino (fine-tuning): o neurônio continua o mesmo, só ganha parâmetros extras que reforçam sua contribuição.',
   generate(state, p) {
     const net = state.nets[p], slot = lastSlot(state, p);
@@ -212,10 +212,10 @@ export const transfer = {
 // Passar: quando vale e decidido por canPass (core.js); legalMoves o acrescenta.
 export const pass = {
   id: 'pass', name: 'Passar', emoji: '⏭', order: 99, isCardAction: false,
-  rule: 'Encerra a sua vez sem jogar. Só existe para quem sofreu early stop e ainda tem cartas na mão: atacar não é obrigatório. Também aparece quando não há nenhuma outra jogada.',
+  rule: 'Encerra a sua vez sem jogar. Só existe para quem teve a rede interrompida por early stop (do rival ou aplicado em si) e ainda tem cartas na mão: atacar não é obrigatório. Também aparece quando não há nenhuma outra jogada.',
   ml: 'Época sem atualização: o modelo fica como está até a próxima rodada.',
   generate() { return []; },
-  isValid(state, p) { return canPass(state, p) ? true : 'so pode passar depois de sofrer early stop, com cartas na mao'; },
+  isValid(state, p) { return canPass(state, p) ? true : 'so pode passar depois de um early stop, com cartas na mao'; },
   execute(state, p) { logEvent(state, { type: 'pass', p }); },
 };
 
