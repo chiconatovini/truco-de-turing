@@ -78,7 +78,8 @@ export const metodosDeEfeitos = {
     const { x, y } = this.posicaoDoNeuronio(evento.neuronio);
     const origem = this.origemDasCartas(evento.jogador);
     evento.cartas.forEach((c, i) => this.voarCarta(c, origem.x, origem.y, x, y, i * 120));
-    const soma = evento.cartas.reduce((t, c) => t + (ehFigura(c) ? 10 : pontosDaCarta(c, baralho)), 0);
+    /* quanto a soma da rede subiu (a figura empilhada entra na sequência de figuras) */
+    const soma = evento.ganho != null ? evento.ganho : evento.cartas.reduce((t, c) => t + (ehFigura(c) ? 10 : pontosDaCarta(c, baralho)), 0);
     this.time.delayedCall(320, () => { Som.tunagem(); this.textoFlutuante(x, y - 50, 'Tunagem +' + soma, '#7fe08a', 20); this.explodir(x, y, 0x7fe08a, 14); });
     this.avisarVerbete('tunagem');
     return 800;
@@ -121,12 +122,11 @@ export const metodosDeEfeitos = {
   animar_earlystop(evento, jogada) { return this.animar_ataque(evento, jogada); },
   animar_stackoverflow(evento, jogada) { return this.animar_ataque(evento, jogada); },
 
-  /** Dropout: os neurônios desfeitos giram de volta para o verso. */
+  /** Dropout: os neurônios desfeitos saem da mesa e vão para o cemitério. */
   animar_dropout(evento) {
     evento.neuronios.forEach((id, i) => {
-      const imagem = this.visuais[id].imagem;
-      imagem.scaleX = 0;
-      this.tweens.add({ targets: imagem, scaleX: imagem.escalaBaseX, duration: 220, delay: i * 120 });
+      const { x, y } = this.posicaoDoNeuronio(id);
+      this.time.delayedCall(i * 120, () => this.explodir(x, y, 0x6fe7ff, 12));
     });
     Som.dropout();
     this.faixa('GatoNet! Dropout ×' + evento.neuronios.length, '#6fe7ff', 40);
@@ -153,7 +153,7 @@ export const metodosDeEfeitos = {
   /** Terreno oceano: o vento mudou de naipe. */
   animar_vento(evento) {
     const naipe = NAIPE[evento.naipe];
-    this.textoFlutuante(610, 120, 'O vento virou: ' + naipe.simbolo + ' ' + naipe.nome + ' vale dobro', '#bfe7f4', 20);
+    this.textoFlutuante(610, 120, 'O vento virou: ' + naipe.simbolo + ' ' + naipe.nome + ' revelado agora vale dobro', '#bfe7f4', 20);
     return 0;
   },
 
@@ -161,6 +161,13 @@ export const metodosDeEfeitos = {
   animar_powerbi(evento) {
     mostrarAviso('Power BI', this.mao.jogadores[evento.jogador].nome + ' atualizou o dashboard: as cartas da mão mudaram.', null, 3500);
     return 0;
+  },
+
+  /** Rede finalizada porque não sobrou neurônio livre na camada seguinte. */
+  animar_travada(evento) {
+    const nome = this.mao.jogadores[evento.jogador].nome;
+    this.faixa('Sem neurônio livre: rede de ' + nome + ' finalizada', COR_JOGADOR_CSS[evento.jogador], 30);
+    return 1300;
   },
 
   /** Alguém passou a vez. */

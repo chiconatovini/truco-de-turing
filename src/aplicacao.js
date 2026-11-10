@@ -12,7 +12,7 @@ import { Musica } from './interface/musica.js';
 import { fecharTodos, mostrarAviso } from './interface/paineis.js';
 
 /** Opções usadas na primeira visita. */
-const OPCOES_PADRAO = { oponente: 'guloso', baralho: 'classico', terreno: 'neutro', inicio: 'revela-volta', alvo: 12 };
+const OPCOES_PADRAO = { oponente: 'guloso', baralho: 'classico', terreno: 'neutro', inicio: 'revela-descarta', alvo: 12 };
 
 export const Aplicacao = {
   /** Progresso salvo no navegador (ver conteudo/progresso.js). */

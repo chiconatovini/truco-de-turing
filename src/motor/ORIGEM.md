@@ -62,3 +62,10 @@ jogo unificado é `rules: 'fusao'`.
 
 Também mudaram os textos de regra que descreviam o comportamento antigo (baralho Clássico,
 Tunagem e Passar), e `sim.js` passou a aceitar a opção `rules`.
+
+Acréscimos que não mudam o comportamento original (testes em `testes/unidade/motor-inicio.test.js`):
+
+| Acréscimo | Para quê | Onde |
+|---|---|---|
+| `firstRule: 'reveal-keep'` | Opção (b) do slide para decidir quem começa: a carta revelada volta para a mão. O padrão continua sendo `'reveal'` (a carta vai para o cemitério) | `core.js`, `applyReveal`; `bot.js`, `revealPick` |
+| `monteCarloResults` | Devolve a taxa de vitória de cada jogada simulada, para a interface mostrar o que o Mestre Monte Carlo calculou | `bot.js` |

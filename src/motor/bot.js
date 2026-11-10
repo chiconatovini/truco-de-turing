@@ -4,7 +4,7 @@
 // taxa de vitoria. A informacao oculta e sorteada a cada simulacao (determinizacao).
 // Com mais de 2 jogadores, a margem e medida contra o melhor rival.
 
-import { NeuroDeck, legalMoves, applyMove, endGame, score, determinize, mulberry32, cardValue, opponents, lastSlot } from './engine.js';
+import { NeuroDeck, legalMoves, applyMove, endGame, score, determinize, mulberry32, cardValue, strengthOf, opponents, lastSlot } from './engine.js';
 
 export const BOTS = {
   random: { name: 'Aleatório', desc: 'Escolhe qualquer jogada legal. Linha de base.' },
@@ -19,9 +19,14 @@ const ATTACKS = new Set(['overfit', 'earlystop', 'stackoverflow']);
 function botMoves(state, p) { return legalMoves(state, p, { maxDropout: 1 }); }
 const optionalPass = moves => moves.some(m => m.type !== 'pass' && NeuroDeck.actions[m.type]?.consumesTurn !== false);
 
-// fase de revelacao: o bot esperto revela a carta de menor valor e guarda as boas
+// fase de revelacao: o bot esperto revela a carta de menor valor e guarda as boas;
+// se a carta volta para a mao ('reveal-keep'), revela a mais forte, que nao custa nada
 function revealPick(state, p, moves, smart, rng) {
   if (!smart) return moves[Math.floor(rng() * moves.length)];
+  if (state.firstRule === 'reveal-keep') {
+    const str = id => strengthOf(state, state.hands[p].find(c => c.id === id));
+    return moves.reduce((b, m) => str(m.cardId) > str(b.cardId) ? m : b);
+  }
   const val = id => cardValue(state, state.hands[p].find(c => c.id === id));
   return moves.reduce((b, m) => val(m.cardId) < val(b.cardId) ? m : b);
 }
@@ -102,6 +107,13 @@ export function monteCarloMove(state, p, rng, rollouts = 40) {
   const moves = botMoves(state, p);
   if (moves[0]?.type === 'reveal') return revealPick(state, p, moves, true, rng);
   if (moves.length === 1) return moves[0];
+  return monteCarloResults(state, p, rng, rollouts, moves)[0].move;
+}
+
+// Resultado das simulacoes de cada jogada, da melhor para a pior:
+// [{ move, mean (margem media de pontos), winRate }]. A interface usa para mostrar
+// quantas partidas o bot simulou e a taxa de vitoria da jogada escolhida.
+export function monteCarloResults(state, p, rng, rollouts = 40, moves = botMoves(state, p)) {
   const results = [];
   for (const m of moves) {
     let sum = 0, wins = 0;
@@ -115,7 +127,7 @@ export function monteCarloMove(state, p, rng, rollouts = 40) {
     results.push({ move: m, mean: sum / rollouts, winRate: wins / rollouts });
   }
   results.sort((a, b) => (b.winRate - a.winRate) || (b.mean - a.mean));
-  return results[0].move;
+  return results;
 }
 
 // Rollouts por padrao: 40 com 2 jogadores; com mais gente cada simulacao custa mais.

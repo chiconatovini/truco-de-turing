@@ -16,7 +16,7 @@ import { AMBIENTACAO } from '../conteudo/textos.js';
 
 /**
  * Dados que a carta mostra.
- * @returns {{nome: string, pontos: number, figura: boolean, manilha: string|undefined, tipo: string,
+ * @returns {{nome: string, pontos: number, figura: boolean, figuraSemPontos: boolean, manilha: string|undefined, tipo: string,
  *   regras: string, ambientacao: string, raridade: 'comum'|'incomum'|'rara'|'mitica'}}
  */
 export function dadosDaCarta(carta, baralho) {
@@ -25,12 +25,14 @@ export function dadosDaCarta(carta, baralho) {
   const pontos = pontosDaCarta(carta, baralho);
   const figura = ehFigura(carta);
   const tipo = manilha ? 'Manilha — Neurônio Lendário' : figura ? 'Neurônio — Figura' : carta.valor === 'A' ? 'Neurônio — Ás' : 'Neurônio — Numérico';
-  const regras = figura
-    ? 'Ativa com 0. Tunagem: +10.\nPar vizinho +10 · Trio +20 · Quadra zera a rede.'
+  /* no baralho de truco as figuras valem pontos e não formam par nem trio */
+  const figuraSemPontos = figura && !dadosBaralho.figurasValem;
+  const regras = figuraSemPontos
+    ? 'Ativa com 0. Iguais vizinhas ou empilhadas:\nPar 20 · Trio 30 · Quadra zera a rede.'
     : (manilha ? 'Manilha: ' : '') + 'Ativa com ' + pontos + ' pontos.\nTunagem: empilhe outro ' + carta.valor + ' e some o valor dele.';
   const ambientacao = (manilha && AMBIENTACAO[manilha]) || AMBIENTACAO[carta.valor];
   const raridade = manilha ? 'mitica' : figura ? 'rara' : carta.valor === 'A' ? 'incomum' : 'comum';
-  return { nome: nomeDaCarta(carta, baralho), pontos, figura, manilha, tipo, regras, ambientacao, raridade };
+  return { nome: nomeDaCarta(carta, baralho), pontos, figura, figuraSemPontos, manilha, tipo, regras, ambientacao, raridade };
 }
 
 /** Cores da gema de raridade (claro, escuro). */
@@ -129,7 +131,7 @@ export function desenharCartaCompleta(carta, baralho, S) {
   gema(ctx, gx, 28, 10, P.gema, null);
   ctx.fillStyle = '#fff'; ctx.font = '700 13px ' + FONTE_SIMBOLOS; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(naipeInfo.simbolo, gx, 28.5);
-  gema(ctx, gx - 22, 28, 10, '#8c8378', info.figura ? '0' : String(info.pontos), { cor: '#fff' });
+  gema(ctx, gx - 22, 28, 10, '#8c8378', String(info.pontos), { cor: '#fff' });
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   ctx.fillStyle = TINTA;
   ajustarFonte(ctx, info.nome, 150, 15.5, '700', 'Cinzel, Georgia, serif', 10);
@@ -172,7 +174,7 @@ export function desenharCartaCompleta(carta, baralho, S) {
   /* caixa de poder */
   placa(ctx, 168, 292, 56, 26, P, { raio: 6 });
   ctx.fillStyle = TINTA; ctx.font = '800 15px Spectral, Georgia, serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(info.figura ? '0' : String(info.pontos), 186, 305.5);
+  ctx.fillText(String(info.pontos), 186, 305.5);
   ctx.font = '700 14px ' + FONTE_SIMBOLOS; ctx.fillStyle = naipeInfo.vermelho ? '#a8232f' : TINTA;
   ctx.fillText(naipeInfo.simbolo, 209, 305.5);
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
@@ -232,7 +234,7 @@ export function desenharCartaDaMesa(carta, baralho, S) {
   indice(18, 13);
   ctx.save(); ctx.translate(MINI_L, MINI_A); ctx.rotate(Math.PI); indice(18, 13); ctx.restore();
   /* gema de valor (canto superior direito) */
-  gema(ctx, MINI_L - 21, 22, 11.5, info.manilha ? '#e0601c' : P.gema, info.figura ? '0' : String(info.pontos));
+  gema(ctx, MINI_L - 21, 22, 11.5, info.manilha ? '#e0601c' : P.gema, String(info.pontos));
   ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
   return o.c;
 }

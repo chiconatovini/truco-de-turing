@@ -110,9 +110,9 @@ export const metodosDeDicas = {
       const n = camadasDesfaziveis(mao, eu);
       return {
         titulo: 'Grimório · Dropout (GatoNet)',
-        corpo: 'Desvira os últimos neurônios ocultos da sua rede, até a camada que você escolher. Custa 1 carta da mão por camada e não gasta o turno.',
+        corpo: 'Desfaz os últimos neurônios ocultos da sua rede, até a camada que você escolher. Eles vão para o cemitério e você continua da camada anterior. Custa 1 carta da mão por camada e não gasta o turno.',
         agora: !minhaVez ? naoEhAVez : n === 0 ? 'Agora: indisponível, não há neurônio oculto para desfazer.'
-          : 'Agora: dá para desfazer até ' + Math.min(n, jogador.mao.length) + ' camada(s). Vale a pena quando a rede pegou neurônios fracos ou está perto de formar uma quadra de figuras.',
+          : 'Agora: dá para desfazer até ' + Math.min(n, jogador.mao.length) + ' camada(s). Vale a pena quando a rede pegou neurônios fracos ou está perto de formar uma quadra de figuras. Cuidado: se não sobrar neurônio livre na camada, a rede é finalizada.',
         conceito: conceitoCurto('dropout'),
       };
     }
@@ -123,7 +123,7 @@ export const metodosDeDicas = {
       const maior = Object.entries(conta).sort((a, b) => b[1] - a[1])[0];
       return {
         titulo: 'Grimório · Transfer learning',
-        corpo: 'Troca quatro cartas de mesmo valor da mão por cartas do limbo. Uma vez por mão; gasta o turno.',
+        corpo: 'Troca quatro cartas de mesmo valor da mão por cartas do limbo. Uma vez por mão; não gasta o turno.',
         agora: jogador.transferUsado ? 'Agora: você já usou o transfer nesta mão.'
           : valor ? 'Agora: você tem quatro ' + valor + '. Troque se eles não servem para tunar nem atacar.'
             : 'Agora: precisa de quatro cartas iguais; seu maior grupo é ' + (maior ? maior[1] + '× ' + maior[0] : 'nenhum') + '.',
@@ -134,9 +134,10 @@ export const metodosDeDicas = {
       const livres = alvosDeAtivacao(mao, eu).length;
       return {
         titulo: 'Passar a vez',
-        corpo: 'Só é permitido quando não há neurônio livre para ativar: sua rede chegou ao fim ou ficou travada. Se todos passarem em sequência, a mão termina.',
+        corpo: 'Só passa a vez quem teve a rede interrompida por early stop e ainda tem cartas na mão: atacar não é obrigatório. Fora isso, só quando não há nenhuma outra jogada. Quem não pode jogar é pulado automaticamente.',
         agora: !minhaVez ? naoEhAVez : podePassar(mao, eu) ? 'Agora: pode passar. Antes, veja se algum ataque com as cartas da mão ainda vale a pena.'
-          : 'Agora: ainda há ' + livres + ' neurônio(s) livre(s) para ativar, então não dá para passar.',
+          : livres ? 'Agora: ainda há ' + livres + ' neurônio(s) livre(s) para ativar, então não dá para passar.'
+            : 'Agora: sua rede não foi interrompida por early stop e você tem uma jogada possível, então não dá para passar.',
         conceito: conceitoCurto('camadas'),
       };
     }

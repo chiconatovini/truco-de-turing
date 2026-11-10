@@ -123,7 +123,7 @@ export const metodosDeDesenho = {
     this.atualizarPilha(p.cemiterio, 'CEMITÉRIO', mao.cemiterio.length, topo ? texturaDaCartaNaMesa(this, topo, baralho) : null);
     const extra = [];
     if (mao.config.terreno !== 'neutro') extra.push('Rodada ' + mao.rodada);
-    if (mao.config.terreno === 'oceano' && mao.vento) extra.push('vento: ' + NAIPE[mao.vento].nome + ' vale dobro');
+    if (mao.config.terreno === 'oceano' && mao.vento) extra.push('vento: ' + NAIPE[mao.vento].nome + ' revelado agora vale dobro');
     ajustarBloco(p.textoTerreno, TERRENOS[mao.config.terreno].nome + ' · baralho ' + BARALHOS[mao.config.baralho].nome + (extra.length ? '\n' + extra.join(' · ') : ''), 12, PAINEL_ESQ.l - 30, 34, 9);
     this.atualizarBotoes();
     this.atualizarRegistro();
@@ -292,8 +292,7 @@ export const metodosDeDesenho = {
         : 'Nenhum neurônio aceita ' + valor + ' agora. Ações só valem no último neurônio oculto de uma rede, com a mesma figura.';
     }
     const jogador = mao.jogadores[eu];
-    if (jogador.situacao !== 'construindo') return 'Sua rede está finalizada. Ainda dá para atacar a fronteira do adversário com cartas da mão, ou passar a vez.';
-    if (!alvosDeAtivacao(mao, eu).length) return 'Não há neurônio livre na camada ' + nomeCamada(jogador.caminho.length) + '. Faça dropout para recuar ou passe a vez.';
+    if (jogador.situacao !== 'construindo') return 'Sua rede está finalizada. Ainda dá para atacar a fronteira do adversário com cartas da mão.' + (podePassar(mao, eu) ? ' Atacar não é obrigatório: você também pode passar a vez.' : '');
     return 'Sua vez: ative um neurônio da camada ' + nomeCamada(jogador.caminho.length) + ' (dourado) ou selecione cartas da mão para uma ação.';
   },
 

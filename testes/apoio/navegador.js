@@ -42,7 +42,8 @@ let contadorDeCobertura = 0;
  * @returns {Promise<{navegador, contexto, pagina, erros: string[], fechar: () => Promise<void>}>}
  */
 export async function abrirJogo(base, opcoes = {}) {
-  const navegador = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  /* CHROMIUM_DO_SISTEMA: caminho de um Chrome/Chromium já instalado, para máquinas sem o Chromium do Playwright */
+  const navegador = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'], executablePath: process.env.CHROMIUM_DO_SISTEMA || undefined });
   let config = { viewport: opcoes.viewport || { width: 1280, height: 720 } };
   if (opcoes.dispositivo) {
     config = { ...devices[opcoes.dispositivo] };

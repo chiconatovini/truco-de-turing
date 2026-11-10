@@ -28,7 +28,7 @@ export const metodosDeEntrada = {
         (pontuado ? ': vale ' + pontuado.pontos + (pontuado.notas.length ? ' (' + pontuado.notas.join(', ') + ')' : '') : '') +
         (n.cartas.length > 1 ? ' · ' + n.cartas.length + ' cartas empilhadas' : ''));
     } else if (n.conhecido) {
-      this.inspecionar(texturaDeInspecao(this, n.cartas[0], baralho), 'Neurônio desvirado por dropout. Todos lembram que é ' + rotuloCarta(n.cartas[0]) + '.');
+      this.inspecionar(texturaDeInspecao(this, n.cartas[0], baralho), 'Neurônio conhecido: ' + rotuloCarta(n.cartas[0]) + '.');
     } else {
       this.inspecionar(this.verso('inspecao'), nomeCamada(n.camada) + ': neurônio desconhecido.');
     }
@@ -38,11 +38,11 @@ export const metodosDeEntrada = {
     const carta = rotuloCarta(n.cartas[0]);
     const explicacao = {
       ativar: 'Ativar este neurônio na sua rede.',
-      tunagem: 'Tunagem: empilha ' + this.selecao.length + ' carta(s) em ' + carta + ' e soma o valor à sua rede.',
+      tunagem: 'Tunagem: empilha ' + this.selecao.length + ' carta(s) em ' + carta + ' e soma à sua rede. Em figura, a carta entra na sequência de figuras iguais.',
       overfit: 'Overfit: ' + carta + ' de ' + vitima + ' vai para o cemitério e a rede recua uma camada.',
       earlystop: alvo.proprio ? 'Early stop na própria rede: ela congela agora e ' + carta + ' some. Tem certeza?' : 'Early stop: a rede de ' + vitima + ' é finalizada agora, sem ' + carta + '.',
       stackoverflow: alvo.proprio ? 'Stack overflow na própria rede: você perde a rede e a mão. Desk rejection garantida.' : 'Stack overflow: ' + vitima + ' perde a rede aqui e todas as cartas da mão.',
-      dropout: 'Dropout de ' + alvo.n + ' camada(s), custando ' + alvo.n + ' carta(s) da mão.',
+      dropout: 'Dropout de ' + alvo.n + ' camada(s), custando ' + alvo.n + ' carta(s) da mão. Os neurônios desfeitos vão para o cemitério.',
     }[alvo.tipo];
     this.dicaDoCursor = explicacao;
     this.mostrarDica(explicacao);

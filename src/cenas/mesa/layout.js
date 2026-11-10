@@ -56,7 +56,7 @@ export const COR_JOGADOR_CSS = [CORES_CSS.j0, CORES_CSS.j1];
 export const COR_DO_ALVO = { ativar: 0xf6dc8f, tunagem: 0x7fe08a, overfit: 0xffa24a, earlystop: 0xff4d5e, stackoverflow: 0xff4dd2, dropout: 0x6fe7ff };
 
 /** Texto da situação de cada rede. */
-export const NOME_SITUACAO = { construindo: 'em construção', concluida: 'chegou à saída', earlystop: 'early stop', overflow: 'stack overflow' };
+export const NOME_SITUACAO = { construindo: 'em construção', concluida: 'chegou à saída', earlystop: 'early stop', overflow: 'stack overflow', travada: 'sem neurônio livre' };
 
 /** Ajusta a imagem de um neurônio ao tamanho da carta da mesa e guarda a escala-base (para animar o giro). */
 export function ajustarCartaDaMesa(imagem) {

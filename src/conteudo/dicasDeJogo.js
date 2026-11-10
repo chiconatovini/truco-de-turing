@@ -26,7 +26,7 @@ export const DICAS_GERAIS = [
   { id: 'geral-camadas', verbete: 'forward', titulo: 'Uma camada de cada vez',
     texto: 'Sua rede só cresce para a camada seguinte, como o sinal no forward pass. Pense dois passos à frente: quais cartas da mão combinam com o que pode vir?' },
   { id: 'geral-figuras', verbete: 'vanishing', titulo: 'Figuras: alto risco, alta recompensa',
-    texto: 'J, Q e K valem 0 sozinhos, mas iguais e vizinhos dão +10 (par) ou +20 (trio). Quatro seguidos zeram a rede inteira.' },
+    texto: 'J, Q e K valem 0 sozinhos, mas iguais e vizinhos valem 10 cada: par 20, trio 30. As empilhadas contam, e quatro zeram a rede inteira.' },
   { id: 'geral-saida', verbete: 'camadas', titulo: 'Corrida até a saída',
     texto: 'Ao chegar à camada de saída a rede fica protegida: ninguém mais ataca os seus neurônios. Às vezes vale avançar antes de tunar.' },
   { id: 'geral-curva', verbete: 'perda', titulo: 'Olhe a curva de treino',
@@ -80,7 +80,7 @@ export function escolherDicaDeJogo(mao, j, partida, recentes = []) {
   const ultimas = reveladas.slice(-2);
   if (ultimas.length === 2 && ehFigura(ultimas[0]) && ultimas[0].valor === ultimas[1].valor) {
     dica('risco-vanishing', 'vanishing', 'Cuidado com a quadra de ' + PLURAL_FIGURA[ultimas[0].valor],
-      'Suas duas últimas camadas são ' + ultimas[0].valor + '. Um terceiro dá trio (+20), mas quatro seguidos (contando as empilhadas) zeram a rede: vanishing gradient.');
+      'Suas duas últimas camadas são ' + ultimas[0].valor + '. Um terceiro dá trio (30), mas quatro (contando as empilhadas) zeram a rede: vanishing gradient.');
   }
   if (minha && ehOculta(minha.camada) && minha.cartas.length >= 2 && eu.situacao === 'construindo' && outro.mao.length) {
     dica('risco-tunado', 'earlystop', 'Seu neurônio tunado está exposto',
@@ -91,8 +91,8 @@ export function escolherDicaDeJogo(mao, j, partida, recentes = []) {
   if (minha && ehOculta(minha.camada) && minha.cartas.length === 1 && eu.situacao === 'construindo' && conta[minha.cartas[0].valor]) {
     const valor = minha.cartas[0].valor;
     dica('tunagem', 'tunagem', 'Hora de tunar?',
-      'Você tem outro ' + valor + ' na mão, igual ao seu último neurônio. Empilhar soma ' + (ehFigura(minha.cartas[0]) ? '10' : pontosDaCarta(minha.cartas[0], baralho)) +
-      ' pontos, mas deixa a pilha a uma carta do early stop.');
+      'Você tem outro ' + valor + ' na mão, igual ao seu último neurônio. Empilhar ' + (ehFigura(minha.cartas[0]) ? 'põe mais uma figura na sequência (cada uma vale 10; quatro zeram a rede)' : 'soma ' + pontosDaCarta(minha.cartas[0], baralho) + ' pontos') +
+      ', mas deixa a pilha a uma carta do early stop.');
   }
 
   /* 4. corrida e placar */
@@ -115,11 +115,11 @@ export function escolherDicaDeJogo(mao, j, partida, recentes = []) {
   /* 6. terreno */
   const terreno = mao.config.terreno;
   if (terreno === 'pantano') dica('terreno-pantano', 'terrenos', 'Pântano: o tempo corrói',
-    'Neurônios sem tunagem perdem 1 ponto por rodada até a rede terminar, como o weight decay. Chegar rápido à saída ou tunar estanca a perda.');
-  if (terreno === 'montanha') dica('terreno-montanha', 'terrenos', 'Montanha: camadas fundas valem menos',
-    'Cada neurônio vale 1 ponto a menos por camada. As primeiras camadas pesam mais; tunagens no fim da rede rendem menos.');
+    'Neurônios sem tunagem perdem 1 ponto por rodada, como o weight decay. Tunar mantém o neurônio à tona; uma mão curta perde menos.');
+  if (terreno === 'montanha') dica('terreno-montanha', 'terrenos', 'Montanha: camadas fundas valem mais',
+    'Cada neurônio vale 1 ponto a mais por camada alcançada. Perder um neurônio do fim da rede custa mais; proteja as camadas altas.');
   if (terreno === 'oceano' && mao.vento) dica('terreno-oceano', 'terrenos', 'Oceano: siga o vento',
-    'Neste momento ' + NAIPE[mao.vento].nome + ' vale dobro. O vento muda a cada rodada, como uma distribuição de dados que se desloca (concept drift).');
+    'Nesta rodada, neurônios de ' + NAIPE[mao.vento].nome + ' revelados valem o dobro para sempre. O vento muda a cada rodada, como uma distribuição de dados que se desloca (concept drift).');
 
   /* a primeira dica que não foi mostrada há pouco; senão, uma dica geral em rodízio */
   const nova = candidatas.find((d) => !recentes.includes(d.id));

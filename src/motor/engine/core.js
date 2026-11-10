@@ -10,7 +10,9 @@
 //   players                numero de jogadores (2 a 5)
 //   copies                 numero de baralhos: mao e limbo multiplicam junto
 //   layers                 tamanhos das camadas, padrao [3,5,5,5,5,5,4] ampliado por jogador extra
-//   firstRule              'reveal' (cada um escolhe uma carta da mao para revelar) | 'random'
+//   firstRule              'reveal' (cada um revela uma carta da mao, que vai para o cemiterio)
+//                          | 'reveal-keep' (opcao (b) do slide: a carta revelada volta para a mao)
+//                          | 'random' (sorteio)
 //   rules                  conjunto de regras: 'fusao' (padrao) | 'nd-2.0.0' (motor original)
 //   seed
 //
@@ -123,7 +125,7 @@ export function newGame(opts = {}) {
   for (const a of NeuroDeck.actionList()) state.stats.actions[a.id] = 0;
   terrain.onGameStart?.(state);
 
-  if ((opts.firstRule || 'reveal') === 'reveal') {
+  if (REVEAL_RULES.includes(opts.firstRule || 'reveal')) {
     // fase de revelacao: cada jogador escolhe a carta da mao a revelar; a maior comeca
     state.phase = 'reveal';
     state.turn = 0;
@@ -132,6 +134,9 @@ export function newGame(opts = {}) {
   }
   return state;
 }
+
+// Regras de inicio que passam pela fase de revelacao.
+export const REVEAL_RULES = ['reveal', 'reveal-keep'];
 
 function mkNet() { return { path: [], finished: false, reason: null, dropouts: 0 }; }
 
@@ -147,7 +152,8 @@ function startPlay(state, firstPlayer, revealed, tie = false) {
 // Escolha da carta inicial. A escolha e simultanea: qualquer jogador que ainda
 // nao escolheu pode jogar, em qualquer ordem. state.turn aponta o primeiro que
 // falta, para quem conduz a partida (bots, hot-seat). Quando todos escolheram,
-// as cartas vao para o cemiterio e a mais forte define quem comeca.
+// a mais forte define quem comeca; as cartas vao para o cemiterio ('reveal') ou
+// voltam para a mao ('reveal-keep').
 export function revealMoves(state, p) {
   if (state.phase !== 'reveal' || state.reveal[p] !== null) return [];
   return state.hands[p].map(c => ({ type: 'reveal', cardId: c.id }));
@@ -159,8 +165,9 @@ function applyReveal(state, p, move) {
   const missing = state.reveal.findIndex(r => r === null);
   if (missing >= 0) { state.turn = missing; return state; }
   const n = playerCount(state);
-  const chosen = state.reveal.map((id, q) => takeCards(state, q, [id])[0]);
-  state.graveyard.push(...chosen);
+  const keep = state.firstRule === 'reveal-keep';
+  const chosen = state.reveal.map((id, q) => keep ? state.hands[q].find(c => c.id === id) : takeCards(state, q, [id])[0]);
+  if (!keep) state.graveyard.push(...chosen);
   const str = chosen.map(c => strengthOf(state, c));
   const best = Math.max(...str);
   const tied = [];

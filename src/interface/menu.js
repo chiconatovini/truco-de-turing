@@ -23,8 +23,8 @@ const ESCOLHAS_OPONENTE = {
   doisHumanos: '2 humanos no mesmo aparelho',
 };
 const ESCOLHAS_INICIO = {
-  'revela-volta': 'Revela carta da mão (volta para a mão)',
   'revela-descarta': 'Revela carta da mão (vai para o cemitério)',
+  'revela-volta': 'Revela carta da mão (volta para a mão)',
   sorteio: 'Par ou ímpar (sorteio)',
 };
 const ESCOLHAS_PARTIDA = { 12: 'Partida até 12 tentos, com truco', 1: 'Mão única, sem truco' };

@@ -16,7 +16,7 @@ export function abrirSobre() {
       '<h3>A especificação</h3>' +
       '<ul>' +
       '<li>Mesa com um baralho de 52 cartas: 3 neurônios na entrada, 5 camadas ocultas de 5 neurônios e 4 na saída. Cada jogador recebe 5 cartas; as 10 restantes vão para o limbo, como ruído.</li>' +
-      '<li>Os jogadores se alternam ativando neurônios para ligar a entrada à saída. Vence a rede de maior soma: 2 a 10 pelo valor, Ás 11, figuras 0, com pares e trios de figuras vizinhas valendo bônus e quadras zerando a rede (vanishing gradient).</li>' +
+      '<li>Os jogadores se alternam ativando neurônios para ligar a entrada à saída. Vence a rede de maior soma: 2 a 10 pelo valor, Ás 11, figuras 0, com figuras iguais vizinhas valendo 10 cada (par 20, trio 30) e quadras zerando a rede (vanishing gradient).</li>' +
       '<li>Ações com a mão: tunagem, overfit, early stop, stack overflow, dropout (o GatoNet) e transfer learning. Entrada e saída são imunes.</li>' +
       '<li>Desempates em cascata e três formas de decidir quem começa.</li>' +
       '<li>Extensões propostas: baralhos com efeitos (truco, fraternidade, yin-yang, Power BI), terrenos (montanha, pântano, oceano), coringas e conquistas em graduações de bronze a antimatéria.</li>' +
