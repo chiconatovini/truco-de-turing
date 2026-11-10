@@ -20,6 +20,8 @@ import { abrirGrimorio } from './telas/grimorio.js';
 import { abrirConquistas } from './telas/conquistas.js';
 import { abrirSobre } from './telas/sobre.js';
 import { abrirMods } from './telas/mods.js';
+import { abrirAvatares, retratoDoAvatar } from './telas/avatares.js';
+import { avatarDoJogador } from '../conteudo/avatares.js';
 
 /** Opções da lista de oponentes do computador (todos os oponentes da mesa têm o mesmo perfil). */
 const ESCOLHAS_OPONENTE = {
@@ -78,6 +80,7 @@ function htmlDoMenu(opcoes) {
     '<button class="botao" id="m-regras">Como jogar</button>' +
     '<button class="botao" id="m-grimorio">Biblioteca de conceitos</button>' +
     '<button class="botao" id="m-conquistas">Conquistas</button>' +
+    '<button class="botao botao-avatar" id="m-avatar"><img alt="" id="m-avatar-img">Avatar</button>' +
     '<button class="botao" id="m-mods">Mods</button>' +
     '<button class="botao" id="m-sobre">Sobre</button>' +
     '</div></div>' +
@@ -160,6 +163,10 @@ export function abrirMenu(app) {
   campo('m-grimorio').addEventListener('click', () => { lerEscolhas(); abrirGrimorio(app); });
   campo('m-conquistas').addEventListener('click', () => { lerEscolhas(); abrirConquistas(app); });
   campo('m-mods').addEventListener('click', () => { lerEscolhas(); abrirMods(); });
+  /* avatar: o retrato atual no botão; a tela de escolha troca e atualiza o botão */
+  const mostrarAvatar = () => { const img = campo('m-avatar-img'), src = retratoDoAvatar(avatarDoJogador(app.progresso)); if (img && src) img.src = src; };
+  mostrarAvatar();
+  campo('m-avatar').addEventListener('click', () => { lerEscolhas(); abrirAvatares(app, mostrarAvatar); });
   campo('m-sobre').addEventListener('click', () => { lerEscolhas(); abrirSobre(); });
   return painel;
 }

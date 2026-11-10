@@ -6,6 +6,7 @@
  * cada jogada passa por `executarJogada()`, que aplica as regras, anima os eventos e chama
  * `avancar()` de novo quando a animação termina.
  */
+import { avatarDoJogador } from '../../conteudo/avatares.js';
 import { novaMao, aplicarJogada, jogadasLegais, camadasDesfaziveis } from '../../nucleo/partida.js';
 import { podeTrucar } from '../../nucleo/truco.js';
 import { OPONENTES, escolherJogada, querTrucar } from '../../nucleo/oponentes/index.js';
@@ -32,11 +33,16 @@ export const metodosDeTurnos = {
   /** Ordem dos blocos do placar, de cima para baixo: os outros jogadores e, por último, quem está vendo. */
   ordemDoPlacar() { return [...this.outrosJogadores(), this.jogadorDeBaixo()]; },
 
-  /** Textura do avatar do jogador. */
+  /**
+   * Textura do avatar do jogador. O primeiro humano usa o avatar escolhido (tela de avatares); os
+   * outros humanos do aparelho usam o truqueiro que sobrar.
+   */
   avatarDe(j) {
     const jogador = this.mao.jogadores[j];
     if (jogador.tipo === 'oponente') return 'avatar-' + OPONENTES[jogador.oponente].avatar;
-    return j === 0 ? 'avatar-p1' : 'avatar-p2';
+    const escolhido = avatarDoJogador(this.app.progresso);
+    if (j === 0) return 'avatar-' + escolhido;
+    return escolhido === 'p2' ? 'avatar-p1' : 'avatar-p2';
   },
 
   /**

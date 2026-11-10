@@ -12,6 +12,7 @@ const paineis = await import('../../src/interface/paineis.js');
 const { Som, contextoDeAudio } = await import('../../src/interface/som.js');
 const { Musica, MUSICAS, TRILHAS, gravarTrilha } = await import('../../src/interface/musica.js');
 const { abrirMenu } = await import('../../src/interface/menu.js');
+const { abrirAvatares } = await import('../../src/interface/telas/avatares.js');
 const { abrirRegras } = await import('../../src/interface/telas/regras.js');
 const { abrirGrimorio } = await import('../../src/interface/telas/grimorio.js');
 const { abrirConquistas, medalhaHtml } = await import('../../src/interface/telas/conquistas.js');
@@ -256,10 +257,25 @@ describe('telas', () => {
     assert.match($('#g-verbete h2').textContent, /Stack overflow/);
     assert.ok(app.progresso.lidos.stackoverflow);
   });
+  it('avatares: escolhe um liberado, ignora o bloqueado e avisa quem mudou', () => {
+    const app = appFalso();
+    app.progresso.desbloqueadas = { gato10: 1 };
+    let mudou = null;
+    abrirAvatares(app, (id) => { mudou = id; });
+    assert.equal($$('.avatar-opcao').length, 9);
+    assert.equal($$('.avatar-opcao.bloqueado').length, 5);
+    clicar($('.avatar-opcao[data-avatar="cosmico"]')); /* bloqueado: nada muda */
+    assert.equal(mudou, null);
+    clicar($('.avatar-opcao[data-avatar="gato"]'));
+    assert.equal(app.progresso.avatar, 'gato');
+    assert.equal(mudou, 'gato');
+    assert.equal($('.avatar-opcao[data-avatar="gato"]').getAttribute('aria-pressed'), 'true');
+    assert.match($('.avatar-opcao[data-avatar="cosmico"]').textContent, /Contra tudo e contra todos/);
+  });
   it('conquistas: medalhas bloqueadas e desbloqueadas, contagem e retrato', async () => {
     const app = appFalso();
     abrirConquistas(app);
-    assert.match($('.conquistas-resumo').textContent, /1 de 27/);
+    assert.match($('.conquistas-resumo').textContent, /1 de 35/);
     assert.equal($$('.conquista').length, CONQUISTAS.length);
     await esperar(50);
     assert.ok($('#c-retrato canvas'));
