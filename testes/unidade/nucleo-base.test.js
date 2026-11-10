@@ -78,19 +78,26 @@ describe('rede.js', () => {
 });
 
 describe('baralhos.js', () => {
-  it('cada baralho monta 52 cartas e tem nome e resumo', () => {
+  it('cada baralho monta as cartas do motor (52; o truco, 2 baralhos de 27) e tem nome e resumo', () => {
     for (const [chave, b] of Object.entries(BARALHOS)) {
       const cartas = b.montar();
-      assert.equal(cartas.length, 52, chave);
+      assert.equal(cartas.length, chave === 'truco' ? 54 : 52, chave);
+      assert.equal(new Set(cartas.map((c) => c.id)).size, cartas.length, chave + ': ids únicos');
       assert.ok(b.nome && b.resumo, chave);
     }
+    assert.deepEqual([...new Set(BARALHOS.yinyang.montar().map((c) => c.valor))].sort(), ['2', 'A']);
+    assert.deepEqual([...new Set(BARALHOS.truco.montar().map((c) => c.valor))].sort(), ['2', '3', '4', '7', 'A', 'J', 'K', 'Q']);
   });
-  it('pontosDaCarta: Ás 11, figuras 0, números pelo valor; manilhas do truco', () => {
+  it('pontosDaCarta: Ás 11, figuras 0, números pelo valor; no truco, manilhas e a ordem do truco', () => {
     assert.equal(pontosDaCarta({ valor: 'A', naipe: 'C' }, 'classico'), 11);
     assert.equal(pontosDaCarta({ valor: 'K', naipe: 'C' }, 'classico'), 0);
     assert.equal(pontosDaCarta({ valor: '7', naipe: 'C' }, 'classico'), 7);
+    /* truco do NeuroDeck: Zap 12, Copas 11, Espadilha 10, Pica-fumo 9; depois 3, 2, A, K, J, Q */
     assert.equal(pontosDaCarta({ valor: '4', naipe: 'P' }, 'truco'), 12);
-    assert.equal(pontosDaCarta({ valor: 'A', naipe: 'E' }, 'truco'), 13);
+    assert.equal(pontosDaCarta({ valor: '7', naipe: 'C' }, 'truco'), 11);
+    assert.equal(pontosDaCarta({ valor: 'A', naipe: 'E' }, 'truco'), 10);
+    assert.equal(pontosDaCarta({ valor: '7', naipe: 'O' }, 'truco'), 9);
+    assert.deepEqual(['3', '2', 'A', 'K', 'J', 'Q'].map((valor) => pontosDaCarta({ valor, naipe: 'C' }, 'truco')), [8, 7, 6, 5, 4, 3]);
   });
   it('nomeDaCarta e manilhaDaCarta', () => {
     assert.match(nomeDaCarta({ valor: 'K', naipe: 'O' }, 'classico'), /Rei/);

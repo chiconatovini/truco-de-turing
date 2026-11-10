@@ -97,6 +97,12 @@ export async function esperarCena(pagina, condicao, tempo = 60000) {
   }, [condicao], { timeout: tempo, polling: 50 });
 }
 
+/**
+ * Carrega na página as funções de montagem de situações (testes/apoio/montagem.js) como `M`,
+ * para o código de `naCena` montar mãos e redes no estado do motor: `M.darMao(cena.mao, 0, ['7E'])`.
+ */
+export const carregarMontagem = (pagina) => pagina.evaluate(async () => { globalThis.M = await import('/testes/apoio/montagem.js'); });
+
 /** Espera o menu aparecer. */
 export const esperarMenu = (pagina) => pagina.waitForSelector('#m-jogar', { timeout: 60000 });
 

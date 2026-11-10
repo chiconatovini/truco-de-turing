@@ -466,6 +466,19 @@ function encerrar(mao) {
 }
 
 /**
+ * Encerra a mão agora, com as redes como estão: o motor apura o vencedor pelos desempates.
+ * Serve para o limite de jogadas das simulações e para testes que montam a situação final.
+ * @returns {object} a própria mão
+ */
+export function finalizarMao(mao) {
+  if (mao.fase === 'fim' && mao.resultado) return mao;
+  ND.endGame(mao.nd);
+  atualizarVisao(mao);
+  encerrar(mao);
+  return mao;
+}
+
+/**
  * Aplica uma jogada: traduz, entrega ao motor e refaz a visão. Lança erro se a jogada for inválida
  * (o estado não muda nesse caso).
  * @param {object} mao

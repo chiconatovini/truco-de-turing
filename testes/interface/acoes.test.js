@@ -6,7 +6,7 @@
  */
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { subirServidor, abrirJogo, comecarPartida, naCena, esperarCena, esperarMenu, capturar } from '../apoio/navegador.js';
+import { subirServidor, abrirJogo, comecarPartida, carregarMontagem, naCena, esperarCena, esperarMenu, capturar } from '../apoio/navegador.js';
 
 let servidor;
 before(async () => { servidor = await subirServidor(); });
@@ -43,6 +43,7 @@ describe('ações da mesa', () => {
     const { pagina } = jogo;
     try {
       await comecarPartida(pagina, { oponente: 'aleatorio', baralho: 'classico', terreno: 'neutro', inicio: 'sorteio' });
+      await carregarMontagem(pagina);
       await esperarMinhaVez(pagina);
       /* inspeção: neurônio virado, carta da mão, limbo, cemitério e terreno */
       await naCena(pagina, `
@@ -74,7 +75,7 @@ describe('ações da mesa', () => {
           const c = cena.mao.jogadores[alvo].caminho, n = cena.mao.neuronios[c[c.length - 1]];
           if (!n || n.camada < 1 || n.camada > 5 || cena.mao.jogadores[alvo].situacao !== 'construindo') return false;
           const valor = n.cartas[0].valor;
-          cena.mao.jogadores[0].mao = Array.from({ length: 4 }, (_, i) => ({ id: 'teste' + Math.random(), valor, naipe: 'ECPO'[i] }));
+          M.darMao(cena.mao, 0, Array.from({ length: 4 }, (_, i) => [valor, 'ECPO'[i]]));
           cena.redesenhar();
           for (let i = 0; i < quantas; i++) cena.aoClicarNaCarta(cena.mao.jogadores[0].mao[i].id);
           if (!cena.alvos[n.id]) return 'sem alvo';
@@ -115,8 +116,10 @@ describe('ações da mesa', () => {
     const { pagina } = jogo;
     try {
       await comecarPartida(pagina, { oponente: 'aleatorio', baralho: 'truco', terreno: 'oceano', inicio: 'revela-descarta' });
-      for (let i = 0; i < 3; i++) { await esperarMinhaVez(pagina); await ativarQualquer(pagina); }
+      await carregarMontagem(pagina);
       await esperarMinhaVez(pagina);
+      /* monta a rede do humano com duas camadas ocultas, para o resto do teste não depender do oponente */
+      await naCena(pagina, 'M.montarRede(cena.mao, 0, [["2E"], ["3E"], ["2C"]]); M.darMao(cena.mao, 0, ["3O", "2O", "AO", "QC"]); cena.redesenhar();');
       /* dropout: entra e sai do modo; depois escolhe a camada e paga */
       await apertar(pagina, 'botaoDropout');
       assert.equal(await naCena(pagina, 'return cena.modo'), 'dropout');
@@ -130,24 +133,23 @@ describe('ações da mesa', () => {
       await capturar(pagina, '15-dropout');
       /* transfer learning: quatro cartas iguais */
       await esperarMinhaVez(pagina);
-      await naCena(pagina, 'cena.mao.jogadores[0].mao = "ECPO".split("").map((n) => ({ id: "7" + n + "t", valor: "7", naipe: n })); cena.redesenhar();');
+      await naCena(pagina, 'M.darMao(cena.mao, 0, ["7E", "7C", "7P", "7O"]); cena.redesenhar();');
       await apertar(pagina, 'botaoTransfer');
       await esperarCena(pagina, 'return cena.mao.jogadores[0].transferUsado');
+      /* o transfer não gasta a vez: o humano continua jogando */
+      await esperarMinhaVez(pagina);
       /* vanishing gradient: quatro Reis seguidos na rede */
       await naCena(pagina, `
-        const caminho = cena.mao.jogadores[0].caminho;
-        cena.mao.neuronios[caminho[0]].cartas = 'ECP'.split('').map((n) => ({ id: 'K' + n + 'v', valor: 'K', naipe: n }));
-        cena.mao.neuronios[caminho[1]].cartas = [{ id: 'KOv', valor: 'K', naipe: 'O' }];
+        M.montarRede(cena.mao, 0, [['2E'], ['KE', 'KC'], ['KP', 'KO']]); /* dois Reis tunados: quadra */
         cena.redesenhar(); cena.animarEventos([]);`);
       assert.equal(await naCena(pagina, 'return cena.vanishingAvisado[0]'), true);
-      /* passar a vez: sem neurônio livre na próxima camada */
+      assert.equal(await naCena(pagina, 'return cena.pontuacoes[0].total'), 0);
+      /* passar a vez: só depois de um early stop, com cartas na mão */
       await esperarMinhaVez(pagina);
-      await naCena(pagina, `
-        const proxima = cena.mao.jogadores[0].caminho.length;
-        if (proxima < 7) cena.mao.camadas[proxima].forEach((n) => { if (n.dono === -1) n.dono = 9; });
-        cena.redesenhar();`);
-      const pode = await naCena(pagina, 'return cena.painel.botaoPassar.habilitado');
-      if (pode) await apertar(pagina, 'botaoPassar');
+      assert.equal(await naCena(pagina, 'return cena.painel.botaoPassar.habilitado'), false);
+      await naCena(pagina, 'M.finalizarRede(cena.mao, 0, "earlystop"); M.darMao(cena.mao, 0, ["2E"]); cena.redesenhar();');
+      assert.equal(await naCena(pagina, 'return cena.painel.botaoPassar.habilitado'), true);
+      await apertar(pagina, 'botaoPassar');
       await esperarCena(pagina, 'return cena.mao.registro.some((l) => /passou a vez/.test(l)) || !!document.querySelector("#r-proxima")');
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }

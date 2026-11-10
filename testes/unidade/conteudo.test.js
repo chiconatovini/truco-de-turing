@@ -16,6 +16,7 @@ import { jogadaAleatoria } from '../../src/nucleo/oponentes/estrategias.js';
 import { BARALHOS } from '../../src/nucleo/baralhos.js';
 import { TERRENOS } from '../../src/nucleo/terrenos.js';
 import { maoNova, maoAteOFim, redeCom } from '../apoio/estados.js';
+import { darMao, montarRede } from '../apoio/montagem.js';
 
 describe('grimorio.js', () => {
   it('verbetes com id único, título, categoria, conceito e "no jogo"', () => {
@@ -123,35 +124,37 @@ describe('dicasDeJogo.js', () => {
     const dica = (mao, j = 0, partida = novaPartida(12), recentes = []) => { const d = escolherDicaDeJogo(mao, j, partida, recentes); vistas.add(d.id); return d; };
     /* oportunidades de ataque contra a fronteira do adversário (jogador 1) */
     const ataque = (pilha, naMao, valor = '9') => {
-      const mao = redeCom([[['5', 'O']], [['3', 'E']]]);
-      mao.jogadores[1].caminho = ['C0N1', 'C1N1'];
-      Object.assign(mao.neuronios.C1N1, { revelado: true, dono: 1, cartas: Array.from({ length: pilha }, (_, i) => ({ id: 'v' + i, valor, naipe: 'E' })) });
-      mao.neuronios.C0N1.dono = 1; mao.neuronios.C0N1.revelado = true;
-      mao.jogadores[0].mao = Array.from({ length: naMao }, (_, i) => ({ id: 'm' + i, valor, naipe: 'C' }));
+      const mao = redeCom([['5O'], ['3E']]);
+      montarRede(mao, 1, [['2C'], Array.from({ length: pilha }, () => valor + 'E')]);
+      darMao(mao, 0, Array.from({ length: naMao }, () => valor + 'C'));
       return mao;
     };
     assert.equal(dica(ataque(1, 3)).id, 'ataque-overflow');
     assert.equal(dica(ataque(2, 1)).id, 'ataque-earlystop');
     assert.equal(dica(ataque(1, 1)).id, 'ataque-overfit');
     /* riscos na própria rede */
-    assert.equal(dica(redeCom([[['5', 'O']], [['K', 'E']], [['K', 'C']]])).id, 'risco-vanishing');
-    assert.equal(dica(redeCom([[['5', 'O']], [['7', 'E'], ['7', 'C']]])).id, 'risco-tunado');
-    const tunar = redeCom([[['5', 'O']], [['7', 'E']]]);
-    tunar.jogadores[0].mao = [{ id: 'x', valor: '7', naipe: 'O' }];
+    assert.equal(dica(redeCom([['5O'], ['KE'], ['KC']])).id, 'risco-vanishing');
+    assert.equal(dica(redeCom([['5O'], ['7E', '7C']])).id, 'risco-tunado');
+    const tunar = redeCom([['5O'], ['7E']]);
+    darMao(tunar, 0, ['7O']);
     assert.equal(dica(tunar).id, 'tunagem');
+    assert.match(dica(tunar).texto, /soma 7 pontos/);
+    const tunarFigura = redeCom([['5O'], ['QE']]);
+    darMao(tunarFigura, 0, ['QO']);
+    assert.match(dica(tunarFigura).texto, /sequência/);
     /* corrida, truco, transfer, mão curta e terrenos */
-    const corrida = redeCom([[['2', 'O']]]);
-    corrida.jogadores[1].caminho = ['C0N1', 'C1N1', 'C2N1', 'C3N1', 'C4N1', 'C5N1'];
-    corrida.jogadores[0].mao = ['3', '4', '5'].map((v) => ({ id: 'c' + v, valor: v, naipe: 'E' }));
-    corrida.jogadores[1].caminho.forEach((id) => { Object.assign(corrida.neuronios[id], { revelado: true, dono: 1, cartas: [{ id: id + 'x', valor: '9', naipe: 'P' }] }); });
+    const corrida = redeCom([['2O']]);
+    montarRede(corrida, 1, Array.from({ length: 6 }, () => ['9P']));
+    darMao(corrida, 0, ['3E', '4E', '5E']);
     assert.equal(dica(corrida).id, 'corrida');
-    const frente = redeCom([[['A', 'O']], [['A', 'E']]]);
+    const frente = redeCom([['AO'], ['AE']]);
+    darMao(frente, 0, ['3E', '4E', '5C']); /* sem Ás na mão, para não cair na dica de tunagem */
     assert.equal(dica(frente, 0, novaPartida(12), ['risco-tunado']).id, 'truco');
-    const quatro = redeCom([[['2', 'O']]]);
-    quatro.jogadores[0].mao = ['E', 'C', 'P', 'O'].map((n) => ({ id: '6' + n, valor: '6', naipe: n }));
+    const quatro = redeCom([['2O']]);
+    darMao(quatro, 0, ['6E', '6C', '6P', '6O']);
     assert.equal(dica(quatro).id, 'transfer');
-    const curta = redeCom([[['2', 'O']]]);
-    curta.jogadores[0].mao = [{ id: 'z', valor: '3', naipe: 'E' }];
+    const curta = redeCom([['2O']]);
+    darMao(curta, 0, ['3E']);
     assert.equal(dica(curta).id, 'mao-curta');
     assert.equal(dica(redeCom([[['2', 'O']]], { terreno: 'pantano' })).id, 'terreno-pantano');
     assert.equal(dica(redeCom([[['2', 'O']]], { terreno: 'montanha' })).id, 'terreno-montanha');
