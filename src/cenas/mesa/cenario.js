@@ -10,7 +10,7 @@ import { TERRENOS } from '../../nucleo/terrenos.js';
 import { desenharBotao, MARGEM_BOTAO } from '../../arte/botoes.js';
 import { Som } from '../../interface/som.js';
 import { texturaDeInspecao } from '../recursos.js';
-import { PAINEL_ESQ, PAINEL_DIR, ESQ, DIR, FOLGA_DE_TOQUE, colunaX, linhaY, ajustarLinha, geometria, cartaDaMesa, blocosDoPlacar } from './layout.js';
+import { PAINEL_ESQ, PAINEL_DIR, ESQ, DIR, FOLGA_DE_TOQUE, BARRA_DE_ACOES, colunaX, linhaY, ajustarLinha, geometria, cartaDaMesa, blocosDoPlacar } from './layout.js';
 
 /** Cor do rótulo de cada variante de botão. */
 const COR_ROTULO = { ouro: '#2a1606', vinho: '#fff0e0', pedra: '#f6ecd6' };
@@ -54,7 +54,9 @@ export const metodosDoCenario = {
    * Com `opcoes.dica`, o botão mostra uma dica flutuante (modo "dicas" ligado): ao passar o mouse,
    * ou, no celular, ao segurar o botão apertado. Soltar depois de segurar não executa a ação,
    * para que dê para ler a dica sem jogar sem querer. A ação roda ao soltar o toque/clique.
-   * @param {{variante?: 'ouro'|'vinho'|'pedra', tamanho?: number, dica?: string}} [opcoes]
+   * `explicar`, quando dado, devolve o texto que aparece no quadro de instruções (painel
+   * esquerdo) enquanto o cursor está sobre o botão: o que a ação faria agora, antes de confirmar.
+   * @param {{variante?: 'ouro'|'vinho'|'pedra', tamanho?: number, dica?: string, explicar?: () => string}} [opcoes]
    */
   criarBotao(x, y, l, a, rotulo, acao, opcoes = {}) {
     const variante = opcoes.variante || 'ouro';
@@ -83,10 +85,12 @@ export const metodosDoCenario = {
     let segurando = null, segurou = false;
     botao.on('pointerover', (ponteiro) => {
       if (botao.habilitado) pintar('foco');
+      if (opcoes.explicar && !ponteiro.wasTouch) { this.dicaDoCursor = opcoes.explicar(); this.mostrarDica(this.dicaDoCursor); }
       if (temDica() && !ponteiro.wasTouch) mostrarDica();
     });
     botao.on('pointerout', () => {
       pintar(botao.habilitado ? 'normal' : 'inativo');
+      if (opcoes.explicar) { this.dicaDoCursor = null; if (this.mao) this.mostrarDica(this.textoComDicaDeJogo()); }
       clearTimeout(segurando);
       if (!segurou) this.esconderDicaDoBotao();
     });
@@ -152,8 +156,13 @@ export const metodosDoCenario = {
     p.cemiterio.carta.on('pointerover', () => {
       const ultima = this.mao?.cemiterio[this.mao.cemiterio.length - 1];
       this.inspecionar(ultima ? texturaDeInspecao(this, ultima, this.mao.config.baralho) : this.verso('inspecao'),
-        'Cemitério: ' + (this.mao ? this.mao.cemiterio.length : 0) + ' carta(s) fora de jogo. Mostrando a do topo.');
+        'Cemitério: ' + (this.mao ? this.mao.cemiterio.length : 0) + ' carta(s) fora de jogo. Mostrando a do topo. Clique para ver todas.');
     });
+    /* clicar numa pilha abre a lista completa (cemitério aberto, limbo só contado) */
+    for (const pilha of [p.limbo, p.cemiterio]) {
+      pilha.carta.input.cursor = 'pointer';
+      pilha.carta.on('pointerdown', () => this.abrirCemiterio());
+    }
 
     p.textoTerreno = this.criarTexto(cx, ESQ.terreno, '', { fontSize: '12px', align: 'center', color: '#d6c8a6', wordWrap: { width: PAINEL_ESQ.l - 30 } }).setOrigin(0.5, 0).setInteractive({ useHandCursor: true });
     p.textoTerreno.on('pointerover', () => {
@@ -207,6 +216,17 @@ export const metodosDoCenario = {
     p.subCurva = this.criarTexto(rx + rl, DIR.rotuloCurva, 'soma da rede por turno', { fontStyle: 'italic', fontSize: '11px', color: '#9a8c6c' }).setOrigin(1, 0.5);
     p.maximoCurva = this.criarTexto(rx + 6, DIR.curva + 8, '', { fontSize: '10px', color: '#9a8c6c' }).setOrigin(0, 0.5);
     p.registro = this.criarTexto(rx, DIR.registro, '', { fontSize: '12px', color: '#dccfb2', wordWrap: { width: rl }, lineSpacing: 2 });
+    /* leitura detalhada, como no NeuroDeck: clicar num bloco abre o placar por camada; clicar no
+       registro abre a mão inteira */
+    for (const b of p.blocos) {
+      b.area = this.add.zone(b.x + b.l / 2, b.y + b.a / 2, b.l, b.a).setDepth(9).setInteractive({ useHandCursor: true });
+      b.area.on('pointerdown', () => this.abrirPlacarPorCamada());
+      b.area.on('pointerover', () => this.mostrarDica('Clique no placar para ver os pontos camada por camada.'));
+      b.area.on('pointerout', () => this.mostrarDica(this.dicaDoCursor || this.textoComDicaDeJogo()));
+    }
+    p.areaRegistro = this.add.zone(rx + rl / 2, DIR.registro + DIR.alturaRegistro / 2, rl, DIR.alturaRegistro).setDepth(9).setInteractive({ useHandCursor: true });
+    p.areaRegistro.on('pointerdown', () => this.abrirRegistroCompleto());
+    p.rotuloRegistro = this.criarTexto(rx + rl, DIR.registro - 8, 'registro completo \u2197', { fontStyle: 'italic', fontSize: '10.5px', color: '#9a8c6c' }).setOrigin(1, 0.5);
   },
 
   /**
@@ -232,15 +252,33 @@ export const metodosDoCenario = {
     return b;
   },
 
-  /** Botão de truco (logo acima das ações) e os três botões de ação, grandes e quase quadrados. */
+  /**
+   * Botão de truco e a barra de ações, como no NeuroDeck: selecione cartas da mão e acendem só os
+   * botões das jogadas possíveis com elas; passar o cursor num botão explica o efeito no quadro de
+   * instruções antes de confirmar. Os botões ficam em `p.acoes[id]`; dropout, transfer e passar
+   * também em `p.botaoDropout`, `p.botaoTransfer` e `p.botaoPassar`.
+   */
   criarBotoesDeAcao(p) {
     const rx = PAINEL_DIR.x + 12, rl = PAINEL_DIR.l - 24, rc = PAINEL_DIR.x + PAINEL_DIR.l / 2;
-    p.truco = this.criarBotao(rc, DIR.truco, rl, DIR.alturaTruco, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 22, dica: 'truco' });
-    const espaco = 8, bl = (rl - espaco * 2) / 3, coluna = (i) => rx + bl / 2 + i * (bl + espaco);
-    const acao = { tamanho: 16 };
-    p.botaoDropout = this.criarBotao(coluna(0), DIR.acoes, bl, DIR.alturaAcao, 'Dropout', () => this.alternarDropout(), { ...acao, dica: 'dropout' });
-    p.botaoTransfer = this.criarBotao(coluna(1), DIR.acoes, bl, DIR.alturaAcao, 'Transfer', () => this.fazerTransfer(), { ...acao, dica: 'transfer' });
-    p.botaoPassar = this.criarBotao(coluna(2), DIR.acoes, bl, DIR.alturaAcao, 'Passar\na vez', () => this.passarAVez(), { ...acao, dica: 'passar' });
+    p.truco = this.criarBotao(rc, DIR.truco, rl, DIR.alturaTruco, 'TRUCO!', () => this.pedirTrucoHumano(), { variante: 'vinho', tamanho: 20, dica: 'truco' });
+    const espaco = 6, bl = (rl - espaco * 3) / 4, coluna = (i) => rx + bl / 2 + i * (bl + espaco);
+    const acoes = {
+      tunagem: () => this.executarAcao('tunagem'), overfit: () => this.executarAcao('overfit'),
+      earlystop: () => this.executarAcao('earlystop'), stackoverflow: () => this.executarAcao('stackoverflow'),
+      dropout: () => this.acionarDropout(), transfer: () => this.fazerTransfer(), passar: () => this.passarAVez(), limpar: () => this.cancelarSelecao(),
+    };
+    p.acoes = {};
+    const porLinha = [0, 0];
+    for (const [id, rotulo, linha] of BARRA_DE_ACOES) {
+      const y = linha === 0 ? DIR.acoes : DIR.acoes2, i = porLinha[linha]++;
+      p.acoes[id] = this.criarBotao(coluna(i), y, bl, DIR.alturaAcao, rotulo, acoes[id], {
+        tamanho: 13, dica: ['dropout', 'transfer', 'passar'].includes(id) ? id : undefined,
+        explicar: () => this.explicarAcao(id),
+      });
+    }
+    p.botaoDropout = p.acoes.dropout;
+    p.botaoTransfer = p.acoes.transfer;
+    p.botaoPassar = p.acoes.passar;
   },
 
   /**

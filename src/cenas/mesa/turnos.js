@@ -102,7 +102,9 @@ export const metodosDeTurnos = {
   criarNeuronios() {
     this.visuais = {};
     const { ml, ma, l } = cartaDaMesa(), escala = Math.max(0.75, l / 62);
+    /* selo de tunagem (canto de cima, dourado) e pontos do neurônio na rede (canto de baixo, na cor do dono) */
     const etiqueta = { fontFamily: FONTES.texto, fontStyle: '800', fontSize: Math.round(12 * escala) + 'px', color: '#24170c', backgroundColor: '#f6dc8f', padding: { x: 4, y: 1 } };
+    const ponto = { fontFamily: FONTES.titulo, fontStyle: '800', fontSize: Math.round(12 * escala) + 'px', color: '#0d0a08', padding: { x: 4, y: 1 } };
     const lembranca = { fontFamily: FONTES.texto, fontStyle: '700', fontSize: Math.round(11 * escala) + 'px', color: '#f6dc8f', backgroundColor: 'rgba(0,0,0,.65)', padding: { x: 3, y: 1 } };
     for (const camada of this.mao.camadas) {
       for (const n of camada) {
@@ -111,10 +113,11 @@ export const metodosDeTurnos = {
         imagem.on('pointerdown', () => this.aoClicarNoNeuronio(n.id));
         imagem.on('pointerover', () => this.aoPassarNoNeuronio(n.id, true));
         imagem.on('pointerout', () => this.aoPassarNoNeuronio(n.id, false));
-        const pilha = this.add.text(x - ml * 0.58, y + ma * 0.76, '', etiqueta).setOrigin(0.5).setDepth(4);
+        const pilha = this.add.text(x + ml * 0.62, y - ma * 0.78, '', etiqueta).setOrigin(0.5).setDepth(4);
+        const pontos = this.add.text(x + ml * 0.62, y + ma * 0.8, '', ponto).setOrigin(0.5).setDepth(4).setVisible(false);
         const memoria = this.add.text(x, y + ma * 0.74, '', lembranca).setOrigin(0.5).setDepth(4);
-        this.visuais[n.id] = { imagem, pilha, memoria };
-        this.objetosDoTabuleiro.push(imagem, pilha, memoria);
+        this.visuais[n.id] = { imagem, pilha, memoria, pontos };
+        this.objetosDoTabuleiro.push(imagem, pilha, memoria, pontos);
         imagem.setAlpha(0).y -= 30;
         this.tweens.add({ targets: imagem, alpha: 1, y, duration: 260, delay: n.camada * 40 + n.posicao * 25, ease: 'Back.out' });
       }
@@ -133,6 +136,7 @@ export const metodosDeTurnos = {
       return;
     }
     this.selecao = [];
+    this.acaoEscolhida = null;
     if (this.modo !== 'inicio') this.modo = 'livre';
     const eventos = this.mao.eventos.splice(0);
     this.ocupada = true;

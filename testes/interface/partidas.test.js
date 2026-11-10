@@ -68,8 +68,8 @@ describe('mesa dinâmica: arquiteturas, 3 a 5 jogadores e vários baralhos', () 
       const { pagina } = jogo;
       try {
         await esperarMenu(pagina);
-        await pagina.evaluate((o) => Object.assign(globalThis.__TRUCO_DE_TURING__.opcoes, o), mesa.opcoes);
-        await comecarPartida(pagina, { partida: '12' });
+        /* pelo menu, como o jogador faria: o menu lê os campos ao clicar em Jogar */
+        await comecarPartida(pagina, { ...mesa.opcoes, partida: '12' });
         const n = mesa.opcoes.jogadores;
         const formato = await naCena(pagina, `return { jogadores: cena.mao.jogadores.length, humanos: cena.mao.jogadores.filter((j) => j.tipo === 'humano').length,
           camadas: cena.mao.camadas.length, mao: cena.mao.jogadores[0].mao.length, blocos: cena.painel.blocos.length, truco: cena.painel.truco.habilitado };`);
@@ -95,7 +95,7 @@ describe('duas pessoas e mão única', () => {
     const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
     const { pagina } = jogo;
     try {
-      await comecarPartida(pagina, { oponente: 'doisHumanos', baralho: 'yinyang', terreno: 'oceano', inicio: 'revela-volta' });
+      await comecarPartida(pagina, { humanos: 2, baralho: 'yinyang', terreno: 'oceano', inicio: 'revela-volta' }); /* o menu agora tem o campo "Pessoas" */
       /* conta as trocas de aparelho */
       await naCena(pagina, 'const original = cena.passarAparelho; cena.trocas = 0; cena.passarAparelho = function (...a) { this.trocas++; return original.apply(this, a); };');
       await jogarAteOResultado(pagina);

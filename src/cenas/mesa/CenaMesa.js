@@ -39,6 +39,7 @@ import { metodosDoTruco } from './truco.js';
 import { metodosDeEfeitos } from './efeitos.js';
 import { metodosDoResultado } from './resultado.js';
 import { metodosDeDicas } from './dicas.js';
+import { metodosDosPaineis } from './paineis.js';
 import { Musica } from '../../interface/musica.js';
 import { esconderDicaFlutuante } from '../../interface/paineis.js';
 
@@ -88,4 +89,4 @@ export class CenaMesa extends Phaser.Scene {
 
 Object.assign(CenaMesa.prototype,
   metodosDoCenario, metodosDeDesenho, metodosDeEntrada, metodosDeTurnos,
-  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas);
+  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas, metodosDosPaineis);

@@ -19,7 +19,7 @@ import { OPONENTES } from '../../nucleo/oponentes/index.js';
 import { texturaDaCartaNaMao, texturaDaCartaNaMesa, texturaDeInspecao } from '../recursos.js';
 import {
   PAINEL_ESQ, PAINEL_DIR, ESQ, DIR, TABULEIRO, colunaX, linhaY, COR_JOGADOR, COR_JOGADOR_CSS, COR_DO_ALVO, NOME_SITUACAO,
-  ajustarCartaDaMesa, ajustarLinha, ajustarBloco, cartaDaMesa,
+  ajustarCartaDaMesa, ajustarLinha, ajustarBloco, cartaDaMesa, NOME_DA_ACAO,
 } from './layout.js';
 
 export const metodosDeDesenho = {
@@ -41,11 +41,17 @@ export const metodosDeDesenho = {
     this.pontuacoes = mao.jogadores.map((_, j) => pontuarRede(mao, j));
     this.calcularAlvos();
     this.camadaVazios.clear();
+    /* pontos de cada neurônio na rede do dono (placar por camada, como no NeuroDeck) */
+    const pontosDe = {};
+    this.pontuacoes.forEach((pont) => { for (const x of pont.neuronios) pontosDe[x.neuronio.id] = x.pontos; });
     for (const camada of mao.camadas) {
       for (const n of camada) {
         const v = this.visuais[n.id];
+        const p = pontosDe[n.id];
+        v.pontos.setVisible(p !== undefined && n.dono >= 0).setText(p === undefined ? '' : String(p));
+        if (p !== undefined && n.dono >= 0) v.pontos.setBackgroundColor(COR_JOGADOR_CSS[n.dono]);
         if (n.removido) {
-          v.imagem.setVisible(false); v.pilha.setVisible(false); v.memoria.setVisible(false);
+          v.imagem.setVisible(false); v.pilha.setVisible(false); v.memoria.setVisible(false); v.pontos.setVisible(false);
           this.camadaVazios.lineStyle(1.5, 0xd9b260, 0.28);
           this.camadaVazios.strokeRoundedRect(v.imagem.x - ml, v.imagem.y - ma, l, a, 6);
           continue;
@@ -58,7 +64,8 @@ export const metodosDeDesenho = {
           ajustarCartaDaMesa(v.imagem.setTexture(this.verso('mesa')));
           v.memoria.setVisible(n.conhecido).setText(n.conhecido ? 'lembra: ' + rotuloCarta(n.cartas[0]) : '');
         }
-        v.pilha.setVisible(n.cartas.length > 1).setText('×' + n.cartas.length);
+        /* selo de tunagem: quantas cartas foram empilhadas sobre o neurônio */
+        v.pilha.setVisible(n.cartas.length > 1).setText('\u26a1' + (n.cartas.length - 1));
       }
     }
     this.desenharMaos();
@@ -74,10 +81,10 @@ export const metodosDeDesenho = {
     const debaixo = this.jogadorDeBaixo();
     const aberta = this.quemVe >= 0;
     const cartas = mao.jogadores[debaixo].mao;
-    const espaco = Math.min(104, 640 / Math.max(1, cartas.length));
+    const espaco = Math.min(TAMANHO_CARTA.maoL + 8, 660 / Math.max(1, cartas.length));
     cartas.forEach((carta, i) => {
       const x = 610 + (i - (cartas.length - 1) / 2) * espaco;
-      const y = this.selecao.includes(carta.id) ? 632 : 652;
+      const y = this.selecao.includes(carta.id) ? 628 : 646;
       const imagem = this.add.image(x, y, aberta ? texturaDaCartaNaMao(this, carta, baralho) : this.verso('mao'))
         .setDisplaySize(TAMANHO_CARTA.maoL, TAMANHO_CARTA.maoA).setDepth(10 + i);
       imagem.yBase = y;
@@ -109,7 +116,8 @@ export const metodosDeDesenho = {
     for (const imagem of this.cartasDaMao) {
       if (!this.selecao.includes(imagem.idCarta)) continue;
       this.camadaSelecao.lineStyle(4, this.modo === 'pagarDropout' ? COR_DO_ALVO.dropout : 0xf6dc8f, 1);
-      this.camadaSelecao.strokeRoundedRect(imagem.x - 50, imagem.y - 69, 100, 138, 10);
+      const l = TAMANHO_CARTA.maoL + 4, a = TAMANHO_CARTA.maoA + 4;
+      this.camadaSelecao.strokeRoundedRect(imagem.x - l / 2, imagem.y - a / 2, l, a, 10);
     }
   },
 
@@ -271,10 +279,13 @@ export const metodosDeDesenho = {
   atualizarBotoes() {
     const p = this.painel, mao = this.mao, eu = this.quemVe, partida = this.partida;
     const minhaVez = this.ehVezDoHumano();
-    p.botaoDropout.habilitar(minhaVez && camadasDesfaziveis(mao, eu) > 0 && mao.jogadores[eu].mao.length > 0);
+    /* empilhar: acende quando as cartas selecionadas encaixam em algum alvo daquele tipo */
+    for (const tipo of ['tunagem', 'overfit', 'earlystop', 'stackoverflow']) p.acoes[tipo].habilitar(minhaVez && this.alvosDaAcao(tipo).length > 0);
+    p.botaoDropout.habilitar(minhaVez && this.dropoutPossivel());
     p.botaoDropout.definirRotulo(this.modo === 'dropout' || this.modo === 'pagarDropout' ? 'Cancelar' : 'Dropout');
     p.botaoTransfer.habilitar(minhaVez && !!valorParaTransfer(mao, eu));
     p.botaoPassar.habilitar(minhaVez && podePassar(mao, eu));
+    p.acoes.limpar.habilitar(minhaVez && (this.selecao.length > 0 || this.modo === 'dropout' || this.modo === 'pagarDropout' || !!this.acaoEscolhida));
     p.truco.habilitar(minhaVez && podeTrucar(partida, eu));
     const proximo = proximoValor(partida.valor);
     p.truco.definirRotulo(!temTruco(partida) ? 'SEM TRUCO' : ehMaoDeOnze(partida) ? 'MÃO DE ONZE' : proximo ? GRITO_TRUCO[proximo] : 'VALE TUDO');
@@ -333,14 +344,42 @@ export const metodosDeDesenho = {
     if (this.modo === 'dropout') return 'Dropout: clique no neurônio oculto da sua rede até onde quer desfazer. Cada camada custa 1 carta da mão. Esc cancela.';
     if (this.modo === 'pagarDropout') return 'Escolha ' + this.camadasDropout + ' carta(s) da mão para pagar o dropout (' + this.selecao.length + '/' + this.camadasDropout + '). Esc cancela.';
     if (this.selecao.length) {
-      const valor = this.valorSelecionado();
-      return Object.keys(this.alvos).length
-        ? 'Clique num neurônio destacado para usar ' + this.selecao.length + ' carta(s) ' + valor + '. Verde é tunagem; laranja e vermelho atacam.'
-        : 'Nenhum neurônio aceita ' + valor + ' agora. Ações só valem no último neurônio oculto de uma rede, com a mesma figura.';
+      const valor = this.valorSelecionado(), qtd = this.selecao.length + ' carta(s) ' + valor;
+      if (this.acaoEscolhida) return NOME_DA_ACAO[this.acaoEscolhida] + ' com ' + qtd + ': clique no neurônio destacado do rival que quer atacar. Esc cancela.';
+      const possiveis = ['tunagem', 'overfit', 'earlystop', 'stackoverflow'].filter((t) => this.alvosDaAcao(t).length).map((t) => NOME_DA_ACAO[t]);
+      if (this.dropoutPossivel()) possiveis.push('Dropout de ' + this.selecao.length + ' camada(s)');
+      return possiveis.length
+        ? 'Com ' + qtd + ' você pode: ' + possiveis.join(', ') + '. Use os botões acesos (passe o cursor para ver o efeito) ou clique num neurônio destacado.'
+        : 'Nenhuma ação aceita ' + qtd + ' agora. Tunagem e ataques só valem no último neurônio oculto de uma rede, com o mesmo valor.';
     }
     const jogador = mao.jogadores[eu];
     if (jogador.situacao !== 'construindo') return 'Sua rede está finalizada. Ainda dá para atacar a fronteira do adversário com cartas da mão.' + (podePassar(mao, eu) ? ' Atacar não é obrigatório: você também pode passar a vez.' : '');
     return 'Sua vez: ative um neurônio da camada ' + nomeCamada(jogador.caminho.length, mao.camadas.length) + ' (dourado) ou selecione cartas da mão para uma ação.';
+  },
+
+  /**
+   * Neurônios onde a ação da barra pode ser feita com a seleção atual. "Tunagem" é qualquer pilha
+   * na própria rede (inclusive a de 3 e 4 cartas, que aplica early stop ou stack overflow em si);
+   * os outros três são ataques à rede de um rival.
+   * @param {'tunagem'|'overfit'|'earlystop'|'stackoverflow'} tipo
+   * @returns {string[]} ids dos neurônios
+   */
+  alvosDaAcao(tipo) {
+    if (!this.alvos || !this.selecao.length) return [];
+    return Object.keys(this.alvos).filter((id) => {
+      const a = this.alvos[id];
+      return a.tipo === tipo;
+    });
+  },
+
+  /** Dá para fazer dropout agora? Com cartas selecionadas, desfazendo uma camada por carta. */
+  dropoutPossivel() {
+    const mao = this.mao, eu = this.quemVe;
+    if (!this.ehVezDoHumano() || mao.fase !== 'jogo') return false;
+    const camadas = camadasDesfaziveis(mao, eu), cartas = mao.jogadores[eu].mao.length;
+    if (this.modo === 'dropout' || this.modo === 'pagarDropout') return true; /* o botão vira "Cancelar" */
+    if (this.selecao.length) return this.selecao.length <= camadas;
+    return camadas > 0 && cartas > 0;
   },
 
   /** Valor (A, 2…K) das cartas selecionadas na mão. */
@@ -370,6 +409,11 @@ export const metodosDeDesenho = {
         if (!podeEmpilhar(mao, eu, n.id, this.selecao)) continue;
         const efeito = efeitoDoEmpilhamento(mao, eu, n, this.selecao.length);
         this.alvos[n.id] = { tipo: efeito.tipo, proprio: efeito.proprio };
+      }
+      /* depois de escolher a ação na barra, só os alvos dela continuam destacados */
+      if (this.acaoEscolhida) {
+        const manter = new Set(this.alvosDaAcao(this.acaoEscolhida));
+        for (const id of Object.keys(this.alvos)) if (!manter.has(id)) delete this.alvos[id];
       }
       return;
     }

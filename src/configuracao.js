@@ -47,7 +47,7 @@ export const DENSIDADE = {
 };
 
 /** Tamanho de exibição das cartas no mundo do jogo. */
-export const TAMANHO_CARTA = { mesaL: 62, mesaA: 87, maoL: 96, maoA: 134, inspecaoL: 197, inspecaoA: 276 };
+export const TAMANHO_CARTA = { mesaL: 62, mesaA: 87, maoL: 104, maoA: 145, inspecaoL: 197, inspecaoA: 276 };
 
 /** Diz se a página foi aberta pedindo o renderizador Canvas (`?renderer=canvas`), útil em testes. */
 export const FORCAR_CANVAS = (() => { try { return /[?&]renderer=canvas/.test(location.search); } catch (e) { return false; } })();
