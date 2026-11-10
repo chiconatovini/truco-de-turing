@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.3.1 — 2026-11-10
+
+- Créditos da 1.3.0: Suzy Arcanjo no lugar do Claude ([#37](https://github.com/welyngton/truco-de-turing/pull/37), por [@welyngton](https://github.com/welyngton))
+
 ## 1.3.0 — 2026-11-10
 
 - feat: verbetes completos de Ação no Grimório, com fórmulas (#23) ([#36](https://github.com/welyngton/truco-de-turing/pull/36), por [@welyngton](https://github.com/welyngton) e [@SuzyArcanjo](https://github.com/SuzyArcanjo))
