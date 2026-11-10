@@ -290,11 +290,12 @@ Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo
 | `animar_ativacao(evento)` | método | Neurônio revelado: gira a carta e mostra os pontos ganhos. |
 | `animar_tunagem(evento)` | método | Tunagem: cartas voam para o neurônio e somam pontos. |
 | `animar_ataque(evento, jogada)` | método | Ataques (overfit, early stop, stack overflow): cartas voam, o neurônio treme e some. |
-| `animar_dropout(evento)` | método | Dropout: os neurônios desfeitos giram de volta para o verso. |
+| `animar_dropout(evento)` | método | Dropout: os neurônios desfeitos saem da mesa e vão para o cemitério. |
 | `animar_transfer()` | método | Transfer learning. |
 | `animar_completa(evento)` | método | Rede chegou à camada de saída. |
 | `animar_vento(evento)` | método | Terreno oceano: o vento mudou de naipe. |
 | `animar_powerbi(evento)` | método | Baralho Power BI: as cartas da mão foram trocadas. |
+| `animar_travada(evento)` | método | Rede finalizada porque não sobrou neurônio livre na camada seguinte. |
 | `animar_passe(evento)` | método | Alguém passou a vez. |
 | `animar_inicio(evento)` | método | Quem começa: mostra as cartas reveladas (ou anuncia o sorteio). |
 | `verificarVanishing()` | método | Avisa quando uma rede acaba de formar uma quadra de figuras (vanishing gradient). |
@@ -588,6 +589,46 @@ Tela "Sobre": versão, o jogo, a disciplina, a especificação, o professor, os 
 |---|---|---|
 | `abrirSobre()` | função (exportada) | Abre a tela "Sobre". |
 
+## `src/motor/bot.js`
+
+NeuroDeck - oponentes artificiais Guloso: escolhe a jogada de melhor ganho imediato (sem olhar adiante). Monte Carlo: simula partidas aleatorias para cada jogada e escolhe a de maior taxa de vitoria. A informacao oculta e sorteada a cada simulacao (determinizacao). Com mais de 2 jogadores, a margem e medida contra o melhor rival.
+
+## `src/motor/engine/actions.js`
+
+NeuroDeck - acoes do jogo, cada uma com generate / isValid / execute
+
+## `src/motor/engine/core.js`
+
+NeuroDeck - nucleo do motor
+
+## `src/motor/engine/decks.js`
+
+NeuroDeck - baralhos: cada um define como a rede e pontuada
+
+## `src/motor/engine/index.js`
+
+NeuroDeck - ponto de entrada do motor Registra os modulos nativos e exporta a API. Mods importam './registry.js' (ou usam window.NeuroDeck) e registram seus proprios baralhos, terrenos e acoes.
+
+## `src/motor/engine/registry.js`
+
+NeuroDeck - registro de modulos (API de mods)
+
+## `src/motor/engine/terrains.js`
+
+NeuroDeck - terrenos: ganchos no ciclo do turno que mudam o jogo inteiro
+
+## `src/motor/engine/util.js`
+
+NeuroDeck - constantes e utilidades puras
+
+## `src/motor/engine.js`
+
+NeuroDeck - fachada do motor (compatibilidade com imports antigos) O motor vive em ./engine/: registry (API de mods), core (regras fixas), actions, decks e terrains (modulos registrados).
+
+## `src/motor/sim.js`
+
+NeuroDeck - laboratorio: simulacao de Monte Carlo de partidas bot x bot
+
 ## `src/nucleo/aleatorio.js`
 
 Gerador de números aleatórios com semente. Toda a aleatoriedade das regras passa por aqui. Com a mesma semente, a mesma partida se repete, o que permite reproduzir erros e comparar oponentes em simulação.
@@ -601,12 +642,13 @@ Gerador de números aleatórios com semente. Toda a aleatoriedade das regras pas
 
 ## `src/nucleo/baralhos.js`
 
-Baralhos com efeitos (seção "Extensões" da especificação) e valor em pontos das cartas.
+Baralhos do jogo e valor em pontos das cartas. As regras de cada baralho (cartas, valores e pontuação) são as do motor do NeuroDeck, em `src/motor/engine/decks.js`. Aqui ficam o nome, o resumo do menu e o que a arte precisa.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `BARALHOS` | constante (exportada) | Cada baralho tem: `nome`, `resumo` (texto do menu), `montar()` que gera as 52 cartas e, opcionalmente, um efeito: - `pontosFixos`: pontos especiais por id de carta (manilhas do truco); - `manilhas`: nome especial de cartas; - `fraternidade`: vizinhos do mesmo naipe valem dobro; - `trocaMao`: a mão muda aleatoriamente após cada ação (Power BI). |
-| `pontosDaCarta(carta, baralho)` | função (exportada) | Pontos de uma carta isolada: 2 a 10 pelo número, Ás 11, figuras 0, manilhas pelo baralho. |
+| `montarBaralho(chave)` | função | Cartas de um baralho do motor, no formato da interface. |
+| `BARALHOS` | constante (exportada) | Cada baralho tem: `nome`, `resumo` (texto do menu) e `montar()`, que gera as cartas. Opcionais: - `manilhas`: nome especial de cartas (truco), usado na arte; - `figurasValem`: as figuras valem pontos próprios e não formam par nem trio (truco). |
+| `pontosDaCarta(carta, baralho)` | função (exportada) | Pontos de uma carta isolada no baralho escolhido: no clássico, 2 a 10 pelo número, Ás 11 e figuras 0; no truco, o valor da carta na ordem do truco. |
 | `nomeDaCarta(carta, baralho)` | função (exportada) | Nome por extenso da carta, ou o nome da manilha ("Zap"). |
 | `manilhaDaCarta(carta, baralho)` | função (exportada) | Nome da manilha, se a carta for uma no baralho escolhido. |
 
@@ -629,96 +671,85 @@ Cartas do baralho: valores, naipes e nomes. Uma carta é um objeto simples `{ id
 
 ## `src/nucleo/oponentes/comum.js`
 
-Ferramentas compartilhadas pelos oponentes: o que eles não veem, determinização, avaliação de posições e simulação rápida até o fim da mão.
+Ferramentas compartilhadas pelos oponentes, sobre o motor do NeuroDeck: gerador aleatório, determinização (sortear o que o jogador não vê) e estimativa da chance de vitória.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `VALOR_DE_CARTA_NA_MAO` | constante | Valor estimado, em pontos, de cada carta guardada na mão. |
-| `cartasOcultas(mao, j)` | função (exportada) | Cartas que o jogador `j` não consegue ver: neurônios virados, mão do adversário e limbo. |
-| `determinizar(mao, j)` | função (exportada) | Determinização: copia a mão e sorteia uma distribuição plausível para tudo o que `j` não vê. É assim que os oponentes "imaginam" as cartas escondidas antes de simular. |
-| `pontosEsperadosPorCamada(mao, j)` | função (exportada) | Pontos esperados por camada ainda não revelada, do ponto de vista de `j`. |
-| `projecao(mao, i, esperado)` | função | Projeção da soma final do jogador `i`: soma atual + camadas que faltam + cartas na mão. |
-| `avaliar(mao, j, esperado)` | função (exportada) | Nota de uma posição para `j`: vantagem projetada sobre o melhor adversário (ou ±1000 no fim). |
-| `agruparEquivalentes(mao, jogadas)` | função (exportada) | Agrupa ativações de neurônios desconhecidos da mesma camada: para quem joga, são equivalentes. Cada grupo vira uma jogada com a lista `alternativas`. |
-| `concretizar(jogada)` | função (exportada) | Escolhe um neurônio ao acaso entre as alternativas e devolve uma jogada aplicável. |
-| `jogadaRapida(mao, j)` | função | Política rápida usada nas simulações: ataques fortes, tunagens boas e ativações razoáveis. |
-| `simularAteOFim(mao)` | função (exportada) | Joga a mão até o fim com a política rápida (um "rollout"). |
-| `chanceDeVitoria(mao, j, n)` | função (exportada) | Estima a chance de `j` vencer a mão simulando `n` finais possíveis. |
+| `novoGerador()` | função (exportada) | Gerador aleatório novo para uma decisão de oponente (função que devolve números em [0, 1)). |
+| `determinizar(mao, j)` | função (exportada) | Determinização: copia a mão e sorteia uma distribuição plausível para tudo o que `j` não vê (neurônios virados, mão do adversário e limbo). É assim que os oponentes "imaginam" as cartas escondidas antes de simular. |
+| `chanceDeVitoria(mao, j, n)` | função (exportada) | Estima a chance de `j` vencer a mão: sorteia `n` vezes o que ele não vê e joga cada mão até o fim com a política aleatória do motor. |
 
 ## `src/nucleo/oponentes/estrategias.js`
 
-As três estratégias de jogo, uma por nível de dificuldade. - aleatória (Zé do Ruído): sorteia qualquer jogada válida; - gulosa (Gradiente Guloso): avalia cada jogada um turno à frente pelo valor esperado; - Monte Carlo (Mestre Monte Carlo): simula partidas inteiras para cada jogada e escolhe a que mais venceu.
+As três estratégias de jogo, uma por nível de dificuldade. São os bots do NeuroDeck (`src/motor/bot.js`); aqui a jogada escolhida é só traduzida para o formato da interface. - aleatória (Zé do Ruído): sorteia uma jogada válida, com leve preferência por ataques; - gulosa (Gradiente Guloso): escolhe a jogada de melhor ganho imediato, sem olhar adiante; - Monte Carlo (Mestre Monte Carlo): simula partidas inteiras para cada jogada e escolhe a que mais venceu.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `jogadaAleatoria(mao, j)` | função (exportada) | Estratégia aleatória: prefere ativar neurônios (70%) para a mão andar. |
-| `jogadaGulosa(mao, j)` | função (exportada) | Estratégia gulosa: aplica cada jogada numa cópia e escolhe a de melhor avaliação. Ativações de neurônios desconhecidos são testadas com 8 sorteios do que pode estar embaixo. |
-| `jogadaMonteCarlo(mao, j, orcamentoMs = 380)` | função (exportada) | Estratégia de Monte Carlo: para cada jogada, sorteia o que está escondido, joga até o fim e conta vitórias. Repete até gastar o tempo `orcamentoMs`. A jogada escolhida leva `simulacao` com a taxa de vitória e o total de partidas simuladas, que a interface mostra. |
+| `jogadaAleatoria(mao, j)` | função (exportada) | Estratégia aleatória. |
+| `jogadaGulosa(mao, j)` | função (exportada) | Estratégia gulosa: avalia cada jogada um passo à frente (ativações pelo valor esperado). |
+| `jogadaMonteCarlo(mao, j, simulacoesPorJogada)` | função (exportada) | Estratégia de Monte Carlo: para cada jogada, sorteia o que está escondido, joga até o fim e conta vitórias. A jogada escolhida leva `simulacao` com a taxa de vitória e o total de partidas simuladas, que a interface mostra. |
 
 ## `src/nucleo/oponentes/index.js`
 
-Ponto de entrada dos oponentes: perfis (nome, nível, estilo), escolha de jogada e decisões de truco.
+Ponto de entrada dos oponentes: perfis (nome, nível, estilo), escolha de jogada e decisões de truco. As jogadas vêm dos bots do NeuroDeck (ver estrategias.js); as decisões de truco são do Truco de Turing e usam a chance de vitória estimada por simulação.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `OPONENTES` | constante (exportada) | Perfis exibidos no menu e na mesa. `avatar` é a chave da arte em arte/avatares.js. |
 | `cartaDeInicio(mao, j)` | função | Carta que o oponente revela para decidir quem começa. |
-| `escolherJogada(mao, j, orcamentoMs)` | função (exportada) | Escolhe a jogada do oponente `j` conforme o seu perfil. |
+| `escolherJogada(mao, j, simulacoes)` | função (exportada) | Escolhe a jogada do oponente `j` conforme o seu perfil. |
 | `SIMULACOES_TRUCO` | constante | Simulações usadas para estimar a chance de vitória em cada perfil. |
 | `querTrucar(mao, j, perfil)` | função (exportada) | Decide se o oponente pede truco antes da sua jogada. |
 | `responderAoTruco(mao, j, perfil, valorPedido, podeAumentar)` | função (exportada) | Resposta do oponente a um pedido de truco. |
 
 ## `src/nucleo/partida.js`
 
-Motor de uma mão: estado, jogadas legais, aplicação de jogadas e desempates. Não depende de interface. A cena da mesa e os oponentes usam as mesmas funções, e a ferramenta de simulação roda milhares de mãos no Node com elas. ## Estado da mão ``` { config: { baralho, terreno, inicio }, // opções escolhidas no menu semente, contador, // aleatoriedade reproduzível camadas: Neuronio[][], // a mesa, camada a camada neuronios: { [id]: Neuronio }, // índice dos neurônios por id jogadores: Jogador[], limbo: Carta[], cemiterio: Carta[], vez, primeiro, rodada, turno, passesSeguidos, vento, fase: 'inicio' | 'jogo' | 'fim', eventos: Evento[], // fila consumida pela interface para animar registro: string[], // texto do histórico de jogadas historico: number[][], // soma de cada rede a cada turno (curva de treino) resultado: { somas, vencedor, motivo, travados } | null, simulacao: boolean, // em simulações, não gera eventos nem textos } ``` Neurônio: `{ id, camada, posicao, cartas, revelado, dono, removido, conhecido, rodadaRevelada }`. Jogador: `{ indice, nome, tipo: 'humano'|'oponente', oponente, mao, caminho, situacao, dropouts, acoesUsadas, transferUsado, congelada, cartaInicial, estatisticas }`. ## Jogadas `{ tipo: 'inicio', jogador, carta }`, `{ tipo: 'ativar', jogador, neuronio }`, `{ tipo: 'empilhar', jogador, neuronio, cartas }`, `{ tipo: 'dropout', jogador, n, pagamento }`, `{ tipo: 'transfer', jogador, cartas }`, `{ tipo: 'passar', jogador }`.
+Uma mão do jogo, vista pela interface do Truco de Turing e jogada pelo motor do NeuroDeck. Este arquivo é a **camada de tradução** da fusão: as telas e os testes continuam chamando as mesmas funções de antes (`novaMao`, `jogadasLegais`, `aplicarJogada`…), mas as regras agora são as do motor em `src/motor/` (ver `src/motor/ORIGEM.md`). Nenhuma regra é decidida aqui. ## Como funciona A mão guarda o estado do motor em `mao.nd` e uma **visão** dele no formato que a interface conhece (os campos abaixo). Cada jogada é traduzida (`traducao.js`), aplicada pelo motor e, em seguida, a visão é refeita por `atualizarVisao`. Os eventos de animação e as linhas do registro são gerados aqui, comparando o antes e o depois. ## Visão da mão ``` { config: { baralho, terreno, inicio }, // opções escolhidas no menu semente, // aleatoriedade reproduzível nd, // estado do motor do NeuroDeck (fonte da verdade) indiceDeCartas, // cartas da interface por id do motor, e vice-versa camadas: Neuronio[][], // a mesa, camada a camada neuronios: { [id]: Neuronio }, // índice dos neurônios por id jogadores: Jogador[], limbo: Carta[], cemiterio: Carta[], vez, primeiro, rodada, turno, vento, fase: 'inicio' | 'jogo' | 'fim', eventos: Evento[], // fila consumida pela interface para animar registro: string[], // texto do histórico de jogadas historico: number[][], // soma de cada rede a cada jogada (curva de treino) resultado: { somas, vencedor, motivo, travados } | null, simulacao: boolean, // em simulações, não gera eventos nem textos } ``` Neurônio: `{ id, camada, posicao, cartas, revelado, dono, removido, conhecido, rodadaRevelada }`. Jogador: `{ indice, nome, tipo: 'humano'|'oponente', oponente, mao, caminho, situacao, dropouts, acoesUsadas, transferUsado, cartaInicial, estatisticas }`. `situacao` é 'construindo', 'concluida', 'earlystop', 'overflow' ou 'travada' (ficou sem neurônio livre na camada seguinte). ## Jogadas `{ tipo: 'inicio', jogador, carta }`, `{ tipo: 'ativar', jogador, neuronio }`, `{ tipo: 'empilhar', jogador, neuronio, cartas }`, `{ tipo: 'dropout', jogador, n, pagamento }`, `{ tipo: 'transfer', jogador, cartas }`, `{ tipo: 'passar', jogador }`. ## O que mudou nas regras com o motor do NeuroDeck - dropout: o neurônio desfeito vai para o cemitério e sai da mesa (antes voltava virado); - quem fica sem neurônio livre na camada seguinte tem a rede finalizada ('travada'); - transfer learning não gasta a vez; - só passa a vez quem teve a rede interrompida por early stop (com cartas na mão) ou quem não tem nenhuma outra jogada; quem não pode jogar é pulado automaticamente; - pontuação, terrenos e desempates: ver `pontuacao.js` e `src/motor/engine/`.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `FORMAS_DE_INICIO` | constante (exportada) | Formas de decidir quem começa (seção "Inicialização" da especificação). |
+| `FORMAS_DE_INICIO` | constante (exportada) | Formas de decidir quem começa (seção "Inicialização" da especificação). A primeira é o padrão. |
 | `NOME_EFEITO` | constante (exportada) | Nome de cada efeito de empilhamento, para a interface. |
 | `novoJogador(dados, indice)` | função | Cria o objeto de um jogador no começo da mão. |
-| `novaMao(opcoes)` | função (exportada) | Cria uma mão nova: embaralha, monta a mesa, distribui as cartas e queima o resto no limbo. |
-| `reindexar(mao)` | função | Recria o índice de neurônios por id (necessário após copiar a mesa). |
-| `copiarMao(mao)` | função (exportada) | Cópia leve da mão para simulações dos oponentes (sem eventos, textos ou histórico). |
+| `todasAsCartas(nd)` | função | Todas as cartas da partida no estado do motor, onde quer que estejam. |
+| `indexarCartas(nd)` | função | Converte as cartas do motor para o formato da interface, uma vez por partida. motor, e id do motor por id da interface. |
+| `montar(nd, config, jogadores, simulacao, cartas)` | função | Monta a visão da interface em volta de um estado do motor. |
+| `novaMao(opcoes)` | função (exportada) | Cria uma mão nova: o motor embaralha, monta a mesa, distribui as cartas e separa o limbo. |
+| `copiarMao(mao, nd = ND.cloneState(mao.nd)` | função (exportada) | Cópia leve da mão para simulações (sem eventos, textos ou histórico). |
+| `atualizarVisao(mao)` | função (exportada) | Refaz a visão da interface a partir do estado do motor (`mao.nd`). É chamada depois de cada jogada; ferramentas e testes que mexem direto em `mao.nd` também precisam chamá-la. |
 | `emitir(mao, evento)` | função | Coloca um evento na fila da interface (ignorado em simulação). |
 | `anotar(mao, texto)` | função | Acrescenta uma linha ao registro de jogadas (ignorado em simulação). |
+| `somas(mao)` | função | Soma atual da rede de cada jogador, pelo motor. |
 | `anotarHistorico(mao)` | função | Guarda a soma atual de cada rede para a curva de treino. |
 | `fronteira(mao, j)` | função (exportada) | Último neurônio do caminho do jogador (a "fronteira"), ou null. |
 | `alvosDeAtivacao(mao, j)` | função (exportada) | Neurônios livres que o jogador pode ativar na próxima camada da sua rede. |
 | `alvosDeEmpilhamento(mao)` | função (exportada) | Neurônios que aceitam cartas empilhadas: a fronteira oculta das redes ainda em construção. |
 | `efeitoDoEmpilhamento(mao, j, neuronio, n)` | função (exportada) | Efeito de empilhar `n` cartas no neurônio, pelo tamanho final da pilha: 2 = tunagem (própria) ou overfit (adversário); 3 = early stop; 4 = stack overflow. |
-| `podeEmpilhar(mao, j, idNeuronio, idsCartas)` | função (exportada) | Diz se o jogador pode empilhar essas cartas da mão nesse neurônio. |
+| `podeEmpilhar(mao, j, idNeuronio, idsCartas)` | função (exportada) | Diz se o jogador pode empilhar essas cartas da mão nesse neurônio (quem decide é o motor). |
 | `camadasDesfaziveis(mao, j)` | função (exportada) | Quantas camadas ocultas o jogador pode desfazer com dropout. |
 | `valorParaTransfer(mao, j)` | função (exportada) | Valor que o jogador tem quatro vezes na mão (para transfer learning), ou null. |
-| `podePassar(mao, j)` | função (exportada) | Só passa a vez quem não tem neurônio para ativar. |
-| `combinacoes(lista, k)` | função | Todas as combinações de `k` itens da lista. |
-| `jogadasLegais(mao, j, opcoes = {})` | função (exportada) | Lista as jogadas legais do jogador. |
-| `tirarDaMao(jogador, ids)` | função | Tira as cartas da mão do jogador e as devolve. |
-| `finalizarRede(mao, j, situacao)` | função | Finaliza a rede do jogador, congelando rodada e vento (relevantes para os terrenos). |
-| `trocarMaoPowerBI(mao, jogador)` | função | Baralho Power BI: troca as cartas que sobraram na mão por cartas aleatórias. |
-| `encerrarTurno(mao)` | função | Passa a vez; ao completar uma volta, avança a rodada (e o vento, no oceano). Encerra a mão se for o caso. |
-| `resolverInicio(mao)` | função | Compara as cartas reveladas para decidir quem começa. |
-| `ativar(mao, jogada)` | função | Jogada 'ativar': revela o neurônio e o liga à rede do jogador. |
-| `empilhar(mao, jogada)` | função | Jogada 'empilhar': tunagem, overfit, early stop ou stack overflow, conforme a pilha final. |
-| `fazerDropout(mao, jogada)` | função | Jogada 'dropout' (GatoNet): desvira os últimos neurônios pagando uma carta por camada. Não gasta o turno. |
-| `fazerTransfer(mao, jogada)` | função | Jogada 'transfer': troca quatro cartas iguais por quatro do limbo (uma vez por mão). |
-| `aplicarJogada(mao, jogada)` | função (exportada) | Aplica uma jogada ao estado (modifica `mao`). Lança erro se a jogada for inválida. |
-| `somaDasMelhores(mao, jogador, n)` | função | Soma das `n` cartas de maior valor na mão do jogador. |
-| `cartaMaisAlta(mao, jogador)` | função | Chave numérica da carta mais alta da mão (pontos, depois força, depois naipe). |
-| `filtrarMaiores(candidatos, criterio)` | função | Mantém só os candidatos com o maior valor de `criterio`. |
-| `encerrarMao(mao)` | função | Decide o vencedor com os critérios de desempate da especificação, na ordem. |
+| `podePassar(mao, j)` | função (exportada) | Passar a vez: só quem teve a rede interrompida por early stop e ainda tem cartas (atacar não é obrigatório), ou quem não tem nenhuma outra jogada que gaste a vez. |
+| `jogadasLegais(mao, j, opcoes = {})` | função (exportada) | Lista as jogadas legais do jogador, geradas pelo motor. |
+| `idsNoMotor(mao, j, ids)` | função | Ids do motor das cartas da mão do jogador, a partir dos ids da interface. |
+| `jogadaParaND(mao, jogada)` | função (exportada) | Traduz uma jogada da interface para um movimento do motor. Lança erro se a jogada estiver malformada; a validade pelas regras é conferida pelo motor. |
+| `jogadaParaTT(mao, j, movimento)` | função (exportada) | Traduz um movimento do motor (de `legalMoves` ou dos bots) para uma jogada da interface. |
+| `RECUSA` | constante | Mensagem de erro de cada tipo de jogada recusada pelo motor. |
+| `anunciarInicio(mao)` | função | Depois que todos revelaram a carta: quem começa. |
+| `narrarAtivacao(mao, jogada)` | função | Efeitos de uma ativação: evento, registro e, na camada de saída, a rede completa. |
+| `narrarEmpilhamento(mao, jogada, antes)` | função | Efeitos de um empilhamento: tunagem, overfit, early stop ou stack overflow. |
+| `encerrar(mao)` | função | Fim da mão: resultado no formato da interface. |
+| `finalizarMao(mao)` | função (exportada) | Encerra a mão agora, com as redes como estão: o motor apura o vencedor pelos desempates. Serve para o limite de jogadas das simulações e para testes que montam a situação final. |
+| `aplicarJogada(mao, jogada)` | função (exportada) | Aplica uma jogada: traduz, entrega ao motor e refaz a visão. Lança erro se a jogada for inválida (o estado não muda nesse caso). |
 
 ## `src/nucleo/pontuacao.js`
 
-Soma da rede de um jogador (o "forward pass" do jogo). Regras da especificação: - 2 a 10 valem o número, Ás 11, figuras 0; - figuras iguais em camadas vizinhas: par +10, trio +20; quadra zera a rede (vanishing gradient); - tunagem soma a carta empilhada; em figura, +10 por carta empilhada. Leitura adotada para o exemplo do enunciado ("8-K-K-3" com tunagem num K = 41): as cartas de figura empilhadas contam para o combo. K(2 cartas) + K(1) = três Reis vizinhos = trio (20) + tunagem (10), logo 8 + 20 + 10 + 3 = 41.
+Soma da rede de um jogador (o "forward pass" do jogo), calculada pelo motor do NeuroDeck. Regras da fusão (ver `src/motor/engine/decks.js`): - 2 a 10 valem o número, Ás 11, figuras 0; - figuras iguais em camadas vizinhas formam uma sequência, e a figura empilhada por tunagem conta nela. Cada figura da sequência vale 10: par 20, trio 30; quadra zera a rede (vanishing gradient); - tunagem de carta numérica soma o valor da carta empilhada. Exemplo do enunciado: "8-K-K-3" com tunagem num K tem três Reis (trio), logo 8 + 30 + 3 = 41. Este arquivo só reorganiza o resultado do motor no formato que as telas usam: os pontos de cada neurônio, e as sequências de figuras ("combos") à parte, de modo que a soma dos neurônios mais a soma dos combos dá o total.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
-| `pontuarNeuronios(mao, j)` | função | Pontos de cada neurônio do caminho, com efeitos de tunagem e terreno. |
-| `aplicarFraternidade(neuronios)` | função | Baralho da fraternidade: dobra neurônios com vizinho do mesmo naipe. |
-| `encontrarCombos(neuronios)` | função | Encontra sequências de figuras iguais em camadas vizinhas e calcula o bônus de cada uma. |
+| `arredondar` | constante |  |
 | `pontuarRede(mao, j)` | função (exportada) | Calcula a soma da rede do jogador `j`. |
-| `mediaDePontos(mao, cartas)` | função (exportada) | Média de pontos de um conjunto de cartas (usada pelos oponentes para estimar camadas futuras). |
+| `mediaDePontos(mao, cartas)` | função (exportada) | Média de pontos de um conjunto de cartas. |
 
 ## `src/nucleo/rede.js`
 
@@ -735,7 +766,29 @@ Arquitetura da rede neural montada na mesa. Camada 0 é a entrada (3 neurônios)
 
 ## `src/nucleo/terrenos.js`
 
-Terrenos (seção "Extensões" da especificação). O efeito de cada um é aplicado em `pontuacao.js`; aqui ficam só nome e descrição.
+Terrenos (seção "Extensões" da especificação). O efeito de cada um é aplicado pelo motor do NeuroDeck (`src/motor/engine/terrains.js`); aqui ficam só nome e descrição.
+
+## `src/nucleo/traducao.js`
+
+Tradução entre o vocabulário do Truco de Turing (interface) e o do motor do NeuroDeck (regras, em `src/motor/`). As telas continuam falando de `mao`, `jogadores`, `neuronios`, cartas `{ valor: 'K', naipe: 'E' }` e jogadas `{ tipo: 'empilhar', ... }`. O motor fala de `state`, `nets`, `slots`, cartas `{ rank: 13, suit: 'S' }` e movimentos `{ type: 'tune', ... }`. Este arquivo tem só as conversões, sem estado: quem guarda a partida é `partida.js`. | Truco de Turing | Motor do NeuroDeck | |------------------------------|------------------------------------------------------| | `inicio` (carta) | `reveal` (cardId) | | `ativar` (neuronio) | `advance` (slotIndex na próxima camada) | | `empilhar` no próprio | `tune` (cardIds) | | `empilhar` no adversário | `overfit`, `earlystop` ou `stackoverflow`, pelo tamanho final da pilha (2, 3 ou 4) | | `dropout` (n, pagamento) | `dropout` (layers, cardIds) | | `transfer` (cartas) | `transfer` (rank) | | `passar` | `pass` |
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `BARALHO_ND` | constante (exportada) | Baralhos: chave do Truco de Turing → id no motor. |
+| `TERRENO_ND` | constante (exportada) | Terrenos: chave do Truco de Turing → id no motor. |
+| `INICIO_ND` | constante (exportada) | Formas de decidir quem começa: chave do Truco de Turing → `firstRule` do motor. |
+| `OPONENTE_ND` | constante (exportada) | Oponentes: perfil do Truco de Turing → bot do motor. |
+| `naipeParaTT(suit)` | função (exportada) | Naipe do motor ('S', 'H', 'C', 'D') → naipe da interface ('E', 'C', 'P', 'O'). |
+| `rankDoValor(valor)` | função (exportada) | Valor da interface ('A', '2'…'10', 'J', 'Q', 'K') → rank do motor (1 a 13). |
+| `valorDoRank(rank)` | função (exportada) | Rank do motor (1 a 13) → valor da interface. |
+| `cartaParaND(carta)` | função (exportada) | Carta da interface → carta do motor, sem id (serve para consultar valor e força no baralho). |
+| `cartaParaTT(card, repetida)` | função (exportada) | Carta do motor → carta da interface. O id é `valor + naipe` ('KC') quando a carta é única na partida, e ganha o sufixo `#id` do motor quando há cartas repetidas (2 baralhos, Yin-yang). |
+| `idDoNeuronio(camada, posicao)` | função (exportada) | Id do neurônio na interface: camada e posição ('C2N3'). |
+| `lugarDoNeuronio(id)` | função (exportada) | Camada e posição a partir do id do neurônio, ou null se o id não for válido. |
+| `SITUACAO` | constante | Motivo de fim de rede no motor → situação da rede na interface. |
+| `situacaoDaRede(net)` | função (exportada) | Situação da rede de um jogador: 'construindo', 'concluida', 'earlystop', 'overflow' ou 'travada'. |
+| `motivoDaVitoria(tiebreak, n)` | função (exportada) | Critério de desempate do motor → texto do resultado. `n` é o tamanho da menor mão. |
+| `ATAQUE_PELO_TAMANHO` | constante (exportada) | Efeito de uma pilha pelo tamanho final: o tipo de ataque no motor. |
 
 ## `src/nucleo/truco.js`
 

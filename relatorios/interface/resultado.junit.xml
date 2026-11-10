@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites>
-	<testsuite name="ações da mesa" time="235.675056" disabled="0" errors="0" tests="7" failures="0" skipped="0" hostname="vm">
-		<testcase name="inspeção, seleção, Esc, tunagem, overfit, stack overflow e early stop na própria rede" time="50.255611" classname="test"/>
-		<testcase name="dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient" time="46.427182" classname="test"/>
-		<testcase name="truco: pedir, responder (aumentar, aceitar, correr) e a mão terminada por corrida" time="44.474134" classname="test"/>
-		<testcase name="dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar" time="27.354291" classname="test"/>
-		<testcase name="celular: segurar um botão mostra a dica sem executar a ação; toque rápido executa" time="17.653777" classname="test"/>
-		<testcase name="celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela" time="13.369165" classname="test"/>
-		<testcase name="som, música, comemorações, derrota e voltar ao menu" time="36.135901" classname="test"/>
+	<testsuite name="ações da mesa" time="214.327383" disabled="0" errors="0" tests="7" failures="0" skipped="0" hostname="vm">
+		<testcase name="inspeção, seleção, Esc, tunagem, overfit, stack overflow e early stop na própria rede" time="48.602468" classname="test"/>
+		<testcase name="dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient" time="28.114555" classname="test"/>
+		<testcase name="truco: pedir, responder (aumentar, aceitar, correr) e a mão terminada por corrida" time="43.561115" classname="test"/>
+		<testcase name="dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar" time="25.358615" classname="test"/>
+		<testcase name="celular: segurar um botão mostra a dica sem executar a ação; toque rápido executa" time="18.711336" classname="test"/>
+		<testcase name="celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela" time="15.176023" classname="test"/>
+		<testcase name="som, música, comemorações, derrota e voltar ao menu" time="34.797143" classname="test"/>
 	</testsuite>
-	<testsuite name="menu e telas" time="49.335992" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
-		<testcase name="carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas e Sobre" time="20.140354" classname="test"/>
-		<testcase name="celular na vertical: só o aviso para girar; ao girar, o jogo é criado e o menu aparece" time="27.365542" classname="test"/>
-		<testcase name="renderizador Canvas e resolução forçados pela URL" time="1.824932" classname="test"/>
+	<testsuite name="menu e telas" time="48.993775" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
+		<testcase name="carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas e Sobre" time="19.096197" classname="test"/>
+		<testcase name="celular na vertical: só o aviso para girar; ao girar, o jogo é criado e o menu aparece" time="26.654061" classname="test"/>
+		<testcase name="renderizador Canvas e resolução forçados pela URL" time="3.237169" classname="test"/>
 	</testsuite>
-	<testsuite name="mãos completas contra o computador" time="289.735376" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
-		<testcase name="Zé do Ruído · clássico · neutro · revela e volta" time="168.068121" classname="test"/>
-		<testcase name="Gradiente Guloso · truco · montanha · revela e descarta" time="62.429684" classname="test"/>
-		<testcase name="Mestre Monte Carlo · fraternidade · pântano · sorteio" time="59.232263" classname="test"/>
+	<testsuite name="mãos completas contra o computador" time="241.717337" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
+		<testcase name="Zé do Ruído · clássico · neutro · revela e volta" time="119.199141" classname="test"/>
+		<testcase name="Gradiente Guloso · truco · montanha · revela e descarta" time="68.883709" classname="test"/>
+		<testcase name="Mestre Monte Carlo · fraternidade · pântano · sorteio" time="53.628332" classname="test"/>
 	</testsuite>
-	<testsuite name="duas pessoas e mão única" time="61.394274" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="vm">
-		<testcase name="duas pessoas no mesmo aparelho (yin-yang, oceano): o aparelho troca de mãos entre as vezes" time="35.357786" classname="test"/>
-		<testcase name="mão única sem truco (Power BI): &amp;quot;Nova partida&amp;quot; recomeça o placar" time="26.036126" classname="test"/>
+	<testsuite name="duas pessoas e mão única" time="56.835281" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="vm">
+		<testcase name="duas pessoas no mesmo aparelho (yin-yang, oceano): o aparelho troca de mãos entre as vezes" time="29.628519" classname="test"/>
+		<testcase name="mão única sem truco (Power BI): &amp;quot;Nova partida&amp;quot; recomeça o placar" time="27.206372" classname="test"/>
 	</testsuite>
 	<!-- tests 15 -->
 	<!-- suites 4 -->
@@ -30,5 +30,5 @@
 	<!-- cancelled 0 -->
 	<!-- skipped 0 -->
 	<!-- todo 0 -->
-	<!-- duration_ms 401971.374711 -->
+	<!-- duration_ms 349378.669218 -->
 </testsuites>

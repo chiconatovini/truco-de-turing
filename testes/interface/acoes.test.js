@@ -6,7 +6,7 @@
  */
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { subirServidor, abrirJogo, comecarPartida, carregarMontagem, naCena, esperarCena, esperarMenu, capturar } from '../apoio/navegador.js';
+import { subirServidor, abrirJogo, comecarPartida, carregarMontagem, jogarAteOResultado, naCena, esperarCena, esperarMenu, capturar } from '../apoio/navegador.js';
 
 let servidor;
 before(async () => { servidor = await subirServidor(); });
@@ -24,6 +24,24 @@ async function esperarMinhaVez(pagina) {
     await pagina.waitForTimeout(80);
   }
   throw new Error('a vez do humano não chegou');
+}
+
+/**
+ * Espera a mesa ficar sem pedido de truco pendente, com a mão em jogo: fecha o resultado (se o
+ * oponente correu) e aceita o pedido do oponente (se ele pediu mais).
+ */
+async function semPedidoNaMesa(pagina) {
+  for (let i = 0; i < 400; i++) {
+    const estado = await naCena(pagina, `
+      if (document.querySelector('#r-proxima')) return 'resultado';
+      if (document.querySelector('.grito-truco .botao.vinho')) return 'grito';
+      return cena.mao && !cena.encerrada && cena.mao.fase === 'jogo' && !cena.partida.pedido && !document.querySelector('.camada') ? 'pronto' : 'espera';`);
+    if (estado === 'pronto') return;
+    if (estado === 'resultado') await pagina.click('#r-proxima');
+    if (estado === 'grito') await pagina.locator('.grito-truco .botao.vinho').click();
+    await pagina.waitForTimeout(150);
+  }
+  throw new Error('o pedido de truco não se resolveu');
 }
 
 /** Ativa um neurônio qualquer na vez do humano. */
@@ -57,25 +75,19 @@ describe('ações da mesa', () => {
       await naCena(pagina, 'cena.aoClicarNoNeuronio("C6N0");'); /* alvo inválido: "não encaixa" */
       await pagina.keyboard.press('Escape');
       assert.equal(await naCena(pagina, 'return cena.selecao.length'), 0);
-      /* constrói até as duas redes terem um neurônio oculto na ponta */
-      for (let i = 0; i < 6; i++) {
-        await esperarMinhaVez(pagina);
-        const pronto = await naCena(pagina, `
-          const f = (j) => { const c = cena.mao.jogadores[j].caminho; return c.length ? cena.mao.neuronios[c[c.length - 1]] : null; };
-          const a = f(0), b = f(1);
-          return !!(a && b && a.camada >= 1 && a.camada <= 4 && b.camada >= 1 && b.camada <= 4 && a.cartas.length === 1 && b.cartas.length === 1);`);
-        if (pronto) break;
-        await ativarQualquer(pagina);
-      }
-      /* tunagem na própria rede: dá à mão uma carta igual à da ponta e empilha */
+      /*
+       * Cada ação parte de uma situação montada no motor: as duas redes com um neurônio oculto na
+       * ponta, o oponente sem cartas (só pode avançar) e, na mão do humano, quatro cartas iguais à
+       * do alvo. Assim o teste não depende do que o oponente sorteia.
+       */
       const executar = async (alvo, quantas, efeito) => {
         await esperarMinhaVez(pagina);
         const ok = await naCena(pagina, `
           const [alvo, quantas] = arg;
+          for (const j of [0, 1]) { M.reabrirRede(cena.mao, j); M.montarRede(cena.mao, j, [[j ? '2C' : '2E'], [j ? '9P' : '8E']]); }
+          M.darMao(cena.mao, 1, []);
           const c = cena.mao.jogadores[alvo].caminho, n = cena.mao.neuronios[c[c.length - 1]];
-          if (!n || n.camada < 1 || n.camada > 5 || cena.mao.jogadores[alvo].situacao !== 'construindo') return false;
-          const valor = n.cartas[0].valor;
-          M.darMao(cena.mao, 0, Array.from({ length: 4 }, (_, i) => [valor, 'ECPO'[i]]));
+          M.darMao(cena.mao, 0, Array.from({ length: 4 }, (_, i) => [n.cartas[0].valor, 'ECPO'[i]]));
           cena.redesenhar();
           for (let i = 0; i < quantas; i++) cena.aoClicarNaCarta(cena.mao.jogadores[0].mao[i].id);
           if (!cena.alvos[n.id]) return 'sem alvo';
@@ -88,24 +100,12 @@ describe('ações da mesa', () => {
       await executar(0, 1, 'tunagem');
       await capturar(pagina, '13-tunagem');
       await executar(1, 1, 'overfit');
-      await esperarMinhaVez(pagina);
-      await ativarQualquer(pagina); /* a rede adversária recuou: deixa ele reconstruir */
-      for (let i = 0; i < 4; i++) {
-        await esperarMinhaVez(pagina);
-        const pilha = await naCena(pagina, 'const c = cena.mao.jogadores[1].caminho; const n = cena.mao.neuronios[c[c.length - 1]]; return n && n.camada >= 1 && n.camada <= 5 ? n.cartas.length : 0;');
-        if (pilha === 1) break;
-        await ativarQualquer(pagina);
-      }
       await executar(1, 3, 'stackoverflow');
       await capturar(pagina, '14-stack-overflow');
-      for (let i = 0; i < 3; i++) {
-        await esperarMinhaVez(pagina);
-        const pilha = await naCena(pagina, 'const c = cena.mao.jogadores[0].caminho; const n = cena.mao.neuronios[c[c.length - 1]]; return n && n.camada >= 1 && n.camada <= 5 ? n.cartas.length : 0;');
-        if (pilha === 1) break;
-        await ativarQualquer(pagina);
-      }
+      /* depois do stack overflow o oponente não joga mais: a vez continua com o humano */
       await executar(0, 2, 'earlystop');
-      await pagina.waitForSelector('#r-proxima', { timeout: 60000 });
+      /* a rede do humano foi interrompida por ele mesmo: joga (ou passa) até o resultado */
+      await jogarAteOResultado(pagina);
       assert.match(await pagina.locator('.folha').first().textContent(), /Critério/);
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
@@ -164,10 +164,9 @@ describe('ações da mesa', () => {
       /* o humano pede truco; o oponente responde sozinho */
       await apertar(pagina, 'truco');
       await esperarCena(pagina, 'return !cena.partida.pedido || !!document.querySelector(".grito-truco")');
+      /* desfecho do pedido: o oponente aceitou (a mão segue), correu (resultado e próxima mão) ou pediu mais (o humano aceita) */
+      await semPedidoNaMesa(pagina);
       /* o oponente pede truco: o humano pede mais, depois aceita */
-      await esperarCena(pagina, 'return !!document.querySelector("#r-proxima") || cena.ehVezDoHumano() || !!document.querySelector(".grito-truco")', 60000);
-      if (await pagina.$('#r-proxima')) await pagina.click('#r-proxima');
-      await esperarCena(pagina, 'return cena.mao && !cena.encerrada && cena.mao.fase === "jogo" && !cena.partida.pedido && !document.querySelector(".camada")', 60000);
       await naCena(pagina, 'cena.partida.aumentadoPor = -1; cena.partida.valor = 1; cena.anunciarTruco(1);');
       await pagina.waitForSelector('.grito-truco');
       await capturar(pagina, '16-truco');
@@ -179,8 +178,9 @@ describe('ações da mesa', () => {
       await pagina.waitForTimeout(800);
       /* novo pedido do oponente: o humano corre e a mão acaba na hora */
       await esperarCena(pagina, 'return !document.querySelector(".grito-truco")');
+      /* se o oponente correu do aumento, a mão já acabou e o resultado vai aparecer */
+      await esperarCena(pagina, 'return !!document.querySelector("#r-proxima") || (!cena.partida.pedido && !cena.encerrada)', 60000);
       if (!(await pagina.$('#r-proxima'))) {
-        await esperarCena(pagina, 'return !cena.partida.pedido && !cena.encerrada', 60000);
         await naCena(pagina, 'cena.partida.aumentadoPor = -1; if (cena.partida.valor >= 12) cena.partida.valor = 1; cena.anunciarTruco(1);');
         await pagina.waitForSelector('.grito-truco');
         await pagina.locator('.grito-truco .botao', { hasText: 'Correr' }).click();

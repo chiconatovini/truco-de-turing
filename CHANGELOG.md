@@ -2,6 +2,15 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## Em andamento: fusão com o NeuroDeck (Etapa 1)
+
+Entra na próxima versão, quando o pull request da fusão for aceito. Plano e decisões: issues #1 a #11 do fork.
+
+- feat: motor de regras do NeuroDeck em `src/motor/`, cópia fiel do site publicado (SHA-256 de cada arquivo e 1.000 partidas com semente idênticas às do site; ver `src/motor/ORIGEM.md`). (#1)
+- fix: regras da fusão no motor: desempate pela carta mais alta compara a força da carta (K vence J); trio de figuras vale 30; a carta empilhada conta na sequência de figuras (decisão do professor; o exemplo 8-K-K-3 com um K tunado continua valendo 41); qualquer early stop libera o passar. O conjunto original segue disponível com `rules: 'nd-2.0.0'`. (#1)
+- feat: `src/nucleo` vira uma camada de tradução sobre o motor: as telas do Truco de Turing passam a jogar com as regras do NeuroDeck. Mudam para o jogador: o dropout manda os neurônios para o cemitério; rede sem neurônio livre na camada seguinte é finalizada; transfer learning não gasta a vez; só passa quem teve a rede interrompida por early stop; par de figuras vale 20; os terrenos e o baralho Truco são os do NeuroDeck (truco com 2 baralhos e mão de 10 cartas); os oponentes são os bots do NeuroDeck. O padrão de "quem começa" passa a ser revelar e descartar; revelar e devolver à mão e o sorteio continuam no menu. O modo truco não mudou. (#2)
+- test: 40 testes de regra de negócio atualizados para as regras da fusão (10 mudaram de expectativa), testes do motor (`motor-equivalencia`, `motor-regras`, `motor-inicio`), testes da camada de tradução e montagem de situações pelo estado do motor (`testes/apoio/montagem.js`). Planilha de validação refeita para a fusão (`relatorios/validacao/`): 40 testes de regra, 37 do motor e 28 cenários funcionais no jogo unificado, com as decisões de regra; relatórios das três suítes regenerados (255 de unidade, 15 de interface, 12 de performance). (#3)
+
 ## 1.2.1 — 2026-11-09
 
 - test: testes de aceitação das regras de negócio em `testes/unidade/regras-de-negocio.test.js`: 40 cenários (RN-01 a RN-40) cobrindo preparação da mesa, quem começa, construção da rede, pontuação, ações com cartas, dropout, transfer learning, passar a vez, desempates, truco e invariantes em 200 mãos aleatórias. Onde o enunciado deixa margem, os testes fixam a leitura adotada no README.
