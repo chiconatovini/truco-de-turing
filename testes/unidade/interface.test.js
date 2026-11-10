@@ -10,7 +10,7 @@ import { instalarNavegadorFalso, registroDeAudio, limparRegistroDeAudio, esperar
 instalarNavegadorFalso({ toque: true });
 const paineis = await import('../../src/interface/paineis.js');
 const { Som, contextoDeAudio } = await import('../../src/interface/som.js');
-const { Musica } = await import('../../src/interface/musica.js');
+const { Musica, MUSICAS, TRILHAS, gravarTrilha } = await import('../../src/interface/musica.js');
 const { abrirMenu } = await import('../../src/interface/menu.js');
 const { abrirRegras } = await import('../../src/interface/telas/regras.js');
 const { abrirGrimorio } = await import('../../src/interface/telas/grimorio.js');
@@ -111,8 +111,24 @@ describe('som.js e musica.js', () => {
     Som.definirMudo(false);
     assert.ok(contextoDeAudio());
   });
+  it('trilhas: menu e os quatro terrenos, com tema composto que cabe nos compassos', () => {
+    assert.deepEqual(TRILHAS, ['menu', 'neutro', 'oceano', 'montanha', 'pantano']);
+    for (const nome of TRILHAS) {
+      limparRegistroDeAudio();
+      const contexto = contextoDeAudio(), saida = contexto.createGain();
+      gravarTrilha(saida, nome, 20);
+      assert.ok(registroDeAudio.osciladores.length > 100, nome);
+      /* um compasso de tema por acorde; nenhuma nota invade a seguinte nem passa do compasso */
+      const m = MUSICAS[nome], passos = m.tempos * m.subdivisao;
+      assert.equal(m.tema.length, m.acordes.length, nome);
+      for (const compasso of m.tema) {
+        let fim = 0;
+        for (const [passo, , dur] of compasso) { assert.ok(passo >= fim && passo + dur <= passos, nome); fim = passo + dur; }
+      }
+    }
+  });
   it('música: cada terreno agenda notas; trocar, repetir e parar', async (t) => {
-    for (const terreno of ['neutro', 'oceano', 'montanha', 'pantano', 'desconhecido']) {
+    for (const terreno of ['menu', 'neutro', 'oceano', 'montanha', 'pantano', 'desconhecido']) {
       limparRegistroDeAudio();
       Musica.tocar(terreno);
       assert.ok(Musica.tocando());

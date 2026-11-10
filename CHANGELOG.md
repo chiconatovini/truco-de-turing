@@ -22,6 +22,7 @@ Entra na próxima versão, quando o pull request da fusão for aceito. Plano e d
 - feat: terrenos mais claros e animados: poeira dourada na mesa neutra, neve, nuvens e sol na montanha, neblina, vaga-lumes e bolhas no pântano, ondas, espuma e vento no oceano (parados com "reduzir movimento"). (#8)
 - feat: ícone para cada ação (tunagem, overfit, early stop, stack overflow, dropout com o gato do GatoNet, transfer, passar, vanishing gradient) no nome da ação que aparece no centro da mesa e na ajuda das ações; tunagem também ganha o nome no centro. (#8)
 - feat: cartas da mão com a face limpa (índices grandes, gema de pontos e medalhão central com um naipe por número da carta), legenda da manilha no Truco e da ativação ou peso no Backprop; a carta completa continua na inspeção. (#8)
+- feat: trilhas novas, com temas compostos que se repetem iguais: menu (canção de ninar em Fá, harpa e caixinha de música, começa no primeiro toque na página), Planície (blues mais lento, notas longas e poucos saltos), montanha (trompa macia no lugar do timbre espetado, harpa ao fundo e tambores nos repousos), pântano (no espírito da "Dança da Fada Açucarada", mais lenta, harmônica de vidro, glockenspiel e pizzicato) e oceano (repousos cheios com coro e baixo ligados entre compassos, marimba ao fundo). Os efeitos sonoros não mudaram. (#9)
 
 ## 1.2.1 — 2026-11-09
 

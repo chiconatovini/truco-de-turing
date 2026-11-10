@@ -22,6 +22,11 @@ describe('menu e telas', () => {
       assert.equal(await pagina.locator('#m-arquitetura option').count(), 4);
       assert.equal(await pagina.locator('#m-baralho option').count(), 7);
       assert.equal(await pagina.locator('#m-terreno option').count(), 4);
+      /* trilha do menu: começa no primeiro toque na página (o navegador só libera som depois de um gesto) */
+      const musicaDoMenu = () => pagina.evaluate(async () => (await import('/src/interface/musica.js')).Musica.tocando());
+      await pagina.mouse.click(5, 5);
+      await pagina.waitForFunction(async () => (await import('/src/interface/musica.js')).Musica.tocando());
+      assert.equal(await musicaDoMenu(), true);
       await pagina.selectOption('#m-terreno', 'oceano');
       await pagina.waitForSelector('.miniatura img');
       for (const [botao, texto] of [['#m-regras', 'Regras'], ['#m-grimorio', 'Biblioteca de conceitos'], ['#m-conquistas', 'Conquistas'], ['#m-mods', 'Mods'], ['#m-sobre', 'Sobre']]) {

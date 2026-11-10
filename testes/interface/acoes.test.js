@@ -151,13 +151,13 @@ describe('ações da mesa', () => {
       await pagina.waitForSelector('.placar-camadas');
       assert.ok(await pagina.locator('.placar-camadas tbody tr').count() >= 7);
       await capturar(pagina, '25-placar-por-camada');
-      await pagina.locator('.painel-mesa [data-fechar]').first().click();
+      await pagina.locator('.painel-mesa [data-fechar]').first().dispatchEvent('click'); /* sem esperar a animação de entrada */
       await naCena(pagina, 'cena.painel.areaRegistro.emit("pointerdown");');
       await pagina.waitForSelector('.registro-completo li');
-      await pagina.locator('.painel-mesa [data-fechar]').first().click();
+      await pagina.locator('.painel-mesa [data-fechar]').first().dispatchEvent('click'); /* sem esperar a animação de entrada */
       await naCena(pagina, 'cena.painel.cemiterio.carta.emit("pointerdown");');
       await pagina.waitForSelector('.painel-mesa h2:has-text("Cemitério")');
-      await pagina.locator('.painel-mesa [data-fechar]').first().click();
+      await pagina.locator('.painel-mesa [data-fechar]').first().dispatchEvent('click'); /* sem esperar a animação de entrada */
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
   });
