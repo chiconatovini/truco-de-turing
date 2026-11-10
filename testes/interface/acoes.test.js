@@ -111,6 +111,57 @@ describe('ações da mesa', () => {
     } finally { await jogo.fechar(); }
   });
 
+  it('barra de ações do NeuroDeck: botões acendem pela seleção, selo de tunagem, pontos por neurônio e painéis de leitura', async () => {
+    const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
+    const { pagina } = jogo;
+    try {
+      await comecarPartida(pagina, { oponente: 'aleatorio', baralho: 'classico', terreno: 'neutro', inicio: 'sorteio' });
+      await carregarMontagem(pagina);
+      await esperarMinhaVez(pagina);
+      /* as duas redes com dois neurônios; na mão, uma carta igual à ponta da própria rede */
+      const estado = await naCena(pagina, `
+        for (const j of [0, 1]) { M.reabrirRede(cena.mao, j); M.montarRede(cena.mao, j, [[j ? '2C' : '2E'], [j ? '9P' : '8E']]); }
+        M.darMao(cena.mao, 1, []);
+        M.darMao(cena.mao, 0, [['8', 'C'], ['3', 'O']]);
+        cena.redesenhar();
+        const acoes = cena.painel.acoes, ligado = () => Object.fromEntries(Object.entries(acoes).map(([k, b]) => [k, b.habilitado]));
+        const antes = ligado();
+        cena.aoClicarNaCarta(cena.mao.jogadores[0].mao.find((c) => c.valor === '8').id);
+        const comOito = ligado();
+        acoes.overfit.emit('pointerover', { wasTouch: false });
+        const explicacao = cena.dicaDoCursor;
+        acoes.overfit.emit('pointerout');
+        return { antes, comOito, explicacao, quantos: Object.keys(acoes).length };`);
+      assert.equal(estado.quantos, 8, 'oito botões, como no NeuroDeck');
+      assert.equal(estado.antes.tunagem, false, 'sem seleção nenhuma ação de carta acende');
+      assert.equal(estado.comOito.tunagem, true, 'um 8 sobre o 8 da própria rede: tunagem');
+      assert.equal(estado.comOito.stackoverflow, false, 'stack overflow precisa de três cartas');
+      assert.equal(estado.comOito.limpar, true);
+      assert.match(estado.explicacao, /Overfit/);
+      /* o botão executa a tunagem no único alvo possível */
+      await naCena(pagina, `const b = cena.painel.acoes.tunagem; b.emit('pointerdown'); b.emit('pointerup');`);
+      await esperarCena(pagina, `return cena.linhaDoTempo.some((p) => p.eventos.includes('tunagem'))`);
+      const selo = await naCena(pagina, `
+        const c = cena.mao.jogadores[0].caminho, v = cena.visuais[c[c.length - 1]];
+        return { selo: v.pilha.visible && v.pilha.text, pontos: v.pontos.visible && v.pontos.text };`);
+      assert.equal(selo.selo, '\u26a11', 'selo de tunagem com uma carta empilhada');
+      assert.ok(Number(selo.pontos) > 0, 'chip de pontos do neurônio');
+      /* painéis: placar por camada (clique no bloco), registro completo e cemitério */
+      await naCena(pagina, 'cena.painel.blocos[0].area.emit("pointerdown");');
+      await pagina.waitForSelector('.placar-camadas');
+      assert.ok(await pagina.locator('.placar-camadas tbody tr').count() >= 7);
+      await capturar(pagina, '25-placar-por-camada');
+      await pagina.locator('.painel-mesa [data-fechar]').first().click();
+      await naCena(pagina, 'cena.painel.areaRegistro.emit("pointerdown");');
+      await pagina.waitForSelector('.registro-completo li');
+      await pagina.locator('.painel-mesa [data-fechar]').first().click();
+      await naCena(pagina, 'cena.painel.cemiterio.carta.emit("pointerdown");');
+      await pagina.waitForSelector('.painel-mesa h2:has-text("Cemitério")');
+      await pagina.locator('.painel-mesa [data-fechar]').first().click();
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
   it('dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient', async () => {
     const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
     const { pagina } = jogo;

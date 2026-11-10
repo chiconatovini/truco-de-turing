@@ -33,7 +33,7 @@ export const metodosDeEfeitos = {
 
   /** Ponto de onde saem as cartas jogadas por `j` (a mão de baixo ou o leque dele no alto). */
   origemDasCartas(j) {
-    if (j === this.jogadorDeBaixo()) return { x: 610, y: 652 };
+    if (j === this.jogadorDeBaixo()) return { x: 610, y: 646 };
     const outros = this.outrosJogadores();
     return { x: this.posicaoDaMaoDeCima(Math.max(0, outros.indexOf(j)), outros.length).x, y: 40 };
   },

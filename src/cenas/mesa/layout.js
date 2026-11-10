@@ -36,10 +36,26 @@ export const ESQ = {
 export const DIR = {
   tituloMao: 28, subtitulo: 49, blocos: 64, alturaBloco: 102, passoBloco: 108, avatar: 58,
   rotuloCurva: 292, curva: 304, alturaCurva: 64, registro: 380, alturaRegistro: 132,
-  truco: 556, alturaTruco: 52,
-  /* Dropout, Transfer e Passar: uma linha de três botões quase quadrados */
-  acoes: 640, alturaAcao: 80,
+  truco: 540, alturaTruco: 40,
+  /*
+   * Ações como no NeuroDeck: duas linhas de quatro botões. Em cima, as que empilham cartas
+   * (tunagem e os três ataques); embaixo, dropout, transfer, passar e limpar a seleção.
+   * Só acendem os botões das jogadas possíveis com as cartas selecionadas.
+   */
+  acoes: 594, acoes2: 648, alturaAcao: 46,
 };
+
+/** Nome de cada ação da barra, para dicas e explicações. */
+export const NOME_DA_ACAO = {
+  tunagem: 'Tunagem', overfit: 'Overfit', earlystop: 'Early stop', stackoverflow: 'Stack overflow',
+  dropout: 'Dropout', transfer: 'Transfer learning', passar: 'Passar a vez', limpar: 'Limpar a seleção',
+};
+
+/** Ações da barra, na ordem: [id, rótulo, linha]. O id é o tipo de alvo (ver calcularAlvos) ou a ação. */
+export const BARRA_DE_ACOES = [
+  ['tunagem', 'Tunagem', 0], ['overfit', 'Overfit', 0], ['earlystop', 'Early\nstop', 0], ['stackoverflow', 'Stack\noverflow', 0],
+  ['dropout', 'Dropout', 1], ['transfer', 'Transfer', 1], ['passar', 'Passar', 1], ['limpar', 'Limpar', 1],
+];
 
 /**
  * Posição dos blocos do placar. Com 2 jogadores, os dois blocos grandes de sempre; com mais,

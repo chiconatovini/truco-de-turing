@@ -421,3 +421,13 @@ html, body { overscroll-behavior: none; }
 @media (prefers-reduced-motion: reduce) {
   .camada, .folha, .aviso, .trofeu, .folha.vitoria { animation: none; }
 }
+
+/* painéis de leitura da mesa (placar por camada, registro completo, cemitério) */
+.painel-mesa .nota { font-style: italic; color: #5a4630; }
+.placar-camadas td.vazio { color: #9a8c6c; }
+.placar-camadas tr.soma td { border-top: 2px solid rgba(60, 40, 20, 0.3); }
+.placar-camadas small { color: #6b5a40; }
+.registro-completo { max-height: 52vh; overflow: auto; margin: 8px 0; padding-left: 28px; font-size: 14px; }
+.registro-completo li { margin: 2px 0; }
+.cartas-do-painel { display: flex; flex-wrap: wrap; gap: 6px; }
+.carta-mini { display: inline-block; min-width: 34px; text-align: center; padding: 3px 6px; border-radius: 6px; background: #fff8e6; border: 1px solid rgba(60, 40, 20, 0.3); font-weight: 700; }
