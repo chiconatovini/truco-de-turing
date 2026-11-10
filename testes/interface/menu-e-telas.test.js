@@ -11,18 +11,20 @@ before(async () => { servidor = await subirServidor(); });
 after(() => servidor.fechar());
 
 describe('menu e telas', () => {
-  it('carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas e Sobre', async () => {
+  it('carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas, Mods e Sobre', async () => {
     const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
     const { pagina } = jogo;
     try {
       await esperarMenu(pagina);
       await capturar(pagina, '01-menu');
-      assert.equal(await pagina.locator('#m-oponente option').count(), 4);
+      assert.equal(await pagina.locator('#m-oponente option').count(), 3);
+      assert.equal(await pagina.locator('#m-jogadores option').count(), 4);
+      assert.equal(await pagina.locator('#m-arquitetura option').count(), 4);
       assert.equal(await pagina.locator('#m-baralho option').count(), 5);
       assert.equal(await pagina.locator('#m-terreno option').count(), 4);
       await pagina.selectOption('#m-terreno', 'oceano');
       await pagina.waitForSelector('.miniatura img');
-      for (const [botao, texto] of [['#m-regras', 'Como jogar'], ['#m-grimorio', 'Grimório'], ['#m-conquistas', 'Conquistas'], ['#m-sobre', 'Sobre']]) {
+      for (const [botao, texto] of [['#m-regras', 'Como jogar'], ['#m-grimorio', 'Grimório'], ['#m-conquistas', 'Conquistas'], ['#m-mods', 'Mods'], ['#m-sobre', 'Sobre']]) {
         await pagina.click(botao);
         await pagina.waitForSelector('.camada:not(.transparente) h2');
         assert.match(await pagina.locator('.camada:not(.transparente) h2').first().textContent(), new RegExp(texto));
@@ -32,6 +34,7 @@ describe('menu e telas', () => {
         }
         if (botao === '#m-conquistas') { await pagina.waitForSelector('#c-retrato canvas'); await capturar(pagina, '02-conquistas'); }
         if (botao === '#m-sobre') assert.match(await pagina.locator('.versao').textContent(), /Versão \d+\.\d+\.\d+/);
+        if (botao === '#m-mods') await capturar(pagina, '24-mods');
         await pagina.click('.camada:not(.transparente) [data-fechar] >> nth=0');
       }
       assert.deepEqual(jogo.erros, []);
