@@ -353,8 +353,14 @@ describe('ações da mesa', () => {
       await capturar(pagina, '19-vitoria');
       await naCena(pagina, 'cena.comemorar("partida", "Você");');
       await pagina.waitForTimeout(300);
-      /* regras e grimório pelos botões da mesa */
+      /* regras, ajuda das ações e Biblioteca pelos botões da mesa */
       await naJanela(pagina, 'botaoRegras', '[data-opcao="regras"]');
+      await pagina.locator('.camada [data-fechar] >> nth=0').click();
+      await naJanela(pagina, 'botaoRegras', '[data-opcao="ajuda"]');
+      await pagina.waitForSelector('.cartao-acao');
+      await pagina.locator('.camada [data-fechar] >> nth=0').click();
+      await naCena(pagina, `const b = cena.painel.acoes.overfit; b.emit('pointerover', { wasTouch: false }); b.emit('pointerout'); const a = cena.painel.botaoAjuda; a.emit('pointerdown'); a.emit('pointerup');`);
+      await pagina.waitForSelector('.cartao-acao[data-acao="overfit"][aria-current="true"]');
       await pagina.locator('.camada [data-fechar] >> nth=0').click();
       await naJanela(pagina, 'botaoRegras', '[data-opcao="grimorio"]');
       await pagina.locator('.camada [data-fechar] >> nth=0').click();

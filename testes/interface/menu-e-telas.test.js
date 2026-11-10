@@ -11,7 +11,7 @@ before(async () => { servidor = await subirServidor(); });
 after(() => servidor.fechar());
 
 describe('menu e telas', () => {
-  it('carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas, Mods e Sobre', async () => {
+  it('carrega, mostra o menu com as escolhas e abre Regras (abas, ajuda das ações), Biblioteca de conceitos, Conquistas, Mods e Sobre', async () => {
     const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
     const { pagina } = jogo;
     try {
@@ -24,13 +24,32 @@ describe('menu e telas', () => {
       assert.equal(await pagina.locator('#m-terreno option').count(), 4);
       await pagina.selectOption('#m-terreno', 'oceano');
       await pagina.waitForSelector('.miniatura img');
-      for (const [botao, texto] of [['#m-regras', 'Como jogar'], ['#m-grimorio', 'Grimório'], ['#m-conquistas', 'Conquistas'], ['#m-mods', 'Mods'], ['#m-sobre', 'Sobre']]) {
+      for (const [botao, texto] of [['#m-regras', 'Regras'], ['#m-grimorio', 'Biblioteca de conceitos'], ['#m-conquistas', 'Conquistas'], ['#m-mods', 'Mods'], ['#m-sobre', 'Sobre']]) {
         await pagina.click(botao);
         await pagina.waitForSelector('.camada:not(.transparente) h2');
         assert.match(await pagina.locator('.camada:not(.transparente) h2').first().textContent(), new RegExp(texto));
+        if (botao === '#m-regras') {
+          /* abas do manual do NeuroDeck, com a arte dos baralhos e terrenos */
+          await pagina.click('.abas [data-aba="extensoes"]');
+          await pagina.waitForSelector('.extensao-arte img');
+          await capturar(pagina, '26-regras-baralhos-e-terrenos');
+          await pagina.click('.abas [data-aba="acoes"]');
+          await pagina.click('#r-ajuda-acoes');
+          await pagina.waitForSelector('.cartao-acao');
+          await capturar(pagina, '27-ajuda-das-acoes');
+          await pagina.click('.cartao-acao[data-acao="dropout"] [data-verbete]');
+          await pagina.waitForSelector('#g-verbete .equacao math');
+          assert.match(await pagina.locator('#g-verbete h2').textContent(), /Dropout/);
+          /* a equação é desenhada (MathML com altura de verdade, não texto cru) */
+          assert.ok(await pagina.locator('#g-verbete .equacao math').evaluate((m) => m.getBoundingClientRect().height > 20));
+          await capturar(pagina, '28-biblioteca-dropout');
+          /* fecha a Biblioteca e a ajuda; as regras continuam abertas */
+          await pagina.locator('.camada:not(.transparente) [data-fechar] >> nth=-1').click();
+          await pagina.locator('.ajuda-acoes [data-fechar] >> nth=0').click();
+        }
         if (botao === '#m-grimorio') {
           await pagina.click('#g-lista button >> nth=3');
-          assert.equal(await pagina.locator('#g-lista .lido').count(), 2);
+          assert.equal(await pagina.locator('#g-lista .lido').count(), 3); /* dropout (lido pela ajuda das ações), o primeiro e o quarto */
         }
         if (botao === '#m-conquistas') { await pagina.waitForSelector('#c-retrato canvas'); await capturar(pagina, '02-conquistas'); }
         if (botao === '#m-sobre') assert.match(await pagina.locator('.versao').textContent(), /Versão \d+\.\d+\.\d+/);

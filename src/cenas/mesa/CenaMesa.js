@@ -11,7 +11,7 @@
  * | entrada.js    | cliques e toques do jogador                                        |
  * | turnos.js     | fluxo da mão: iniciar, executar jogada, vez de cada jogador         |
  * | truco.js      | pedir, anunciar e responder truco                                  |
- * | efeitos.js    | animações dos eventos, faíscas, faixas, balão e avisos do Grimório  |
+ * | efeitos.js    | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos  |
  * | resultado.js  | fim da mão, tentos, conquistas, comemoração e tela de resultado     |
  * | dicas.js      | modo dicas: sugestão de jogada e dicas flutuantes dos botões        |
  *

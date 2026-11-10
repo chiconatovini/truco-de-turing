@@ -5,6 +5,9 @@
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { VERBETES } from '../../src/conteudo/grimorio.js';
+import { FIGURAS, figuraDaBiblioteca } from '../../src/conteudo/figurasDaBiblioteca.js';
+import { ACOES_DA_AJUDA } from '../../src/interface/telas/ajudaDasAcoes.js';
+import { NeuroDeck } from '../../src/motor/engine.js';
 import { AMBIENTACAO, PROVOCACOES, provocar } from '../../src/conteudo/textos.js';
 import { GRADUACOES, CONQUISTAS, VALEM_SEM_MAO_COMPLETA } from '../../src/conteudo/conquistas.js';
 import { DICAS_GERAIS, escolherDicaDeJogo } from '../../src/conteudo/dicasDeJogo.js';
@@ -23,6 +26,32 @@ describe('grimorio.js', () => {
     assert.ok(VERBETES.length >= 16);
     assert.equal(new Set(VERBETES.map((v) => v.id)).size, VERBETES.length);
     for (const v of VERBETES) assert.ok(v.titulo && v.categoria && v.conceito && v.noJogo, v.id);
+  });
+  it('Biblioteca de conceitos: todo verbete tem equação em MathML e "até onde vale a comparação"; as figuras existem', () => {
+    for (const v of VERBETES) {
+      assert.match(v.equacao, /^(<math display="block">.*?<\/math>)+$/s, v.id);
+      assert.ok(v.limite && v.limite.length > 20, v.id);
+      if (v.figura) assert.ok(FIGURAS[v.figura], v.id + ': figura ' + v.figura);
+    }
+    for (const nome of Object.keys(FIGURAS)) assert.match(figuraDaBiblioteca(nome), /^<svg[^>]*role="img"[^>]*aria-label="[^"]+".*<\/svg>$/s, nome);
+    assert.equal(figuraDaBiblioteca('nao-existe'), '');
+  });
+  it('textos revistos: as linhas não são pesos, stack overflow não é conceito de redes, a curva da mesa sobe', () => {
+    const v = Object.fromEntries(VERBETES.map((x) => [x.id, x]));
+    assert.match(v.pesos.limite, /não são pesos/);
+    assert.doesNotMatch(v.pesos.noJogo, /laranja é o adversário/); /* com 3 a 5 jogadores há outras cores */
+    assert.match(v.stackoverflow.conceito, /não é um conceito de redes neurais/);
+    assert.match(v.stackoverflow.conceito, /outro fenômeno/);
+    assert.match(v.perda.noJogo, /sobe/);
+  });
+  it('ajuda das ações: cada ação da barra tem verbete na Biblioteca e regra no motor', () => {
+    const ids = new Set(VERBETES.map((x) => x.id));
+    for (const a of ACOES_DA_AJUDA) {
+      assert.ok(ids.has(a.verbete), a.id);
+      assert.ok(NeuroDeck.action(a.motor).rule, a.id);
+      assert.ok(a.resumo && a.quando, a.id);
+    }
+    for (const id of ['tunagem', 'overfit', 'earlystop', 'stackoverflow', 'dropout', 'transfer', 'passar']) assert.ok(ACOES_DA_AJUDA.some((a) => a.id === id), id);
   });
 });
 

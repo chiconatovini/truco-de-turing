@@ -214,6 +214,32 @@ describe('telas', () => {
     assert.ok($$('#g-lista .lido').length >= 2);
     abrirGrimorio(app, 'nao-existe');
   });
+  it('Biblioteca de conceitos: título novo, equação, figura e "até onde vale a comparação"', () => {
+    abrirGrimorio(appFalso(), 'dropout');
+    assert.match($('.camada h2').textContent, /Biblioteca de conceitos/);
+    assert.ok($('#g-verbete .equacao math'));
+    assert.ok($('#g-verbete .figura svg'));
+    assert.match($('#g-verbete .limite').textContent, /Até onde vale/);
+    assert.match($('#g-verbete .fonte').textContent, /Srivastava/);
+  });
+  it('regras em abas: troca de aba, ajuda das ações e "Ver o conceito" abrindo o verbete certo', () => {
+    const app = appFalso();
+    abrirRegras(app);
+    const abas = $$('.abas [data-aba]').map((b) => b.textContent);
+    assert.deepEqual(abas, ['Como jogar', 'Ações', 'Pontuação', 'Baralhos e terrenos', 'Dicas e estratégias']);
+    assert.ok(!$$('.abas [data-aba]').some((b) => /Cartas|Decisões/.test(b.textContent)));
+    clicar($('.abas [data-aba="pontuacao"]'));
+    assert.equal($('section.aba[data-aba="pontuacao"]').hidden, false);
+    assert.equal($('section.aba[data-aba="jogar"]').hidden, true);
+    clicar($('.abas [data-aba="extensoes"]'));
+    assert.equal($$('section.aba[data-aba="extensoes"] .extensao').length, 9); /* 5 baralhos e 4 terrenos */
+    clicar($('#r-ajuda-acoes'));
+    assert.equal($$('.cartao-acao').length, 8);
+    assert.match($('.cartao-acao[data-acao="earlystop"]').textContent, /Early stopping/);
+    clicar($('.cartao-acao[data-acao="stackoverflow"] [data-verbete]'));
+    assert.match($('#g-verbete h2').textContent, /Stack overflow/);
+    assert.ok(app.progresso.lidos.stackoverflow);
+  });
   it('conquistas: medalhas bloqueadas e desbloqueadas, contagem e retrato', async () => {
     const app = appFalso();
     abrirConquistas(app);

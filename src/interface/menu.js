@@ -76,7 +76,7 @@ function htmlDoMenu(opcoes) {
     '<button class="botao vinho jogar" id="m-jogar" autofocus>Jogar</button>' +
     '<div class="menu-mais">' +
     '<button class="botao" id="m-regras">Como jogar</button>' +
-    '<button class="botao" id="m-grimorio">Grimório</button>' +
+    '<button class="botao" id="m-grimorio">Biblioteca de conceitos</button>' +
     '<button class="botao" id="m-conquistas">Conquistas</button>' +
     '<button class="botao" id="m-mods">Mods</button>' +
     '<button class="botao" id="m-sobre">Sobre</button>' +

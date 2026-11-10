@@ -197,6 +197,13 @@ html, body { overscroll-behavior: none; }
 .grimorio-verbete { min-width: 0; }
 .grimorio-verbete .categoria { font: 700 12px var(--fonte-interface); letter-spacing: 0.16em; text-transform: uppercase; color: #6b1a22; }
 .grimorio-verbete .no-jogo { border-left: 4px solid var(--azul); background: rgba(74, 163, 223, 0.1); padding: 10px 14px; border-radius: 0 8px 8px 0; }
+.grimorio-verbete .equacao { margin: 12px 0; padding: 10px 12px; background: rgba(255, 248, 230, 0.7); border: 1px solid rgba(60, 40, 20, 0.15); border-radius: 8px; overflow-x: auto; font-size: 18px; color: #2b1608; }
+.grimorio-verbete .equacao math { font-size: 1.05em; }
+.grimorio-verbete .equacao math + math { margin-top: 10px; }
+.grimorio-verbete .figura { margin: 10px 0; }
+.grimorio-verbete .figura-svg { width: 100%; max-width: 480px; height: auto; display: block; margin: 0 auto; }
+.grimorio-verbete .limite { border-left: 4px solid #c8742a; background: rgba(200, 116, 42, 0.1); padding: 10px 14px; border-radius: 0 8px 8px 0; }
+.grimorio-verbete .fonte { font-size: 13px; color: #6b5a40; font-style: italic; }
 
 /* ---------- Conquistas ---------- */
 .folha.larga { width: min(1060px, 100%); }
@@ -431,3 +438,26 @@ html, body { overscroll-behavior: none; }
 .registro-completo li { margin: 2px 0; }
 .cartas-do-painel { display: flex; flex-wrap: wrap; gap: 6px; }
 .carta-mini { display: inline-block; min-width: 34px; text-align: center; padding: 3px 6px; border-radius: 6px; background: #fff8e6; border: 1px solid rgba(60, 40, 20, 0.3); font-weight: 700; }
+
+/* regras em abas (conteúdo do manual do NeuroDeck) */
+.folha.regras { width: min(860px, 100%); }
+.abas { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0 6px; border-bottom: 2px solid rgba(60, 40, 20, 0.2); }
+.abas button { font: 700 13px var(--fonte-titulo); letter-spacing: 0.04em; color: #6b1a22; background: transparent; border: 0; border-bottom: 3px solid transparent; padding: 8px 10px; cursor: pointer; margin-bottom: -2px; }
+.abas button[aria-selected='true'] { color: #2b1608; border-bottom-color: #6b1a22; }
+.abas button:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+.aba[hidden] { display: none; }
+.extensoes { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 12px; margin-top: 8px; }
+.extensao { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; background: rgba(255, 248, 230, 0.6); border: 1px solid rgba(60, 40, 20, 0.15); border-radius: 10px; padding: 10px; }
+.extensao p { margin: 4px 0 0; font-size: 14px; }
+.extensao-arte { display: flex; gap: 6px; min-width: 60px; }
+.extensao-arte img { height: 104px; width: auto; border-radius: 6px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+.nota-regras { font-style: italic; color: #5a4630; }
+button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-decoration: underline; font: inherit; cursor: pointer; }
+
+/* ajuda das ações (o "?" do NeuroDeck) */
+.cartoes-acao { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 10px; }
+.cartao-acao { background: rgba(255, 248, 230, 0.7); border: 1px solid rgba(60, 40, 20, 0.2); border-radius: 10px; padding: 12px 14px; }
+.cartao-acao[aria-current='true'] { border: 2px solid #6b1a22; box-shadow: 0 0 0 3px rgba(107, 26, 34, 0.15); }
+.cartao-acao h3 { margin-top: 0; }
+.cartao-acao p { font-size: 14.5px; }
+.cartao-acao .em-ml { border-left: 4px solid var(--azul); background: rgba(74, 163, 223, 0.1); padding: 8px 10px; border-radius: 0 8px 8px 0; }

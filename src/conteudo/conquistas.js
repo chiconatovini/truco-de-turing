@@ -54,7 +54,7 @@ export const CONQUISTAS = [
   { id: 'cartografo', nome: 'Cartógrafo', descricao: 'Vença mãos em todos os terrenos.', graduacao: 'platina', teste: (c) => Object.keys(TERRENOS).every((t) => c.progresso.terrenos[t]) },
   { id: 'colecionador', nome: 'Colecionador', descricao: 'Vença mãos com todos os baralhos.', graduacao: 'platina', teste: (c) => Object.keys(BARALHOS).every((b) => c.progresso.baralhos[b]) },
   { id: 'zap', nome: 'Zap na saída', descricao: 'Vença com o Zap (4♣) na rede, no baralho de truco.', graduacao: 'ouro', teste: (c) => c.venceu && c.mao.config.baralho === 'truco' && meu(c).caminho.some((id) => { const carta = c.mao.neuronios[id].cartas[0]; return carta.valor === '4' && carta.naipe === 'P'; }) },
-  { id: 'biblio', nome: 'Bibliotecário', descricao: 'Leia todos os verbetes do Grimório.', graduacao: 'prata', teste: (c) => c.progresso.verbetesLidos >= VERBETES.length },
+  { id: 'biblio', nome: 'Bibliotecário', descricao: 'Leia todos os verbetes da Biblioteca de conceitos.', graduacao: 'prata', teste: (c) => c.progresso.verbetesLidos >= VERBETES.length },
 ];
 
 /** Conquistas que podem ser ganhas mesmo quando a mão termina porque alguém correu do truco. */
