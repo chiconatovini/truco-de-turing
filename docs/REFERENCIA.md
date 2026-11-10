@@ -213,6 +213,7 @@ Cena do menu: fundo animado (uma rede neural pulsando e cartas flutuando) atrás
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `COLUNAS` | constante | Neurônios por coluna da rede decorativa. |
+| `tocarMusicaDoMenu()` | método | Trilha do menu. O navegador só libera som depois de um gesto: se ainda não liberou, a música começa no primeiro toque ou clique na página (sem pedir nada à pessoa). |
 | `espalharCartas()` | método | Nove cartas semitransparentes flutuando devagar. |
 | `update(tempo)` | método | Redesenha a rede com conexões que pulsam (azul e laranja, como no TensorFlow Playground). |
 
@@ -579,7 +580,7 @@ Menu principal: apresentação do jogo, botões das telas e configuração da me
 
 ## `src/interface/musica.js`
 
-Música de fundo sintetizada com WebAudio, uma para cada terreno: | Terreno | Estilo | Andamento | |----------|--------------------------------|-----------| | neutro | blues com balanço (shuffle) em Mi | 92 bpm | | oceano | valsa lenta em Sol, com ondas | 66 bpm (3/4) | | montanha | épica em Lá menor, com tambores | 88 bpm | | pantano | sombria e gótica em Ré menor, órgão e sino | 56 bpm | Cada música é um laço de compassos com acordes, baixo, acompanhamento, melodia e percussão. A melodia é sorteada por compasso com uma semente fixa, então o laço sempre se repete igual. Um agendador olha 0,4 s à frente e marca as notas no relógio do WebAudio (sem atrasos).
+Música de fundo sintetizada com WebAudio: uma trilha para o menu e uma para cada terreno. | Trilha | Estilo | Andamento | |---------------------|---------------------------------------------------------------|--------------| | menu | canção de ninar em Fá: harpa, caixinha de música e um coro suave | 76 bpm | | neutro (Planície) | blues lento em Mi, tema cantado com notas longas e poucos saltos | 72 bpm | | oceano | valsa em Sol: marimba ao fundo, coro que preenche os repousos | 63 bpm (3/4) | | montanha | épica em Lá menor: trompa, harpa ao fundo e tambores nos repousos | 84 bpm | | pantano | dança de fada em Ré menor: harmônica de vidro, glockenspiel e pizzicato | 60 bpm | Cada trilha é um laço de compassos com acordes, baixo, acompanhamento, melodia e percussão. As melodias são compostas (uma tabela de notas por compasso), então o laço sempre se repete igual e o tema fica na cabeça. Um agendador olha 0,4 s à frente e marca as notas no relógio do WebAudio.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -591,6 +592,15 @@ Música de fundo sintetizada com WebAudio, uma para cada terreno: | Terreno | Es
 | `chiado(saida, tempo, duracao, { volume = 0.05, filtro = 8000, tipo = 'highpass', ataque = 0.002 } = {})` | função | Ruído filtrado: chimbal, prato, ondas do mar. |
 | `tambor(saida, tempo, { volume = 0.35, de = 110, para = 42, duracao = 0.45 } = {})` | função | Tambor grave (bumbo, taiko): seno que despenca de frequência. |
 | `sino(saida, tempo, midi, volume = 0.06)` | função | Sino: parciais inarmônicas que somem devagar. |
+| `harpa(saida, tempo, midi, volume = 0.04)` | função | Harpa: corda dedilhada que soa e some devagar. |
+| `glockenspiel(saida, tempo, midi, volume = 0.05)` | função | Glockenspiel e caixinha de música: barra de metal, ataque seco e brilho agudo. |
+| `harmonicaDeVidro(saida, tempo, midi, duracao, volume = 0.05)` | função | Harmônica de vidro: senoides puras com entrada macia e um leve tremor. |
+| `marimba(saida, tempo, midi, volume = 0.05)` | função | Marimba: tecla de madeira, grave arredondado e um harmônico que some rápido. |
+| `pizzicato(saida, tempo, midi, volume = 0.08)` | função | Pizzicato: corda beliscada, curta e abafada. |
+| `coro(saida, tempo, notas, duracao, volume = 0.018)` | função | Coro (pad): acorde de senoides que entra e sai devagar e passa um pouco do compasso. |
+| `melodia(tabela, compasso, passo, tocarNota, d)` | função | Toca a nota da melodia composta que começa neste passo, se houver. Tabela: [passo, midi, passos]. |
+| `gravarTrilha(saida, nome, segundos)` | função (exportada) | Toca `segundos` da trilha `nome` numa saída qualquer (por exemplo, um OfflineAudioContext) a partir do tempo 0. Usado para gravar amostras das trilhas e nos testes. |
+| `TRILHAS` | constante (exportada) | Nomes das trilhas: menu e terrenos. |
 | `agendar()` | função | Agenda as notas que caem nos próximos ANTECEDENCIA segundos. |
 | `Musica` | constante (exportada) | Música de fundo: tocar a do terreno, parar, ligar e desligar. |
 | `tocar(terreno)` | método | Começa (ou troca para) a música do terreno, com entrada suave. |
@@ -623,6 +633,7 @@ Efeitos sonoros sintetizados com WebAudio (nenhum arquivo de áudio). O navegado
 | `nota(frequencia, duracao, forma, volume, atraso, deslize)` | função | Toca uma nota curta. |
 | `ruido(duracao, volume, atraso, filtro)` | função | Toca um chiado filtrado (cartas, impactos). |
 | `Som` | constante (exportada) | Efeitos sonoros do jogo, um por acontecimento. |
+| `liberado()` | método | O navegador já liberou o som (houve um clique e o contexto está rodando)? Não cria o contexto. |
 | `truco(forca = 1)` | método | Grito de truco: tapa na mesa (baque grave e estalo), depois a fanfarra do pedido. |
 | `fanfarra()` | método | Fanfarra de vitória da mão, no espírito dos fins de fase dos jogos de 8 bits dos anos 80 (melodia original): escalas rápidas em onda quadrada subindo por três acordes, um rufar e o acorde final sustentado com o baixo. |
 | `campeao()` | método | Vitória da partida: a fanfarra seguida de um hino mais longo, com tambores. |
