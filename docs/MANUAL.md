@@ -339,6 +339,12 @@ encerrada por truco, inclua o `id` em `VALEM_SEM_MAO_COMPLETA`.
 Acrescente em `VERBETES` (`conteudo/grimorio.js`) `{ id, titulo, categoria, conceito, noJogo }`. Para
 o aviso aparecer durante a partida, chame `this.avisarVerbete('id')` no ponto certo de `efeitos.js`.
 
+Para o verbete completo, acrescente também `ideia` (comparação do dia a dia), `ondeFalha` (limites da
+comparação), `aprofundar` (a matemática; `$...$` vira fórmula na linha), `formula` (LaTeX em destaque,
+sem cifrões) e `autoria`. Use `String.raw` nos campos com LaTeX, para não precisar dobrar as barras.
+As fórmulas são desenhadas pelo KaTeX (carregado do CDN em `index.html`); sem rede, aparecem como
+código LaTeX. O verbete de Dropout é um bom modelo.
+
 ## 9. Testes e relatórios
 
 Os testes usam o executor nativo do Node (`node:test`), sem framework extra:

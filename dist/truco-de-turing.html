@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500&display=swap">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.css">
 <style>
 /**
  * Estilo dos painéis HTML do Truco de Turing (menu, regras, grimório, conquistas, sobre, avisos).
@@ -411,6 +412,14 @@ html, body { overscroll-behavior: none; }
   .camada, .folha, .aviso, .trofeu, .folha.vitoria { animation: none; }
 }
 
+/* Grimório: verbetes completos, com a matemática para se aprofundar */
+.grimorio-verbete .aprofundar { margin-top: 14px; border-top: 1px solid rgba(43, 22, 8, 0.2); padding-top: 4px; }
+.grimorio-verbete .aprofundar h3 { margin: 8px 0 4px; }
+.grimorio-verbete .katex-display { margin: 10px 0; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.grimorio-verbete .formula-bloco { margin: 10px 0; overflow-x: auto; }
+.grimorio-verbete .formula-tex { font-size: 0.92em; white-space: nowrap; }
+.grimorio-verbete .autoria { font-size: 13px; font-style: italic; color: #6b5536; }
+
 </style>
 <!-- /empacotar:cabecalho -->
 </head>
@@ -427,6 +436,7 @@ html, body { overscroll-behavior: none; }
     <span>O jogo é feito para a tela na horizontal. Vire o aparelho para começar.</span>
   </div>
 </div>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.19.1/dist/katex.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.80.1/phaser.min.js"></script>
 <script>
 (() => {
@@ -758,36 +768,61 @@ html, body { overscroll-behavior: none; }
       id: "tunagem",
       titulo: "Tunagem (ajuste fino)",
       categoria: "A\xE7\xE3o",
-      conceito: "Fine-tuning \xE9 continuar treinando um modelo para refor\xE7ar o que ele j\xE1 sabe fazer. Ajustar demais um mesmo componente, por\xE9m, deixa o modelo fr\xE1gil e especializado.",
-      noJogo: "Empilhe uma carta de mesma figura no seu \xFAltimo neur\xF4nio oculto: a carta soma \xE0 rede (figuras ganham +10). O risco: um neur\xF4nio com 2 cartas fica a uma carta do early stop."
+      autoria: "Suzy Arcanjo",
+      ideia: "Um m\xFAsico que j\xE1 toca bem e passa a ensaiar s\xF3 uma m\xFAsica espec\xEDfica para um show. Ele n\xE3o reaprende a tocar: s\xF3 ajusta o que j\xE1 sabe.",
+      conceito: 'Fine-tuning \xE9 pegar um modelo que j\xE1 foi treinado e continuar o treino com dados de uma tarefa mais espec\xEDfica, com passos pequenos, para n\xE3o estragar o que ele j\xE1 aprendeu. Ajustar demais tem risco: o modelo pode ficar bom s\xF3 naquele caso (overfitting) ou "esquecer" o que sabia antes.',
+      noJogo: "Coloque 1 carta de mesmo valor sobre o seu \xFAltimo neur\xF4nio oculto. A carta nova soma pontos (um 6 sobre um 6 vale 12; sobre uma figura, soma 10). Cuidado: se a pilha chegar a 3 cartas, \xE9 early stop na sua pr\xF3pria rede; com 4, stack overflow.",
+      ondeFalha: 'Na vida real, o ajuste fino mexe nos pesos do modelo inteiro (ou de v\xE1rias camadas), n\xE3o "empilha" uma c\xF3pia num \xFAnico neur\xF4nio.',
+      aprofundar: String.raw`Cada passo de treino ajusta os pesos $w$ na direção que diminui o erro $L$ nos dados novos, com uma taxa de aprendizado $\eta$ pequena:`,
+      formula: String.raw`w \leftarrow w - \eta \, \nabla L_{\text{novo}}(w)`
     },
     {
       id: "overfit",
-      titulo: "Overfitting",
+      titulo: "Overfitting (sobreajuste)",
       categoria: "A\xE7\xE3o",
-      conceito: "Sobreajuste \xE9 quando o modelo decora o conjunto de treino, inclusive o ru\xEDdo, e generaliza mal para dados novos. \xC9 combatido com regulariza\xE7\xE3o, mais dados e dropout.",
-      noJogo: "Coloque uma carta de mesma figura sobre o \xFAltimo neur\xF4nio oculto do advers\xE1rio: ele sofre dropout for\xE7ado, o neur\xF4nio vai para o cemit\xE9rio e a rede dele recua uma camada."
+      autoria: "Suzy Arcanjo",
+      ideia: "Um aluno que decora o gabarito das provas antigas em vez de entender a mat\xE9ria. Nas quest\xF5es repetidas tira 10; quando a prova muda, erra tudo.",
+      conceito: "A rede fica ajustada demais aos exemplos de treino, decorando at\xE9 detalhes sem import\xE2ncia e ru\xEDdos. Vai bem nos dados que j\xE1 viu e mal em dados novos. \xC9 um defeito do pr\xF3prio treino; os rem\xE9dios usuais s\xE3o mais dados, uma rede mais simples, regulariza\xE7\xE3o, dropout e early stopping.",
+      noJogo: "Se voc\xEA tem na m\xE3o uma carta de mesmo valor que o \xFAltimo neur\xF4nio oculto do advers\xE1rio, pode coloc\xE1-la sobre ele. A pilha fica com 2 cartas: o neur\xF4nio vai para o cemit\xE9rio e a rede do advers\xE1rio recua uma camada.",
+      ondeFalha: 'Na vida real ningu\xE9m "ataca" uma rede com overfitting, e o rem\xE9dio n\xE3o \xE9 apagar o neur\xF4nio, e sim mais dados ou regulariza\xE7\xE3o.',
+      aprofundar: String.raw`O sinal típico é o erro de treino continuar caindo enquanto o erro em dados novos (validação) começa a subir. Um remédio clássico é a regularização, que soma ao erro uma "multa" quando os pesos crescem demais ($\lambda$ controla a força dessa multa):`,
+      formula: String.raw`L(w) = \frac{1}{n}\sum_{i=1}^{n} (y_i - \hat{y}_i)^2 + \lambda \sum_j w_j^2`
     },
     {
       id: "dropout",
       titulo: "Dropout",
       categoria: "A\xE7\xE3o",
-      conceito: "Dropout (Srivastava et al., 2014) desliga neur\xF4nios aleat\xF3rios durante o treino. A rede deixa de depender de poucos caminhos e generaliza melhor.",
-      noJogo: "GatoNet: pague 1 carta da m\xE3o por camada oculta para desvirar seus \xFAltimos neur\xF4nios e tentar outro caminho. N\xE3o gasta o turno. Os neur\xF4nios desvirados ficam marcados, e todos lembram o valor deles."
+      autoria: "Suzy Arcanjo",
+      ideia: "Num trabalho em grupo, um aluno faz tudo e os outros se encostam. Se o professor sortear, a cada aula, alguns alunos para ficarem de fora, todo mundo precisa aprender tudo, e o grupo fica forte mesmo quando algu\xE9m falta.",
+      conceito: "Durante o treino, a cada rodada, alguns neur\xF4nios s\xE3o desligados ao acaso (Srivastava et al., 2014). Assim a rede n\xE3o depende demais de poucos neur\xF4nios e generaliza melhor: \xE9 um rem\xE9dio contra o overfitting. Depois do treino, todos os neur\xF4nios ficam ligados.",
+      noJogo: "GatoNet: pague 1 carta da m\xE3o para cada camada oculta que quiser desfazer na sua rede, da \xFAltima para tr\xE1s, e volte a escolher a partir da camada anterior. Os neur\xF4nios desfeitos voltam \xE0 mesa virados e sem dono, e todos lembram o valor deles; cartas de tunagem empilhadas v\xE3o para o cemit\xE9rio. N\xE3o gasta a vez; no desempate, vence quem fez menos dropouts.",
+      ondeFalha: "Na vida real o sorteio \xE9 ao acaso, o neur\xF4nio volta a funcionar na rodada seguinte e n\xE3o h\xE1 custo. No jogo, voc\xEA escolhe quais camadas desfazer, paga com cartas da m\xE3o e o neur\xF4nio desfeito pode ser ativado por qualquer jogador.",
+      aprofundar: String.raw`Cada neurônio $i$ recebe um sorteio $m_i$, que vale 1 (fica ligado) com probabilidade $p$ ou 0 (é desligado). Dividir por $p$ compensa os neurônios desligados:`,
+      formula: String.raw`m_i \sim \text{Bernoulli}(p), \qquad \tilde{h}_i = \frac{m_i \, h_i}{p}`
     },
     {
       id: "earlystop",
-      titulo: "Early stopping",
+      titulo: "Early stopping (parada antecipada)",
       categoria: "A\xE7\xE3o",
-      conceito: "Parada antecipada interrompe o treino quando o erro de valida\xE7\xE3o para de cair. Bom para evitar sobreajuste, ruim se acontecer cedo demais.",
-      noJogo: "Fa\xE7a um neur\xF4nio da fronteira do advers\xE1rio ter 3 cartas empilhadas: ele vai para o cemit\xE9rio e a rede do advers\xE1rio \xE9 finalizada ali mesmo, com a soma que tiver."
+      autoria: "Suzy Arcanjo",
+      ideia: "Quem estuda para uma prova at\xE9 tarde da noite chega a um ponto em que continuar s\xF3 cansa e piora. O melhor \xE9 parar na hora certa.",
+      conceito: "Durante o treino, acompanha-se o erro em dados que a rede n\xE3o usa para aprender (valida\xE7\xE3o). Quando esse erro para de melhorar por algumas rodadas seguidas, o treino \xE9 interrompido e guarda-se a melhor vers\xE3o da rede. \xC9 uma prote\xE7\xE3o contra o overfitting.",
+      noJogo: "Coloque 1 ou 2 cartas de mesmo valor sobre o \xFAltimo neur\xF4nio oculto do advers\xE1rio, deixando a pilha com 3 cartas: o neur\xF4nio vai para o cemit\xE9rio e a rede dele \xE9 finalizada ali, com a soma que tiver. Tamb\xE9m d\xE1 para sofrer early stop na pr\xF3pria rede, tunando demais o mesmo neur\xF4nio.",
+      ondeFalha: "Na vida real, parar cedo \xE9 uma escolha de quem treina, para proteger a rede. No jogo, virou uma puni\xE7\xE3o aplicada pelo advers\xE1rio.",
+      aprofundar: String.raw`Escolhe-se a rodada (época) $t^*$ em que o erro de validação foi o menor; se ele não melhorar por $P$ épocas seguidas (a "paciência"), o treino para:`,
+      formula: String.raw`t^* = \arg\min_{t} \; L_{\text{val}}(t)`
     },
     {
       id: "stackoverflow",
-      titulo: "Stack overflow",
+      titulo: "Stack overflow (estouro de pilha)",
       categoria: "A\xE7\xE3o",
-      conceito: "Estouro de pilha \xE9 quando uma recurs\xE3o nunca termina. Em redes profundas, o primo \xE9 a explos\xE3o de gradientes: valores crescem at\xE9 virar NaN. A cura costuma ser gradient clipping.",
-      noJogo: "Quatro cartas no mesmo neur\xF4nio: al\xE9m do early stop, a v\xEDtima perde todas as cartas da m\xE3o. O jogo acaba para ela."
+      autoria: "Suzy Arcanjo",
+      ideia: "Empilhar pratos sem parar. Uma hora a pilha passa do limite e desaba.",
+      conceito: 'N\xE3o \xE9 um conceito de redes neurais, e sim um erro cl\xE1ssico de programa\xE7\xE3o. Quando uma fun\xE7\xE3o chama a si mesma (recurs\xE3o), cada chamada ocupa um espa\xE7o numa "pilha" de mem\xF3ria. Se as chamadas nunca param, a pilha estoura o limite e o programa trava.',
+      noJogo: "Coloque 2 ou 3 cartas de mesmo valor sobre o \xFAltimo neur\xF4nio oculto do advers\xE1rio, deixando a pilha com 4 cartas: al\xE9m do early stop, ele perde todas as cartas da m\xE3o.",
+      ondeFalha: 'Aqui n\xE3o h\xE1 conceito de machine learning por tr\xE1s: \xE9 uma piada de programador, a pilha de 4 cartas "estoura". O parente mais pr\xF3ximo em redes profundas \xE9 a explos\xE3o de gradientes, quando os valores crescem a cada camada at\xE9 virar NaN.',
+      aprofundar: String.raw`A recursão precisa de um caso de parada. O fatorial, por exemplo, para em $0! = 1$. Sem essa linha, as chamadas nunca terminariam e a pilha estouraria:`,
+      formula: String.raw`n! = n \cdot (n-1)!, \qquad 0! = 1`
     },
     {
       id: "vanishing",
@@ -798,10 +833,15 @@ html, body { overscroll-behavior: none; }
     },
     {
       id: "transfer",
-      titulo: "Transfer learning",
+      titulo: "Transfer learning (aprendizado por transfer\xEAncia)",
       categoria: "A\xE7\xE3o",
-      conceito: "Aprendizado por transfer\xEAncia reaproveita um modelo pr\xE9-treinado em outra tarefa, trocando s\xF3 o que precisa. Economiza dados e tempo de treino.",
-      noJogo: "Com quatro cartas iguais na m\xE3o, troque-as por quatro cartas do limbo. Uma vez por m\xE3o."
+      autoria: "Suzy Arcanjo",
+      ideia: "Quem j\xE1 sabe andar de bicicleta aprende a andar de moto mais r\xE1pido, porque aproveita o equil\xEDbrio que j\xE1 tem.",
+      conceito: "Reaproveita-se uma rede j\xE1 treinada numa tarefa (por exemplo, reconhecer milh\xF5es de fotos) para uma tarefa parecida (por exemplo, reconhecer ra\xE7as de cachorro). Normalmente as primeiras camadas, que aprenderam coisas gerais, s\xE3o mantidas, e s\xF3 as \xFAltimas s\xE3o treinadas de novo. Isso poupa dados e tempo.",
+      noJogo: "Com 4 cartas de mesmo valor na m\xE3o, revele-as e troque-as por 4 cartas do limbo. S\xF3 uma vez por m\xE3o, e gasta a vez.",
+      ondeFalha: "A liga\xE7\xE3o \xE9 fraca. No jogo voc\xEA descarta cartas e recebe outras ao acaso; na vida real, voc\xEA reaproveita o conhecimento que j\xE1 existe. O ponto em comum \xE9 usar algo que vem de fora.",
+      aprofundar: String.raw`A rede da tarefa B começa com os pesos $\theta_A$ aprendidos na tarefa A, que ficam "congelados" na parte $g$; só a parte final $h$ é treinada com os dados da tarefa B:`,
+      formula: String.raw`\min_{\theta_h} \; L_B\big(h_{\theta_h}(g_{\theta_A}(x))\big)`
     },
     {
       id: "ruido",
@@ -5126,7 +5166,37 @@ html, body { overscroll-behavior: none; }
     return abrirPainel(html, { fechaAoClicarFora: true, aoFechar });
   }
 
+  // src/interface/formulas.js
+  var FORMULA = /\$\$([\s\S]+?)\$\$|\$([^$]+?)\$/g;
+  function formulaHtml(tex, destaque, katex = globalThis.katex) {
+    if (katex && typeof katex.renderToString === "function") {
+      try {
+        return katex.renderToString(tex, { displayMode: destaque, throwOnError: false, output: "htmlAndMathml" });
+      } catch (e) {
+      }
+    }
+    const codigo = '<code class="formula-tex">' + escaparHtml(tex) + "</code>";
+    return destaque ? '<div class="formula-bloco">' + codigo + "</div>" : codigo;
+  }
+  function textoComFormulas(texto, katex = globalThis.katex) {
+    let html = "", ultimo = 0;
+    for (const m of String(texto).matchAll(FORMULA)) {
+      html += escaparHtml(texto.slice(ultimo, m.index));
+      html += m[1] !== void 0 ? formulaHtml(m[1].trim(), true, katex) : formulaHtml(m[2].trim(), false, katex);
+      ultimo = m.index + m[0].length;
+    }
+    return html + escaparHtml(String(texto).slice(ultimo));
+  }
+
   // src/interface/telas/grimorio.js
+  function secao(rotulo, texto, classe = "") {
+    if (!texto) return "";
+    return "<p" + (classe ? ' class="' + classe + '"' : "") + "><b>" + rotulo + ":</b> " + textoComFormulas(texto) + "</p>";
+  }
+  function htmlDoVerbete(v) {
+    if (!v.ideia) return "<p>" + textoComFormulas(v.conceito) + "</p>" + secao("No jogo", v.noJogo, "no-jogo");
+    return secao("A ideia", v.ideia) + secao("Na vida real", v.conceito) + secao("No jogo", v.noJogo, "no-jogo") + secao("Onde a compara\xE7\xE3o falha", v.ondeFalha) + (v.aprofundar ? '<div class="aprofundar"><h3>Para se aprofundar</h3><p>' + textoComFormulas(v.aprofundar) + "</p>" + (v.formula ? textoComFormulas("$$" + v.formula + "$$") : "") + "</div>" : "") + (v.autoria ? '<p class="autoria">Verbete redigido por ' + escaparHtml(v.autoria) + ".</p>" : "");
+  }
   function abrirGrimorio(app, idInicial, aoFechar) {
     const html = '<div class="folha"><button class="fechar-x" data-fechar aria-label="Fechar">\xD7</button><h2>Grim\xF3rio de conceitos</h2><p>Cada mec\xE2nica do jogo \xE9 um conceito de aprendizado de m\xE1quina. Os verbetes aparecem destacados quando acontecem na mesa.</p><div class="grimorio"><nav class="grimorio-lista" id="g-lista"></nav><article class="grimorio-verbete" id="g-verbete"></article></div></div>';
     const painel = abrirPainel(html, { fechaAoClicarFora: true, aoFechar });
@@ -5139,7 +5209,7 @@ html, body { overscroll-behavior: none; }
     function mostrar(id) {
       const v = VERBETES.find((x) => x.id === id) || VERBETES[0];
       app.marcarVerbeteLido(v.id);
-      artigo.innerHTML = '<div class="categoria">' + escaparHtml(v.categoria) + "</div><h2>" + escaparHtml(v.titulo) + "</h2><p>" + escaparHtml(v.conceito) + '</p><p class="no-jogo"><b>No jogo:</b> ' + escaparHtml(v.noJogo) + "</p>";
+      artigo.innerHTML = '<div class="categoria">' + escaparHtml(v.categoria) + "</div><h2>" + escaparHtml(v.titulo) + "</h2>" + htmlDoVerbete(v);
       desenharLista(v.id);
     }
     mostrar(idInicial || VERBETES[0].id);

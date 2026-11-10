@@ -15,7 +15,8 @@ import { chromium, devices } from 'playwright';
 
 export const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const PHASER = readFileSync(join(RAIZ, 'node_modules/phaser/dist/phaser.min.js'));
-const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml' };
+const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.woff': 'font/woff', '.ttf': 'font/ttf' };
+const KATEX = join(RAIZ, 'node_modules/katex/dist');
 
 /** Sobe um servidor de arquivos estáticos na raiz do projeto, numa porta livre. */
 export async function subirServidor() {
@@ -55,6 +56,11 @@ export async function abrirJogo(base, opcoes = {}) {
   pagina.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) erros.push(m.text()); });
   await pagina.route(/cdnjs\.cloudflare\.com/, (r) => r.fulfill({ body: PHASER, contentType: 'text/javascript' }));
   await pagina.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ body: '', contentType: 'text/css' }));
+  /* KaTeX (fórmulas do Grimório) vem do node_modules, sem depender da rede */
+  await pagina.route(/cdn\.jsdelivr\.net\/npm\/katex@[^/]+\/dist\//, async (r) => {
+    const arquivo = new URL(r.request().url()).pathname.replace(/^.*\/dist\//, '');
+    try { await r.fulfill({ body: await readFile(join(KATEX, arquivo)), contentType: TIPOS[extname(arquivo)] || 'application/octet-stream' }); } catch (e) { await r.fulfill({ status: 404, body: '' }); }
+  });
   const medirCobertura = !!process.env.NODE_V8_COVERAGE;
   if (medirCobertura) await pagina.coverage.startJSCoverage({ resetOnNavigation: false, reportAnonymousFunctions: true });
   await pagina.goto(base + '/index.html' + (opcoes.consulta || ''));

@@ -445,7 +445,7 @@ Dicas de jogo do modo "dicas": como jogar bem e o conceito de redes neurais por 
 
 ## `src/conteudo/grimorio.js`
 
-Grimório: cada mecânica do jogo explicada como conceito de aprendizado de máquina. Cada verbete tem `id`, `titulo`, `categoria`, `conceito` (o que é em ML) e `noJogo` (como aparece na mesa). A mesa mostra o verbete como aviso na primeira vez que a mecânica acontece.
+Grimório: cada mecânica do jogo explicada como conceito de aprendizado de máquina. Cada verbete tem `id`, `titulo`, `categoria`, `conceito` (o que é em ML) e `noJogo` (como aparece na mesa). A mesa mostra o verbete como aviso na primeira vez que a mecânica acontece. Verbetes completos têm ainda `ideia` (comparação do dia a dia), `ondeFalha` (limites da comparação), `aprofundar` (a matemática, com `$...$` para LaTeX na linha), `formula` (LaTeX em destaque) e `autoria`.
 
 ## `src/conteudo/progresso.js`
 
@@ -467,6 +467,16 @@ Textos de ambientação das cartas e falas dos oponentes.
 | `AMBIENTACAO` | constante (exportada) | Frase em itálico na caixa de texto de cada carta (por valor, ou pelo nome da manilha). |
 | `PROVOCACOES` | constante (exportada) | Falas dos oponentes por situação. |
 | `provocar(situacao)` | função (exportada) | Sorteia uma fala da situação. |
+
+## `src/interface/formulas.js`
+
+Texto com fórmulas em LaTeX para os painéis HTML: `$...$` no meio da frase e `$$...$$` em destaque. Usa o KaTeX carregado pela página (global `katex`); sem ele, mostra o LaTeX como código, para o texto continuar legível offline.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `FORMULA` | constante | Trechos `$$...$$` (destaque) ou `$...$` (na linha). |
+| `formulaHtml(tex, destaque, katex = globalThis.katex)` | função (exportada) | Uma fórmula em HTML. |
+| `textoComFormulas(texto, katex = globalThis.katex)` | função (exportada) | Texto em HTML, com o texto comum escapado e as fórmulas renderizadas. |
 
 ## `src/interface/menu.js`
 
@@ -549,6 +559,8 @@ Tela do Grimório: lista de verbetes à esquerda e o verbete escolhido à direit
 
 | Nome | Tipo | Descrição |
 |---|---|---|
+| `secao(rotulo, texto, classe = '')` | função | Parágrafo com rótulo em negrito, se houver texto. |
+| `htmlDoVerbete(v)` | função (exportada) | Corpo do verbete. Os verbetes completos têm a ideia, o conceito, a jogada, onde a comparação falha e a matemática; os curtos, só o conceito e a jogada. |
 | `abrirGrimorio(app, idInicial, aoFechar)` | função (exportada) | Abre o Grimório. |
 | `desenharLista(ativo)` | função | Desenha a lista com o verbete ativo destacado. |
 | `mostrar(id)` | função | Mostra um verbete e o marca como lido. |
