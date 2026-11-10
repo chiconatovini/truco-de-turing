@@ -13,7 +13,8 @@ const { Som, contextoDeAudio } = await import('../../src/interface/som.js');
 const { Musica } = await import('../../src/interface/musica.js');
 const { abrirMenu } = await import('../../src/interface/menu.js');
 const { abrirRegras } = await import('../../src/interface/telas/regras.js');
-const { abrirGrimorio } = await import('../../src/interface/telas/grimorio.js');
+const { abrirGrimorio, htmlDoVerbete } = await import('../../src/interface/telas/grimorio.js');
+const { textoComFormulas, formulaHtml } = await import('../../src/interface/formulas.js');
 const { abrirConquistas, medalhaHtml } = await import('../../src/interface/telas/conquistas.js');
 const { abrirSobre } = await import('../../src/interface/telas/sobre.js');
 const { abrirRevisao } = await import('../../src/interface/telas/revisao.js');
@@ -172,6 +173,23 @@ describe('telas', () => {
     assert.ok(app.progresso.lidos[VERBETES[0].id] && app.progresso.lidos.dropout);
     assert.ok($$('#g-lista .lido').length >= 2);
     abrirGrimorio(app, 'nao-existe');
+  });
+  it('grimório: verbete completo mostra ideia, onde falha, matemática e autoria', () => {
+    const app = appFalso();
+    abrirGrimorio(app, 'dropout');
+    const texto = $('#g-verbete').textContent;
+    for (const trecho of ['A ideia', 'Na vida real', 'No jogo', 'Onde a comparação falha', 'Para se aprofundar', 'Suzy Arcanjo']) assert.match(texto, new RegExp(trecho));
+    assert.ok($('#g-verbete .formula-bloco, #g-verbete .katex-display'));
+    const curto = htmlDoVerbete(VERBETES.find((v) => !v.ideia));
+    assert.doesNotMatch(curto, /A ideia|Para se aprofundar/);
+  });
+  it('fórmulas: KaTeX quando existe, LaTeX escapado como código quando não', () => {
+    const semKatex = textoComFormulas('peso $w<1$ e $$a \\cdot b$$ fim', null);
+    assert.match(semKatex, /peso <code class="formula-tex">w&lt;1<\/code> e <div class="formula-bloco"><code class="formula-tex">a \\cdot b<\/code><\/div> fim/);
+    const katex = { renderToString: (tex, o) => '[' + (o.displayMode ? 'D' : 'L') + ':' + tex + ']' };
+    assert.equal(textoComFormulas('x $a$ y $$b$$', katex), 'x [L:a] y [D:b]');
+    assert.match(formulaHtml('c', false, { renderToString: () => { throw new Error('ruim'); } }), /formula-tex/);
+    assert.equal(textoComFormulas('sem fórmula <b>', null), 'sem fórmula &lt;b&gt;');
   });
   it('conquistas: medalhas bloqueadas e desbloqueadas, contagem e retrato', async () => {
     const app = appFalso();

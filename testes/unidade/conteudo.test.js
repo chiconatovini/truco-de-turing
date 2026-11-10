@@ -23,6 +23,16 @@ describe('grimorio.js', () => {
     assert.equal(new Set(VERBETES.map((v) => v.id)).size, VERBETES.length);
     for (const v of VERBETES) assert.ok(v.titulo && v.categoria && v.conceito && v.noJogo, v.id);
   });
+  it('verbetes completos: ideia, onde a comparação falha, matemática com LaTeX balanceado e autoria', () => {
+    const completos = VERBETES.filter((v) => v.ideia);
+    assert.ok(completos.length >= 6);
+    for (const v of completos) {
+      assert.ok(v.ondeFalha && v.aprofundar && v.formula && v.autoria, v.id);
+      for (const campo of ['ideia', 'conceito', 'noJogo', 'ondeFalha', 'aprofundar']) {
+        assert.equal((v[campo].match(/\$/g) || []).length % 2, 0, v.id + '.' + campo + ': cifrões sem par');
+      }
+    }
+  });
 });
 
 describe('textos.js', () => {

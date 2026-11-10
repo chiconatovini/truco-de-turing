@@ -29,6 +29,10 @@ describe('menu e telas', () => {
         if (botao === '#m-grimorio') {
           await pagina.click('#g-lista button >> nth=3');
           assert.equal(await pagina.locator('#g-lista .lido').count(), 2);
+          await pagina.click('#g-lista button[data-id="dropout"]');
+          await pagina.waitForSelector('#g-verbete .katex-display');
+          assert.match(await pagina.locator('#g-verbete').textContent(), /Para se aprofundar/);
+          await capturar(pagina, '01b-grimorio-formulas');
         }
         if (botao === '#m-conquistas') { await pagina.waitForSelector('#c-retrato canvas'); await capturar(pagina, '02-conquistas'); }
         if (botao === '#m-sobre') assert.match(await pagina.locator('.versao').textContent(), /Versão \d+\.\d+\.\d+/);

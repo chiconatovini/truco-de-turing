@@ -4,6 +4,30 @@
  */
 import { VERBETES } from '../../conteudo/grimorio.js';
 import { abrirPainel, escaparHtml } from '../paineis.js';
+import { textoComFormulas } from '../formulas.js';
+
+/** Parágrafo com rótulo em negrito, se houver texto. */
+function secao(rotulo, texto, classe = '') {
+  if (!texto) return '';
+  return '<p' + (classe ? ' class="' + classe + '"' : '') + '><b>' + rotulo + ':</b> ' + textoComFormulas(texto) + '</p>';
+}
+
+/**
+ * Corpo do verbete. Os verbetes completos têm a ideia, o conceito, a jogada, onde a comparação
+ * falha e a matemática; os curtos, só o conceito e a jogada.
+ * @param {object} v Verbete de `VERBETES`.
+ * @returns {string}
+ */
+export function htmlDoVerbete(v) {
+  if (!v.ideia) return '<p>' + textoComFormulas(v.conceito) + '</p>' + secao('No jogo', v.noJogo, 'no-jogo');
+  return secao('A ideia', v.ideia) +
+    secao('Na vida real', v.conceito) +
+    secao('No jogo', v.noJogo, 'no-jogo') +
+    secao('Onde a comparação falha', v.ondeFalha) +
+    (v.aprofundar ? '<div class="aprofundar"><h3>Para se aprofundar</h3><p>' + textoComFormulas(v.aprofundar) + '</p>' +
+      (v.formula ? textoComFormulas('$$' + v.formula + '$$') : '') + '</div>' : '') +
+    (v.autoria ? '<p class="autoria">Verbete redigido por ' + escaparHtml(v.autoria) + '.</p>' : '');
+}
 
 /**
  * Abre o Grimório.
@@ -32,7 +56,7 @@ export function abrirGrimorio(app, idInicial, aoFechar) {
     const v = VERBETES.find((x) => x.id === id) || VERBETES[0];
     app.marcarVerbeteLido(v.id);
     artigo.innerHTML = '<div class="categoria">' + escaparHtml(v.categoria) + '</div><h2>' + escaparHtml(v.titulo) + '</h2>' +
-      '<p>' + escaparHtml(v.conceito) + '</p><p class="no-jogo"><b>No jogo:</b> ' + escaparHtml(v.noJogo) + '</p>';
+      htmlDoVerbete(v);
     desenharLista(v.id);
   }
 

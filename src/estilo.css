@@ -398,3 +398,11 @@ html, body { overscroll-behavior: none; }
 @media (prefers-reduced-motion: reduce) {
   .camada, .folha, .aviso, .trofeu, .folha.vitoria { animation: none; }
 }
+
+/* Grimório: verbetes completos, com a matemática para se aprofundar */
+.grimorio-verbete .aprofundar { margin-top: 14px; border-top: 1px solid rgba(43, 22, 8, 0.2); padding-top: 4px; }
+.grimorio-verbete .aprofundar h3 { margin: 8px 0 4px; }
+.grimorio-verbete .katex-display { margin: 10px 0; overflow-x: auto; overflow-y: hidden; padding: 4px 0; }
+.grimorio-verbete .formula-bloco { margin: 10px 0; overflow-x: auto; }
+.grimorio-verbete .formula-tex { font-size: 0.92em; white-space: nowrap; }
+.grimorio-verbete .autoria { font-size: 13px; font-style: italic; color: #6b5536; }
