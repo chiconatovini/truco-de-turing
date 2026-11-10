@@ -1,7 +1,7 @@
 # Truco de Turing
 
 <!-- versao -->
-**Versão 1.2.0** (2026-11-09) · [histórico de versões](CHANGELOG.md)
+**Versão 1.2.1** (2026-11-10) · [histórico de versões](CHANGELOG.md)
 <!-- /versao -->
 
 Jogo de cartas para navegador, feito em **Phaser 3**, para ensinar redes neurais e deep learning jogando.

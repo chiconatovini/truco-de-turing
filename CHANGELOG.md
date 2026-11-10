@@ -2,6 +2,10 @@
 
 Cada merge na `main` gera uma versão nova (ver `ferramentas/versionar.js`).
 
+## 1.2.1 — 2026-11-10
+
+- Título da tela inicial: só "TRUCO DE TURING", letras do mesmo tamanho
+
 ## 1.2.0 — 2026-11-09
 
 - feat: mesa com só REGRAS e MENU à esquerda e botões maiores para o toque
