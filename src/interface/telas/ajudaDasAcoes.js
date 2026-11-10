@@ -6,6 +6,7 @@
 import { NeuroDeck } from '../../motor/engine.js';
 import { abrirPainel, escaparHtml } from '../paineis.js';
 import { abrirGrimorio } from './grimorio.js';
+import { ICONES_DAS_ACOES } from '../../arte/icones.js';
 
 /**
  * Ações da ajuda, na ordem da barra da mesa. `motor` é o id da ação no NeuroDeck (de onde vêm a
@@ -52,7 +53,7 @@ export function abrirAjudaDasAcoes(app, idInicial) {
   const cartoes = ACOES_DA_AJUDA.map((a) => {
     const m = doMotor(a.motor);
     return '<article class="cartao-acao" data-acao="' + a.id + '"' + (a.id === idInicial ? ' aria-current="true"' : '') + '>' +
-      '<h3>' + escaparHtml(a.nome) + '</h3>' +
+      '<h3>' + (ICONES_DAS_ACOES[a.id] ? '<span class="icone-acao">' + ICONES_DAS_ACOES[a.id] + '</span>' : '') + escaparHtml(a.nome) + '</h3>' +
       '<p><b>Regra:</b> ' + escaparHtml(m.rule || a.resumo) + '</p>' +
       '<p class="quando"><b>Quando acende:</b> ' + escaparHtml(a.quando) + '</p>' +
       (m.ml ? '<p class="em-ml"><b>Em machine learning:</b> ' + escaparHtml(m.ml) + '</p>' : '') +

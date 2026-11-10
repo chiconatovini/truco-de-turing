@@ -12,6 +12,8 @@
  * | turnos.js     | fluxo da mão: iniciar, executar jogada, vez de cada jogador         |
  * | truco.js      | pedir, anunciar e responder truco                                  |
  * | efeitos.js    | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos  |
+ * | ambiente.js   | ambiente animado do terreno (neve, neblina, vaga-lumes, ondas, vento)  |
+ * | paineis.js    | painéis de leitura: placar por camada, registro completo, cemitério  |
  * | resultado.js  | fim da mão, tentos, conquistas, comemoração e tela de resultado     |
  * | dicas.js      | modo dicas: sugestão de jogada e dicas flutuantes dos botões        |
  *
@@ -30,7 +32,7 @@ import { novaPartida } from '../../nucleo/truco.js';
 import { tamanhosDaMesa } from '../../nucleo/rede.js';
 import { definirMesa } from './layout.js';
 import { abrirRegras } from '../../interface/telas/regras.js';
-import { ajustarCamera, colocarFundo } from '../recursos.js';
+import { ajustarCamera, colocarFundo, carregarIconesDasAcoes } from '../recursos.js';
 import { metodosDoCenario } from './cenario.js';
 import { metodosDeDesenho } from './desenho.js';
 import { metodosDeEntrada } from './entrada.js';
@@ -40,6 +42,7 @@ import { metodosDeEfeitos } from './efeitos.js';
 import { metodosDoResultado } from './resultado.js';
 import { metodosDeDicas } from './dicas.js';
 import { metodosDosPaineis } from './paineis.js';
+import { metodosDoAmbiente } from './ambiente.js';
 import { Musica } from '../../interface/musica.js';
 import { esconderDicaFlutuante } from '../../interface/paineis.js';
 
@@ -60,6 +63,8 @@ export class CenaMesa extends Phaser.Scene {
 
     ajustarCamera(this);
     colocarFundo(this, this.opcoes.terreno);
+    carregarIconesDasAcoes(this);
+    this.criarAmbiente(this.opcoes.terreno);
     this.desenharCenarioFixo();
     /* camadas de desenho, da mais funda para a mais alta */
     this.camadaVazios = this.add.graphics().setDepth(1);
@@ -81,6 +86,7 @@ export class CenaMesa extends Phaser.Scene {
 
   /** A cada quadro: conexões animadas, contornos pulsantes e o destaque de quem está na vez. */
   update(tempo) {
+    this.atualizarAmbiente(tempo);
     if (!this.mao) return;
     this.desenharConexoesEAlvos(tempo);
     this.desenharDestaqueDaVez(tempo);
@@ -89,4 +95,4 @@ export class CenaMesa extends Phaser.Scene {
 
 Object.assign(CenaMesa.prototype,
   metodosDoCenario, metodosDeDesenho, metodosDeEntrada, metodosDeTurnos,
-  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas, metodosDosPaineis);
+  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas, metodosDosPaineis, metodosDoAmbiente);

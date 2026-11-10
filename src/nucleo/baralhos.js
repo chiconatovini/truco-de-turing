@@ -20,7 +20,8 @@ function montarBaralho(chave) {
 /**
  * Cada baralho tem: `nome`, `resumo` (texto do menu) e `montar()`, que gera as cartas. Opcionais:
  *  - `manilhas`: nome especial de cartas (truco), usado na arte;
- *  - `figurasValem`: as figuras valem pontos próprios e não formam par nem trio (truco).
+ *  - `figurasValem`: as figuras valem pontos próprios e não formam par nem trio (truco, nobreza);
+ *  - `forward`: a rede vale a ativação da saída, calculada camada a camada (backprop).
  */
 export const BARALHOS = {
   classico: {
@@ -32,6 +33,17 @@ export const BARALHOS = {
     resumo: 'Só as cartas do truco, em 2 baralhos (mão de 10 cartas). Manilhas: Zap (4♣) 12, Copas (7♥) 11, Espadilha (A♠) 10 e Pica-fumo (7♦) 9. Depois 3 vale 8, 2 vale 7, Ás 6, K 5, J 4 e Q 3.',
     manilhas: { '4P': 'Zap', '7C': 'Copas', AE: 'Espadilha', '7O': 'Pica-fumo' },
     figurasValem: true,
+  },
+  nobreza: {
+    nome: 'Nobreza',
+    resumo: 'Figuras valem mais: J 11, Q 12, K 13 (Ás 11). Figuras iguais vizinhas valem o dobro; quadra ainda zera a rede.',
+    figurasValem: true,
+  },
+  backprop: {
+    nome: 'Backprop',
+    resumo: 'O naipe é o peso (♠ 1,2 · ♥ 1,0 · ♣ 0,8 · ♦ 0,6), o valor é o viés e as figuras são ativações (J ReLU, Q sigmoide, K tanh). A rede vale a ativação da saída, calculada camada a camada (só o forward pass).',
+    figurasValem: true,
+    forward: true,
   },
   fraternidade: {
     nome: 'Fraternidade',

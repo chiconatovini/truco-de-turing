@@ -17,7 +17,7 @@ import { abrirGrimorio } from './grimorio.js';
 
 /** Carta de amostra de cada baralho (a que melhor mostra a arte dele). */
 const AMOSTRA = {
-  classico: { valor: 'K', naipe: 'C' }, truco: { valor: '4', naipe: 'P' }, fraternidade: { valor: 'Q', naipe: 'O' },
+  classico: { valor: 'K', naipe: 'C' }, truco: { valor: '4', naipe: 'P' }, nobreza: { valor: 'K', naipe: 'E' }, backprop: { valor: 'Q', naipe: 'C' }, fraternidade: { valor: 'Q', naipe: 'O' },
   yinyang: { valor: 'A', naipe: 'E' }, powerbi: { valor: '7', naipe: 'C' },
 };
 

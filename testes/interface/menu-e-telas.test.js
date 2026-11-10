@@ -20,7 +20,7 @@ describe('menu e telas', () => {
       assert.equal(await pagina.locator('#m-oponente option').count(), 3);
       assert.equal(await pagina.locator('#m-jogadores option').count(), 4);
       assert.equal(await pagina.locator('#m-arquitetura option').count(), 4);
-      assert.equal(await pagina.locator('#m-baralho option').count(), 5);
+      assert.equal(await pagina.locator('#m-baralho option').count(), 7);
       assert.equal(await pagina.locator('#m-terreno option').count(), 4);
       await pagina.selectOption('#m-terreno', 'oceano');
       await pagina.waitForSelector('.miniatura img');

@@ -46,6 +46,7 @@ Cartas de neurônio: dados exibidos (nome, tipo, regras, raridade), carta comple
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `dadosDaCarta(carta, baralho)` | função (exportada) | Dados que a carta mostra. regras: string, ambientacao: string, raridade: 'comum'\|'incomum'\|'rara'\|'mitica'}} |
+| `PESO_BACKPROP` | constante | Baralho Backprop: peso de cada naipe e ativação de cada figura (iguais às do motor). |
 | `RARIDADE` | constante | Cores da gema de raridade (claro, escuro). |
 | `simboloDeColecao(ctx, x, y, s, raridade)` | função (exportada) | Símbolo de coleção (gema de raridade) à direita da linha de tipo. |
 | `ilustracaoDaCarta(ctx, carta, info, x, y, w, h, aleatorio)` | função | Desenha a ilustração da janela de arte: cena com figura (J, Q, K), emblema grande (Ás e manilhas) ou emblemas repetidos (cartas numéricas). |
@@ -94,7 +95,7 @@ Retratos das figuras (Rei, Dama e Valete) no estilo do baralho espanhol. Conven�
 
 ## `src/arte/icones.js`
 
-Ícones das conquistas em SVG (nítidos em qualquer tamanho) e cadeado das bloqueadas.
+Ícones em SVG (nítidos em qualquer tamanho): conquistas, cadeado das bloqueadas e um ícone para cada ação da mesa (faixa no centro da mesa e ajuda das ações).
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -103,6 +104,7 @@ Retratos das figuras (Rei, Dama e Valete) no estilo do baralho espanhol. Conven�
 | `gato` | constante | Gato do GatoNet (dropout), base de duas conquistas. |
 | `ICONES_CONQUISTAS` | constante (exportada) | Ícone SVG de cada conquista, pelo id. |
 | `ICONE_CADEADO` | constante (exportada) | Cadeado das conquistas bloqueadas. |
+| `ICONES_DAS_ACOES` | constante (exportada) | Ícone SVG de cada ação da mesa, pelo id da barra de ações (mais `vanishing`). |
 
 ## `src/arte/mesas.js`
 
@@ -176,7 +178,7 @@ Moldura medieval do retrato do professor no quadro de conquistas.
 
 ## `src/arte/versos.js`
 
-Versos das cartas, um por baralho: clássico (damasco), truco (baralho espanhol), fraternidade (anéis), yin-yang (A e 2) e Power BI (painel de indicadores). Convenção da arte: cada função desenha em coordenadas-base e recebe `S` (densidade). O canvas resultante tem (tamanho-base × S) pixels, o que mantém a arte nítida em qualquer tela.
+Versos das cartas, um por baralho: clássico (damasco), truco (baralho espanhol), nobreza (coroa em veludo), backprop (grafo de computação), fraternidade (anéis), yin-yang (A e 2) e Power BI (painel de indicadores). Convenção da arte: cada função desenha em coordenadas-base e recebe `S` (densidade). O canvas resultante tem (tamanho-base × S) pixels, o que mantém a arte nítida em qualquer tela.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -188,6 +190,10 @@ Versos das cartas, um por baralho: clássico (damasco), truco (baralho espanhol)
 | `simboloYinYang(ctx, cx, cy, r)` | função | Yin-yang: campo dividido em preto e marfim, só Ás e Dois |
 | `versoYinYang(ctx, W, H, aleatorio)` | função | Verso do baralho yin-yang: metades clara e escura e o símbolo no centro. |
 | `versoPowerBI(ctx, W, H, aleatorio)` | função | Power BI: painel de indicadores (gráficos e um botão de atualizar), que embaralha a mão |
+| `versoNobreza(ctx, W, H, aleatorio)` | função | Nobreza: veludo púrpura com flores-de-lis e uma coroa dourada no medalhão |
+| `florDeLis(ctx, x, y, s)` | função | Flor-de-lis simples, centrada em (x, y), de tamanho s. |
+| `coroa(ctx, cx, cy, l, ouro)` | função | Coroa de três pontas com gemas, de largura l, base em (cx, cy). |
+| `versoBackprop(ctx, W, H, aleatorio)` | função | Backprop: papel de projeto azul com o grafo de computação de um neurônio (x·w + b → f → a) |
 | `desenharVerso(formato, S, baralho)` | função (exportada) | Desenha o verso do baralho. |
 
 ## `src/cenas/CenaCarregamento.js`
@@ -212,12 +218,26 @@ Cena do menu: fundo animado (uma rede neural pulsando e cartas flutuando) atrás
 
 ## `src/cenas/mesa/CenaMesa.js`
 
-Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.numJogadores`, `this.humanos`, `this.variosHumanos`: quem está na mesa (os humanos são os primeiros índices; os demais são oponentes do computador); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
+Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos | | ambiente.js | ambiente animado do terreno (neve, neblina, vaga-lumes, ondas, vento) | | paineis.js | painéis de leitura: placar por camada, registro completo, cemitério | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.numJogadores`, `this.humanos`, `this.variosHumanos`: quem está na mesa (os humanos são os primeiros índices; os demais são oponentes do computador); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `create()` | método | Monta a mesa e começa a primeira mão (depois das regras, na primeira visita). |
 | `update(tempo)` | método | A cada quadro: conexões animadas, contornos pulsantes e o destaque de quem está na vez. |
+
+## `src/cenas/mesa/ambiente.js`
+
+Parte da CenaMesa: ambiente animado de cada terreno, por cima do fundo e por baixo das cartas. Deixa claro onde a partida acontece sem competir com a mesa: - mesa neutra: poeira dourada flutuando na luz do abajur; - montanha: neve caindo, nuvens passando e o sol do entardecer pulsando; - pântano: neblina que se arrasta, vaga-lumes piscando e bolhas subindo; - oceano: ondas que correm na mesa, espuma e rajadas de vento. Tudo é desenhado por código (texturas pequenas geradas na hora). Com "reduzir movimento" no sistema, o ambiente fica parado (só as camadas de luz e cor).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `reduzirMovimento()` | função | Sistema pediu menos movimento? |
+| `criarAmbiente(terreno)` | método | Cria o ambiente do terreno da partida. |
+| `criarTexturasDoAmbiente()` | método | Texturas pequenas das partículas (uma vez por jogo). |
+| `luzDoTerreno(cor, alfa, cx = MUNDO.largura / 2, cy = MUNDO.altura * 0.4)` | método | Luz colorida por cima do fundo, para o terreno ficar mais claro e reconhecível. |
+| `nuvemEmLaco(nuvem, duracao)` | método | Nuvem que volta para a esquerda e atravessa a mesa de novo, para sempre. |
+| `desenharOndas(tempo)` | método | Ondas do oceano: seis linhas que correm devagar, mais claras perto do centro. |
+| `atualizarAmbiente(tempo)` | método | A cada quadro (CenaMesa.update): ondas do oceano. |
 
 ## `src/cenas/mesa/cenario.js`
 
@@ -309,7 +329,7 @@ Parte da CenaMesa: animações e falas. Traduz os eventos das regras (ver nucleo
 | `voarCarta(carta, x0, y0, x1, y1, atraso = 0)` | método | Uma carta voa de (x0, y0) até (x1, y1) e some. |
 | `explodir(x, y, cor, quantidade)` | método | Explosão de `quantidade` faíscas da cor dada. A faísca colorida é uma textura própria (Canvas não tem tint). |
 | `textoFlutuante(x, y, texto, cor = '#fff', tamanho = 20)` | método | Texto que sobe e desaparece. |
-| `faixa(texto, cor = '#f6dc8f', tamanho = 48)` | método | Faixa grande no centro do tabuleiro (gritos de truco, ataques). |
+| `faixa(texto, cor = '#f6dc8f', tamanho = 48, icone = null)` | método | Faixa grande no centro do tabuleiro (gritos de truco, ataques). |
 | `falar(texto, quem)` | método | Balão de fala de um oponente. Fica à esquerda do placar, na altura do bloco dele, com a ponta virada para o avatar. |
 | `impactoDoTruco(valor)` | método | Impacto do grito de truco: tapa na mesa, flash e tremor de tela mais fortes que o do stack overflow, crescendo a cada degrau (TRUCO 3, SEIS 6, NOVE 9, DOZE 12). |
 | `avisarVerbete(id)` | método | Mostra uma vez por sessão o resumo do verbete da Biblioteca de conceitos ligado ao que aconteceu. |
@@ -434,7 +454,7 @@ Recursos compartilhados pelas cenas do Phaser: texto nítido, câmera ajustada �
 | `texturaDaMesa(cena, terreno = 'neutro')` | função (exportada) | Chave da textura do fundo da mesa do terreno (mantém em memória só o neutro e o atual). |
 | `colocarFundo(cena, terreno)` | função (exportada) | Coloca o fundo da mesa (feltro ou terreno) atrás de tudo. Fica em `cena.fundo`. |
 | `texturaDoVerso(cena, uso, baralho = 'classico')` | função (exportada) | Chave da textura do verso do baralho. |
-| `texturaDaCartaNaMao(cena, carta, baralho)` | função (exportada) | Textura da carta completa no tamanho da mão. |
+| `texturaDaCartaNaMao(cena, carta, baralho)` | função (exportada) | Textura da carta no tamanho da mão: a face limpa (índices grandes, medalhão central e gema de pontos), a mesma da mesa em densidade maior. A carta completa, com tipo e texto de regras, aparece na inspeção ao passar o cursor. |
 | `texturaDaCartaMedia(cena, carta, baralho)` | função (exportada) | Textura da carta completa em tamanho médio (cartas reveladas para decidir quem começa). |
 | `texturaDaCartaNaMesa(cena, carta, baralho)` | função (exportada) | Textura da carta da mesa (neurônio). |
 | `desenhosDeInspecao` | constante | Cartas completas já desenhadas em alta densidade para a inspeção (guarda as 14 mais recentes). |
@@ -442,6 +462,7 @@ Recursos compartilhados pelas cenas do Phaser: texto nítido, câmera ajustada �
 | `texturaDeInspecao(cena, carta, baralho)` | função (exportada) | Desenha a carta na textura da inspeção e devolve a chave dela. |
 | `liberarCartasDaMao(cena)` | função (exportada) | Libera as cartas da mão da mão anterior (memória de vídeo é limitada em celulares). |
 | `retanguloNaTela(cena, x, y, l, a)` | função (exportada) | Converte um retângulo do mundo do jogo (centro x, y e tamanho l × a) em pixels da página, para posicionar elementos HTML (como as dicas flutuantes) sobre o canvas. |
+| `carregarIconesDasAcoes(cena)` | função (exportada) | Carrega os ícones das ações (SVG) como texturas `icone-acao:<id>`, em 128 px. O carregamento é assíncrono; quem usa confere `textures.exists` e segue sem o ícone se ele ainda não chegou. |
 
 ## `src/configuracao.js`
 
@@ -743,7 +764,7 @@ Baralhos do jogo e valor em pontos das cartas. As regras de cada baralho (cartas
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `montarBaralho(chave)` | função | Cartas de um baralho do motor, no formato da interface. |
-| `BARALHOS` | constante (exportada) | Cada baralho tem: `nome`, `resumo` (texto do menu) e `montar()`, que gera as cartas. Opcionais: - `manilhas`: nome especial de cartas (truco), usado na arte; - `figurasValem`: as figuras valem pontos próprios e não formam par nem trio (truco). |
+| `BARALHOS` | constante (exportada) | Cada baralho tem: `nome`, `resumo` (texto do menu) e `montar()`, que gera as cartas. Opcionais: - `manilhas`: nome especial de cartas (truco), usado na arte; - `figurasValem`: as figuras valem pontos próprios e não formam par nem trio (truco, nobreza); - `forward`: a rede vale a ativação da saída, calculada camada a camada (backprop). |
 | `pontosDaCarta(carta, baralho)` | função (exportada) | Pontos de uma carta isolada no baralho escolhido: no clássico, 2 a 10 pelo número, Ás 11 e figuras 0; no truco, o valor da carta na ordem do truco. |
 | `nomeDaCarta(carta, baralho)` | função (exportada) | Nome por extenso da carta, ou o nome da manilha ("Zap"). |
 | `manilhaDaCarta(carta, baralho)` | função (exportada) | Nome da manilha, se a carta for uma no baralho escolhido. |
@@ -846,6 +867,8 @@ Soma da rede de um jogador (o "forward pass" do jogo), calculada pelo motor do N
 |---|---|---|
 | `arredondar` | constante |  |
 | `pontuarRede(mao, j)` | função (exportada) | Calcula a soma da rede do jogador `j`. |
+| `decimal` | constante | Número com vírgula decimal e no máximo 2 casas ("1,2", "23,45"). |
+| `pontuarForward(mao, resultado)` | função | Baralho Backprop: a rede vale a ativação da saída. Cada neurônio mostra a ativação depois da camada dele (`pontos`) e, nas notas, o peso do naipe, o viés e a função de ativação. Não há combos de figuras: o vanishing gradient é a saída baixa depois de uma ativação não linear. |
 | `mediaDePontos(mao, cartas)` | função (exportada) | Média de pontos de um conjunto de cartas. |
 
 ## `src/nucleo/rede.js`
