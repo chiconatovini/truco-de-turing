@@ -480,3 +480,15 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
 .avatar-retrato .cadeado { position: absolute; inset: 22px; }
 .avatar-retrato .cadeado svg { width: 100%; height: 100%; }
 .avatar-liberado { color: #2f6b2a; }
+
+/* jogar online */
+.jogar-linha { display: grid; grid-template-columns: 2fr 1fr; gap: 10px; }
+.jogar-online { font-size: 15px; }
+.folha.online { width: min(640px, 100%); }
+.online input { width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit; border: 1.5px solid #2b1608; border-radius: 8px; background: #fff8e6; }
+.online .campos-duplos { margin: 8px 0; }
+.codigo-sala { font: 900 26px var(--fonte-titulo); letter-spacing: 0.18em; color: #6b1a22; margin-left: 8px; }
+.cadeiras { margin: 8px 0 14px; padding-left: 26px; }
+.cadeiras li { margin: 4px 0; font-weight: 700; }
+.cadeiras li.vaga { color: #9a8c6c; font-style: italic; font-weight: 400; }
+.cadeiras li.oponente { color: #5a4630; font-weight: 400; }

@@ -16,7 +16,8 @@ export const metodosDoTruco = {
   },
 
   /** Registra o pedido de `j`, grita na tela e pergunta a resposta ao outro jogador. */
-  anunciarTruco(j) {
+  anunciarTruco(j, daRede = false) {
+    if (this.online && !daRede) return this.enviarOnline({ tipo: 'truco', cadeira: j });
     pedirTruco(this.partida, j);
     this.impactoDoTruco(this.partida.pedido.para);
     this.avisarVerbete('truco');
@@ -34,6 +35,8 @@ export const metodosDoTruco = {
     const quem = 1 - pedido.por;
     const jogador = this.mao.jogadores[quem];
     const podeAumentar = proximoValor(pedido.para) != null;
+    /* online: só quem recebeu o pedido responde na própria tela; pelo computador, só o anfitrião */
+    if (this.online && (jogador.tipo === 'oponente' ? !this.souAnfitriaoOnline() : quem !== this.cadeiraOnline())) return this.esperarRede();
     if (jogador.tipo === 'oponente') {
       const resposta = responderAoTruco(this.mao, quem, jogador.oponente, pedido.para, podeAumentar);
       this.falar(provocar(resposta), quem);
@@ -56,7 +59,8 @@ export const metodosDoTruco = {
    * Aplica a resposta de `quem`.
    * @param {'aceitar'|'correr'|'aumentar'} resposta
    */
-  aplicarResposta(quem, resposta) {
+  aplicarResposta(quem, resposta, daRede = false) {
+    if (this.online && !daRede) return this.enviarOnline({ tipo: 'resposta', cadeira: quem, resposta });
     const resultado = responderTruco(this.partida, quem, resposta);
     const nome = this.mao.jogadores[quem].nome;
     const texto = { correr: nome + ' correu do truco.', aceitar: nome + ' aceitou: a mão vale ' + this.partida.valor + '.', aumentar: nome + ' pediu mais.' }[resposta];

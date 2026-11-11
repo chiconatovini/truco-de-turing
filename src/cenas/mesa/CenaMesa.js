@@ -14,6 +14,7 @@
  * | efeitos.js    | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos  |
  * | ambiente.js   | ambiente animado do terreno (neve, neblina, vaga-lumes, ondas, vento)  |
  * | paineis.js    | painéis de leitura: placar por camada, registro completo, cemitério  |
+ * | online.js     | partida online: ações pela sala, fila, vez dos outros aparelhos      |
  * | resultado.js  | fim da mão, tentos, conquistas, comemoração e tela de resultado     |
  * | dicas.js      | modo dicas: sugestão de jogada e dicas flutuantes dos botões        |
  *
@@ -43,6 +44,7 @@ import { metodosDoResultado } from './resultado.js';
 import { metodosDeDicas } from './dicas.js';
 import { metodosDosPaineis } from './paineis.js';
 import { metodosDoAmbiente } from './ambiente.js';
+import { metodosOnline } from './online.js';
 import { Musica } from '../../interface/musica.js';
 import { esconderDicaFlutuante } from '../../interface/paineis.js';
 
@@ -52,10 +54,12 @@ export class CenaMesa extends Phaser.Scene {
   /** Monta a mesa e começa a primeira mão (depois das regras, na primeira visita). */
   create() {
     this.app = Aplicacao;
-    this.opcoes = normalizarOpcoes(this.app.opcoes);
+    this.prepararOnline();
+    /* online: as opções são as da sala, iguais em todos os aparelhos; cada um vê só a própria mão */
+    this.opcoes = normalizarOpcoes(this.online ? this.online.sala.config.opcoes : this.app.opcoes);
     this.numJogadores = this.opcoes.jogadores;
-    this.humanos = this.opcoes.humanos;
-    this.variosHumanos = this.humanos > 1;
+    this.humanos = this.online ? 1 : this.opcoes.humanos;
+    this.variosHumanos = !this.online && this.humanos > 1;
     /* a geometria da mesa vale para a partida inteira: arquitetura e número de jogadores não mudam */
     definirMesa(tamanhosDaMesa(this.opcoes.arquitetura, this.numJogadores));
     this.partida = novaPartida(this.opcoes.alvo, this.numJogadores);
@@ -95,4 +99,4 @@ export class CenaMesa extends Phaser.Scene {
 
 Object.assign(CenaMesa.prototype,
   metodosDoCenario, metodosDeDesenho, metodosDeEntrada, metodosDeTurnos,
-  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas, metodosDosPaineis, metodosDoAmbiente);
+  metodosDoTruco, metodosDeEfeitos, metodosDoResultado, metodosDeDicas, metodosDosPaineis, metodosDoAmbiente, metodosOnline);

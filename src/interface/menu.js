@@ -21,6 +21,7 @@ import { abrirConquistas } from './telas/conquistas.js';
 import { abrirSobre } from './telas/sobre.js';
 import { abrirMods } from './telas/mods.js';
 import { abrirAvatares, retratoDoAvatar } from './telas/avatares.js';
+import { abrirOnline } from './telas/online.js';
 import { avatarDoJogador } from '../conteudo/avatares.js';
 
 /** Opções da lista de oponentes do computador (todos os oponentes da mesa têm o mesmo perfil). */
@@ -75,7 +76,8 @@ function htmlDoMenu(opcoes) {
     '<p>Monte uma rede neural carta por carta, da entrada à saída. Tune seus neurônios, aplique overfit no adversário, fuja do vanishing gradient e, quando sentir a mão boa, grite TRUCO.</p>' +
     '<div class="legenda"><span><i class="ponto" style="background:var(--azul)"></i><b>Azul</b> é a sua rede</span><span><i class="ponto" style="background:var(--laranja)"></i><b>Laranja</b>, verde, lilás e rosa, as dos adversários</span></div>' +
     '<div class="menu-acoes">' +
-    '<button class="botao vinho jogar" id="m-jogar" autofocus>Jogar</button>' +
+    '<div class="jogar-linha"><button class="botao vinho jogar" id="m-jogar" autofocus>Jogar</button>' +
+    '<button class="botao jogar-online" id="m-online">Jogar online</button></div>' +
     '<div class="menu-mais">' +
     '<button class="botao" id="m-regras">Como jogar</button>' +
     '<button class="botao" id="m-grimorio">Biblioteca de conceitos</button>' +
@@ -163,6 +165,7 @@ export function abrirMenu(app) {
   campo('m-grimorio').addEventListener('click', () => { lerEscolhas(); abrirGrimorio(app); });
   campo('m-conquistas').addEventListener('click', () => { lerEscolhas(); abrirConquistas(app); });
   campo('m-mods').addEventListener('click', () => { lerEscolhas(); abrirMods(); });
+  campo('m-online').addEventListener('click', () => { Som.desbloquear(); lerEscolhas(); abrirOnline(app); });
   /* avatar: o retrato atual no botão; a tela de escolha troca e atualiza o botão */
   const mostrarAvatar = () => { const img = campo('m-avatar-img'), src = retratoDoAvatar(avatarDoJogador(app.progresso)); if (img && src) img.src = src; };
   mostrarAvatar();

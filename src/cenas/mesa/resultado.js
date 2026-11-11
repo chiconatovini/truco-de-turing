@@ -188,7 +188,7 @@ export const metodosDoResultado = {
     });
     painel.elemento.querySelector('#r-proxima').addEventListener('click', () => {
       painel.fechar();
-      if (partidaAcabou) { this.partida = novaPartida(this.opcoes.alvo, this.numJogadores); this.historicoDaPartida = []; }
+      if (partidaAcabou) { this.partida = novaPartida(this.opcoes.alvo, this.numJogadores); this.historicoDaPartida = []; if (this.online) this.partidasOnline++; }
       else proximaMao(this.partida);
       this.iniciarMao();
     });

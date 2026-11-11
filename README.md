@@ -160,10 +160,27 @@ learning, ruído, Monte Carlo, mudança de distribuição (terrenos como weight 
 incerteza (truco). Cada verbete traz a equação, uma figura quando ajuda, como aparece no jogo e até onde a comparação
 vale. O botão "?" da mesa abre a ajuda das ações, com a regra de cada jogada e um botão "Ver o conceito".
 
-## Ideias de extensão
+## Jogar online
 
-Próximas etapas da fusão: carregar mods na interface (o motor já tem o registro de baralhos, terrenos e ações),
-contas e partidas online (o estado é serializável).
+Botão **Jogar online** no menu:
+
+- **Conta**: entrar com Google ou e-mail e senha guarda conquistas, avatares e progresso na conta,
+  que vale em qualquer aparelho; o progresso do aparelho e o da conta se juntam sem contar nada em dobro.
+- **Sala**: quem cria a sala escolhe quantas pessoas vão jogar e passa o código de 5 letras; as
+  cadeiras que sobrarem ficam com o computador. A sala usa as opções do menu, e o truco vale entre 2 jogadores.
+- **Como funciona**: todos os aparelhos criam a mesma mão com a mesma semente e aplicam as mesmas
+  ações na mesma ordem, numerada pelo anfitrião (`src/online/sala.js`). Quem cai vira computador
+  no mesmo ponto em todas as telas; se o anfitrião sai, a próxima pessoa assume a sala. Quem
+  recarrega a aba volta à mesma cadeira.
+- **Onde roda**: pela internet, com o projeto Firebase do grupo (`src/online/configuracao.js`,
+  regras em `firestore.rules`); sem login, a sala funciona entre abas e janelas do mesmo navegador.
+
+Limite conhecido: cada aparelho tem o estado completo da mão (é assim que a sincronia funciona sem
+servidor próprio), então quem abrir o console do navegador consegue ver as cartas dos outros.
+
+## Próximos passos
+
+Carregar mods na interface (o motor já tem o registro de baralhos, terrenos e ações).
 
 ## Licença
 

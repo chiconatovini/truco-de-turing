@@ -221,7 +221,7 @@ Cena do menu: fundo animado (uma rede neural pulsando e cartas flutuando) atrás
 
 ## `src/cenas/mesa/CenaMesa.js`
 
-Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos | | ambiente.js | ambiente animado do terreno (neve, neblina, vaga-lumes, ondas, vento) | | paineis.js | painéis de leitura: placar por camada, registro completo, cemitério | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.numJogadores`, `this.humanos`, `this.variosHumanos`: quem está na mesa (os humanos são os primeiros índices; os demais são oponentes do computador); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
+Cena da mesa: onde a partida acontece. A classe é pequena de propósito. Os métodos ficam em arquivos separados por assunto e são copiados para o protótipo no fim deste arquivo: | Arquivo | Assunto | |---------------|--------------------------------------------------------------------| | cenario.js | molduras fixas, botões e criação dos textos dos painéis | | desenho.js | desenhar o estado: neurônios, mãos, placar, curva, dica, alvos | | entrada.js | cliques e toques do jogador | | turnos.js | fluxo da mão: iniciar, executar jogada, vez de cada jogador | | truco.js | pedir, anunciar e responder truco | | efeitos.js | animações dos eventos, faíscas, faixas, balão e avisos da Biblioteca de conceitos | | ambiente.js | ambiente animado do terreno (neve, neblina, vaga-lumes, ondas, vento) | | paineis.js | painéis de leitura: placar por camada, registro completo, cemitério | | online.js | partida online: ações pela sala, fila, vez dos outros aparelhos | | resultado.js | fim da mão, tentos, conquistas, comemoração e tela de resultado | | dicas.js | modo dicas: sugestão de jogada e dicas flutuantes dos botões | Estado principal da cena: - `this.partida`: placar de tentos e truco (nucleo/truco.js); - `this.mao`: estado da mão atual (nucleo/partida.js); - `this.quemVe`: índice do jogador que está olhando a tela (-1 enquanto o aparelho troca de mãos); - `this.numJogadores`, `this.humanos`, `this.variosHumanos`: quem está na mesa (os humanos são os primeiros índices; os demais são oponentes do computador); - `this.modo`, `this.selecao`, `this.alvos`: o que o jogador está escolhendo; - `this.ocupada`: verdadeiro durante animações e a vez do oponente (bloqueia cliques); - `this.encerrada`: a mão acabou.
 
 | Nome | Tipo | Descrição |
 |---|---|---|
@@ -388,6 +388,25 @@ Geometria da mesa e utilitários de texto que se ajusta ao espaço. Tudo em coor
 | `ajustarLinha(texto, conteudo, tamanho, larguraMax, minimo)` | função (exportada) | Texto de uma linha que encolhe até caber em `larguraMax`; se ainda não couber, corta com "…". Não refaz o cálculo se nada mudou. |
 | `ajustarBloco(texto, conteudo, tamanho, larguraMax, alturaMax, minimo)` | função (exportada) | Bloco de texto com quebra de linha que encolhe até caber na altura. |
 
+## `src/cenas/mesa/online.js`
+
+Parte da CenaMesa: partida online (src/online/sala.js). Cada aparelho mostra a mesa do ponto de vista da própria cadeira e aplica as ações na ordem numerada pela sala: - jogadas, pedidos de truco e respostas deste aparelho não são aplicados na hora: vão para a sala (`enviarOnline`) e voltam numerados, como as dos outros; - as ações chegam numa fila e são aplicadas uma de cada vez, quando a mesa está parada esperando (`aguardandoRede`), com as mesmas animações de uma partida local; - só o anfitrião joga pelos oponentes do computador (e responde truco por eles); - todos criam cada mão com a mesma semente (`sementeDaMao`), então o estado é igual em todas as telas; ações de uma mão que este aparelho ainda não abriu esperam na fila; - quem cai vira oponente do computador no mesmo ponto em todas as telas (ação `substituir`).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `prepararOnline()` | método | Liga a cena à sala (se a partida for online). Chamado no início de `create`. |
+| `cadeiraOnline()` | método | Cadeira deste aparelho na sala. |
+| `souAnfitriaoOnline()` | método | Este aparelho joga pelos oponentes do computador? |
+| `chaveDaMao()` | método | Identifica a mão atual (partida e número da mão), para separar as ações de cada mão. |
+| `sementeDaMao()` | método | Semente da mão atual: a mesma em todos os aparelhos. |
+| `jogadoresOnline()` | método | Jogadores da partida online: as pessoas pelo nome, as outras cadeiras com o perfil escolhido. |
+| `enviarOnline(acao)` | método | Manda uma ação deste aparelho para a sala e espera ela voltar numerada. |
+| `esperarRede()` | método | A mesa para e espera a próxima ação da sala. |
+| `processarFilaOnline()` | método | Aplica a próxima ação da fila, se a mesa estiver esperando e a ação for da mão atual. |
+| `aplicarSubstituicao(acao)` | método | Alguém caiu: a cadeira passa para um oponente do computador nesta mão e nas próximas. |
+| `avancarNoInicioOnline()` | método | Escolha de quem começa, online: o anfitrião manda a carta dos oponentes do computador (uma vez por mão); este aparelho escolhe a própria carta; os outros escolhem nas telas deles. Quando todos escolheram, as cartas aparecem juntas, como na partida local. |
+| `avancarOnline()` | método | Vez de alguém que não é este aparelho: o anfitrião joga pelos oponentes do computador; nos outros casos, a mesa espera a ação chegar pela sala. |
+
 ## `src/cenas/mesa/paineis.js`
 
 Painéis de leitura da mesa, como no NeuroDeck: placar por camada (clique num bloco do placar), registro completo da mão (clique no registro) e lista do cemitério e do limbo (clique na pilha). São só leitura: abrem por cima da mesa e fecham com Esc, no X ou clicando fora.
@@ -420,9 +439,9 @@ Parte da CenaMesa: o truco. Pedir, anunciar com grito na tela, perguntar a respo
 | Nome | Tipo | Descrição |
 |---|---|---|
 | `pedirTrucoHumano()` | método | Botão TRUCO! do jogador humano. |
-| `anunciarTruco(j)` | método | Registra o pedido de `j`, grita na tela e pergunta a resposta ao outro jogador. |
+| `anunciarTruco(j, daRede = false)` | método | Registra o pedido de `j`, grita na tela e pergunta a resposta ao outro jogador. |
 | `pedirResposta()` | método | Pergunta a resposta a quem recebeu o pedido. |
-| `aplicarResposta(quem, resposta)` | método | Aplica a resposta de `quem`. |
+| `aplicarResposta(quem, resposta, daRede = false)` | método | Aplica a resposta de `quem`. |
 
 ## `src/cenas/mesa/turnos.js`
 
@@ -439,7 +458,7 @@ Parte da CenaMesa: o fluxo da mão. Começar a mão, executar jogadas, decidir q
 | `ehVezDoHumano()` | método | O jogador humano que está vendo a tela pode jogar agora? |
 | `iniciarMao()` | método | Distribui uma mão nova: cria o estado, os neurônios na tela e começa o fluxo. |
 | `criarNeuronios()` | método | Cria uma imagem clicável para cada neurônio, com a animação de distribuição. |
-| `executarJogada(jogada)` | método | Aplica uma jogada (de qualquer jogador), anima os eventos e segue o fluxo. |
+| `executarJogada(jogada, daRede = false)` | método | Aplica uma jogada (de qualquer jogador), anima os eventos e segue o fluxo. |
 | `avancar()` | método | Decide o próximo passo: fim da mão, escolha de quem começa, vez do humano ou do oponente. |
 | `anotarNaLinhaDoTempo(jogada, eventos, texto)` | método | Guarda um passo da mão para a revisão didática do fim (interface/telas/revisao.js): quem jogou, o que aconteceu (texto do registro e tipos de evento) e as somas depois da jogada. |
 | `avancarNoInicio()` | método | Fase de início: oponentes escolhem a carta; humanos escolhem um de cada vez. |
@@ -700,6 +719,19 @@ Tela "Mods": como criar baralhos, terrenos e ações para o motor do NeuroDeck, 
 |---|---|---|
 | `TIPOS` | constante | Campos de cada tipo de mod, resumidos do registro do motor. |
 | `abrirMods()` | função (exportada) | Abre a tela "Mods". |
+
+## `src/interface/telas/online.js`
+
+Tela "Jogar online": conta e sala. - Conta: com o projeto Firebase configurado (src/online/configuracao.js), entrar com Google ou e-mail e senha guarda o progresso na conta. Sem ele, o jogo usa o nome deste aparelho. - Sala: criar (com as opções do menu e quantas pessoas vão jogar) ou entrar com o código. Com o Firebase, a sala funciona pela internet; sem ele, entre abas e janelas deste navegador. - Espera: o código em destaque e as cadeiras; o anfitrião começa a partida quando quiser (as vagas que sobrarem vão para o computador).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `clienteDaAba()` | função | Identificador deste aparelho, o mesmo depois de recarregar a aba (para voltar à cadeira). |
+| `contaAtual` | constante | Conta atual nesta sessão (Firebase), ou null. |
+| `usarConta(app, conta)` | função | Entrou numa conta: junta o progresso do aparelho com o da conta e passa a salvar nela. |
+| `transporte(codigo)` | função | Cria o transporte da sala: Firebase com conta, senão entre abas deste navegador. |
+| `abrirOnline(app)` | função (exportada) | Abre a tela "Jogar online". |
+| `esperar(novaSala)` | função | Mostra a espera da sala e acompanha as cadeiras até a partida começar. |
 
 ## `src/interface/telas/regras.js`
 
@@ -964,6 +996,77 @@ Camada de truco: a partida vale tentos e cada mão pode ser trucada. TRUCO! (3) 
 | `responderTruco(partida, j, resposta)` | função (exportada) | Responde ao pedido pendente. |
 | `marcarTentos(partida, vencedor, pontos)` | função (exportada) | Soma os tentos da mão ao vencedor e encerra a partida se ele chegou ao alvo. Devolve os tentos ganhos. |
 | `proximaMao(partida)` | função (exportada) | Prepara a próxima mão da partida. |
+
+## `src/online/configuracao.js`
+
+Configuração do projeto Firebase do grupo (Authentication + Firestore), usada pelas contas e pelas partidas pela internet. Enquanto for `null`, o jogo oferece só a conta local (neste aparelho) e as partidas entre abas e janelas do mesmo navegador. Para ligar: no console do Firebase, crie o projeto, ative Authentication (Google e e-mail/senha) e o Firestore, publique as regras de `firestore.rules`, registre um app da Web e cole aqui o objeto `firebaseConfig` que o console mostra. Esses valores não são segredo: quem protege os dados são as regras do Firestore.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `VERSAO_FIREBASE` | constante (exportada) | Versão do SDK do Firebase carregada do CDN oficial. |
+
+## `src/online/contas.js`
+
+Contas: o progresso (conquistas, avatares, verbetes lidos e contadores) passa a ficar na conta e vale em qualquer aparelho. Ao entrar, o progresso do aparelho e o da conta se juntam sem perder nada nem contar em dobro (`mesclarProgresso`); depois, cada mão salva na conta.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `CONTADORES` | constante | Contadores que só crescem: na mescla vale o maior. |
+| `CONJUNTOS` | constante | Conjuntos marcados (id → valor): na mescla vale a união. |
+| `mesclarProgresso(local, conta)` | função (exportada) | Junta o progresso do aparelho com o da conta. - contadores: o maior dos dois (as mesmas mãos não contam duas vezes); - conquistas: a união, com a data mais antiga de cada uma; - verbetes, terrenos, baralhos e arquiteturas: a união; - avatar: o da conta, se houver; preferências do aparelho (som, música, opções do menu) ficam. |
+| `progressoDaConta(progresso)` | função (exportada) | Parte do progresso que vai para a conta (sem preferências do aparelho). |
+
+## `src/online/firebase.js`
+
+Firebase: contas (Google ou e-mail e senha), progresso na conta e o transporte das salas pela internet (Firestore). O SDK só é baixado do CDN quando o projeto está configurado (configuracao.js) e alguém usa uma dessas funções; sem configuração, nada aqui é carregado. Dados no Firestore (ver firestore.rules): - `contas/{uid}`: o progresso da conta (ver contas.js, `progressoDaConta`); - `salas/{codigo}/mensagens/{id}`: as mensagens da sala (sala.js), em ordem de chegada ao servidor. A ordem das ações do jogo não depende disso: o anfitrião numera cada ação.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `firebaseConfigurado()` | função (exportada) | O projeto Firebase do grupo está configurado? |
+| `carregar()` | função | Baixa e inicia o SDK (uma vez). |
+| `entrarComGoogle()` | função (exportada) | Entra com a conta Google (janela do Google). Devolve `{ uid, nome, email }`. |
+| `entrarComEmail(email, senha, criar = false)` | função (exportada) | Entra com e-mail e senha; com `criar`, cria a conta antes. |
+| `sairDaConta()` | função (exportada) | Sai da conta. |
+| `aoMudarConta(cb)` | função (exportada) | Avisa `cb(conta \| null)` quando alguém entra ou sai. Devolve a função que para de ouvir. |
+| `carregarProgressoDaConta(uid)` | função (exportada) | Progresso salvo na conta, ou null. |
+| `salvarProgressoNaConta(uid, progresso)` | função (exportada) | Salva o progresso na conta. |
+| `transporteFirebase(codigo)` | função (exportada) | Transporte de sala pelo Firestore: cada mensagem vira um documento em `salas/{codigo}/mensagens`; todos ouvem a coleção e recebem os documentos novos. |
+
+## `src/online/sala.js`
+
+Sala de jogo online: quem está na mesa, em que cadeira, e a ordem das ações. Modelo: **passo a passo com anfitrião** (lockstep). Todos os aparelhos criam a mesma mão com a mesma semente e aplicam as mesmas ações na mesma ordem, então o estado é idêntico em todas as telas sem precisar enviar o estado inteiro. Quem cria a sala é o anfitrião: ele numera as ações (`seq`) e as repassa a todos, inclusive a quem pediu. Cada aparelho aplica a ação de número `n` só depois da `n - 1`. Uma ação inválida é rejeitada igualmente em todas as telas, porque todas têm o mesmo estado. O anfitrião também joga pelos oponentes do computador. Se uma pessoa some (sem sinal de vida por `TEMPO_SEM_SINAL`), o anfitrião passa a cadeira dela para um oponente do computador. Se o anfitrião some, a pessoa na menor cadeira assume (todos fazem a mesma conta) e continua a numeração de onde parou. A sala não sabe nada de Phaser nem de rede: recebe um `transporte` com `enviar(msg)`, `aoReceber(cb)` e `fechar()` (ver transportes.js) e avisa a interface por callbacks.
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `BATIMENTO` | constante (exportada) | Intervalo do sinal de vida, em ms. |
+| `TEMPO_SEM_SINAL` | constante (exportada) | Sem sinal de vida por este tempo, a pessoa é considerada desconectada. |
+| `codigoDeSala(sortear = Math.random)` | função (exportada) | Código de sala: 5 letras sem as que se confundem (I, O, 0, 1). |
+| `idDeCliente(sortear = Math.random)` | função (exportada) | Identificador deste aparelho na sala. |
+| `constructor(transporte, eu, relogio = RELOGIO_REAL)` | método |  |
+| `on(evento, cb)` | método | Inscreve um ouvinte: 'sala' (config mudou), 'acao' (ação numerada) ou 'aviso' (texto). |
+| `off(evento, cb)` | método | Cancela a inscrição de um ouvinte. |
+| `criar(codigo, opcoes, pessoas, semente)` | método | Cria a sala com as opções do menu. As cadeiras começam com o anfitrião na 0, vagas para `pessoas - 1` pessoas e oponentes do computador no resto. |
+| `anunciarSala()` | método | Repassa a configuração a todos. |
+| `comecar()` | método | O anfitrião começa a partida: vagas não ocupadas viram oponentes do computador. |
+| `ordenar(acao)` | método | Numera uma ação e a repassa a todos (só o anfitrião). |
+| `entrar()` | método | Pede para entrar numa sala já criada. |
+| `enviar(acao)` | método | Envia uma ação para ser numerada (direto, se for o anfitrião). |
+| `sair()` | método | Sai da sala avisando os outros. |
+| `ao_ola(msg)` | método | Alguém quer entrar: o anfitrião dá uma vaga (ou devolve a cadeira de quem voltou). |
+| `aceitar(evento)` | método | Entrega as ações em ordem: a de número n só sai depois da n - 1. |
+| `ausente(cliente)` | método | Está sem sinal de vida há mais de TEMPO_SEM_SINAL? |
+| `verificarAusentes()` | método | O anfitrião troca quem sumiu por um oponente do computador (uma ação numerada, para todos trocarem no mesmo ponto da partida). Se quem sumiu foi o anfitrião, a menor cadeira humana presente assume. |
+| `substituir(cadeira)` | método | Aplica a troca de uma cadeira por um oponente do computador (chamado por todos ao receber a ação). |
+| `RELOGIO_REAL` | constante | Relógio de verdade. |
+
+## `src/online/transportes.js`
+
+Transportes da sala online: por onde as mensagens passam. Todos têm a mesma forma: `{ enviar(msg), aoReceber(cb) → desinscrever, fechar() }`. - `transporteLocal`: abas e janelas do mesmo navegador (BroadcastChannel). Funciona sem servidor e serve para jogar em várias telas no mesmo computador e para os testes. - `transporteMemoria`: vários clientes no mesmo programa (testes de unidade). - O transporte pela internet (Firebase) fica em firebase.js e só é usado quando o projeto do grupo estiver configurado (configuracao.js).
+
+| Nome | Tipo | Descrição |
+|---|---|---|
+| `transporteLocal(codigo)` | função (exportada) | Abas e janelas do mesmo navegador, pelo canal `truco-de-turing:<codigo>`. |
+| `centralEmMemoria({ atrasar = false } = {})` | função (exportada) | Central em memória: `central.conectar()` devolve um transporte; tudo o que um envia chega aos outros (cópia por JSON, como na rede). Com `atrasar: true` as mensagens só saem em `central.entregar()`, para os testes controlarem a ordem. |
 
 ## `src/principal.js`
 
