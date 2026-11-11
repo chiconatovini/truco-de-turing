@@ -50,6 +50,7 @@ export const metodosDeTurnos = {
    * um), depois os oponentes do computador, numerados quando há mais de um do mesmo perfil.
    */
   montarJogadores() {
+    if (this.online) return this.jogadoresOnline();
     const perfil = this.opcoes.oponente, bots = this.numJogadores - this.humanos;
     return Array.from({ length: this.numJogadores }, (_, j) => {
       if (j < this.humanos) return { nome: this.variosHumanos ? 'Jogador ' + (j + 1) : 'Você', tipo: 'humano' };
@@ -93,8 +94,11 @@ export const metodosDeTurnos = {
     this.mao = novaMao({
       baralho: o.baralho, terreno: o.terreno, inicio: o.inicio, arquitetura: o.arquitetura, baralhos: o.baralhos,
       jogadores: this.montarJogadores(),
+      /* online: a mesma semente em todos os aparelhos (ver online.js) */
+      ...(this.online ? { semente: this.sementeDaMao() } : {}),
     });
-    this.quemVe = 0;
+    this.quemVe = this.online ? this.cadeiraOnline() : 0;
+    this.inicioDosBotsEnviado = false;
     this.criarNeuronios();
     this.painel.inspecao.setTexture('terreno-' + this.opcoes.terreno);
     ajustarBloco(this.painel.notaInspecao, 'Passe o cursor ou toque numa carta para inspecioná-la.', 12, PAINEL_ESQ.l - 30, 40, 9.5);
@@ -133,12 +137,16 @@ export const metodosDeTurnos = {
   /* ------------------------------------------------------------------ jogadas */
 
   /** Aplica uma jogada (de qualquer jogador), anima os eventos e segue o fluxo. */
-  executarJogada(jogada) {
+  executarJogada(jogada, daRede = false) {
+    /* online: a jogada vai para a sala e volta numerada (online.js) */
+    if (this.online && !daRede) return this.enviarOnline({ tipo: 'jogada', cadeira: jogada.jogador, jogada });
     try {
       aplicarJogada(this.mao, jogada);
     } catch (erro) {
       mostrarAviso('Jogada inválida', erro.message);
       this.redesenhar();
+      /* online: a ação recusada é recusada em todas as telas; a mesa segue esperando a próxima */
+      if (daRede) this.time.delayedCall(30, () => this.avancar());
       return;
     }
     this.selecao = [];
@@ -160,6 +168,7 @@ export const metodosDeTurnos = {
     if (mao.fase === 'fim') return this.encerrarMao(null);
     if (mao.fase === 'inicio') return this.avancarNoInicio();
     const vez = mao.vez, jogador = mao.jogadores[vez];
+    if (this.online && this.avancarOnline()) return;
     if (jogador.tipo === 'oponente') return this.vezDoOponente();
     if (this.variosHumanos && this.quemVe !== vez) return this.passarAparelho(vez, () => { this.quemVe = vez; this.avancar(); });
     this.quemVe = vez;
@@ -205,6 +214,7 @@ export const metodosDeTurnos = {
   /** Fase de início: oponentes escolhem a carta; humanos escolhem um de cada vez. */
   avancarNoInicio() {
     const mao = this.mao;
+    if (this.online) return this.avancarNoInicioOnline();
     mao.jogadores.forEach((jogador, j) => {
       if (jogador.tipo === 'oponente' && !jogador.cartaInicial) aplicarJogada(mao, escolherJogada(mao, j));
     });

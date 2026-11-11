@@ -11,6 +11,11 @@ Entra na próxima versão, quando o pull request da fusão for aceito. Plano e d
 - feat: `src/nucleo` vira uma camada de tradução sobre o motor: as telas do Truco de Turing passam a jogar com as regras do NeuroDeck. Mudam para o jogador: o dropout manda os neurônios para o cemitério; rede sem neurônio livre na camada seguinte é finalizada; transfer learning não gasta a vez; só passa quem teve a rede interrompida por early stop; par de figuras vale 20; os terrenos e o baralho Truco são os do NeuroDeck (truco com 2 baralhos e mão de 10 cartas); os oponentes são os bots do NeuroDeck. O padrão de "quem começa" passa a ser revelar e descartar; revelar e devolver à mão e o sorteio continuam no menu. O modo truco não mudou. (#2)
 - test: 40 testes de regra de negócio atualizados para as regras da fusão (10 mudaram de expectativa), testes do motor (`motor-equivalencia`, `motor-regras`, `motor-inicio`), testes da camada de tradução e montagem de situações pelo estado do motor (`testes/apoio/montagem.js`). Planilha de validação refeita para a fusão (`relatorios/validacao/`): 40 testes de regra, 37 do motor e 28 cenários funcionais no jogo unificado, com as decisões de regra; relatórios das três suítes regenerados (255 de unidade, 15 de interface, 12 de performance). (#3)
 
+## Em andamento: fusão com o NeuroDeck (Etapa 3)
+
+- feat: jogar online. A sala tem código de 5 letras, cadeiras para pessoas e computador e ações numeradas pelo anfitrião: todos os aparelhos aplicam as mesmas ações na mesma ordem e terminam com o mesmo estado. Quem cai vira computador no mesmo ponto em todas as telas, se o anfitrião sai outra pessoa assume, e quem recarrega volta à cadeira. Funciona pela internet com o Firebase do grupo (projeto `truco-e26e8`, regras em `firestore.rules`) e entre abas do mesmo navegador sem login. (#11)
+- feat: contas com Google ou e-mail e senha; conquistas, avatares e progresso ficam na conta e se juntam com os do aparelho sem contar em dobro. (#11)
+
 ## Em andamento: fusão com o NeuroDeck (Etapa 2)
 
 - feat: mesa dinâmica: arquiteturas do NeuroDeck (padrão, curta, profunda, larga), de 2 a 5 jogadores com até 4 humanos no mesmo aparelho e de 1 a 3 baralhos; colunas, cartas e placar se ajustam ao tamanho da mesa. Com mais de 2 jogadores o modo truco fica desligado. (#5)

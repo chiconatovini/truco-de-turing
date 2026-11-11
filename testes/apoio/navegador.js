@@ -68,6 +68,21 @@ export async function abrirJogo(base, opcoes = {}) {
   };
 }
 
+/**
+ * Outra aba no mesmo navegador de `jogo` (mesmo contexto, então o BroadcastChannel liga as duas):
+ * usada nos testes da sala online entre abas.
+ */
+export async function abrirOutraAba(jogo, base, consulta = '') {
+  const pagina = await jogo.contexto.newPage();
+  const erros = [];
+  pagina.on('pageerror', (e) => erros.push(String(e && e.stack || e)));
+  pagina.on('console', (m) => { if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) erros.push(m.text()); });
+  await pagina.route(/cdnjs\.cloudflare\.com/, (r) => r.fulfill({ body: PHASER, contentType: 'text/javascript' }));
+  await pagina.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ body: '', contentType: 'text/css' }));
+  await pagina.goto(base + '/index.html' + consulta);
+  return { pagina, erros };
+}
+
 /** Converte a cobertura do Chromium para o formato do V8 que o c8 junta com a do Node. */
 async function salvarCobertura(pagina, base) {
   const entradas = await pagina.coverage.stopJSCoverage();

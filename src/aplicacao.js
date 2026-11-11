@@ -45,6 +45,8 @@ export const Aplicacao = {
   jogo: null,
   /** Dicas ligadas nesta sessão (mãos jogadas com dicas não valem conquistas). */
   dicasLigadas: false,
+  /** Partida online em andamento: `{ sala }` (ver src/online/sala.js), ou null. */
+  online: null,
 
   /** Carrega opções e preferência de som. */
   iniciar() {
@@ -90,6 +92,8 @@ export const Aplicacao = {
   /** Volta da mesa para o menu. */
   irParaMenu() {
     fecharTodos();
+    /* sair da mesa online sai da sala (os outros veem a cadeira passar para o computador) */
+    if (this.online) { try { this.online.sala.sair(); } catch (e) { /* já fechada */ } this.online = null; }
     document.body.classList.remove('em-partida');
     this.jogo.scene.stop('Mesa');
     this.jogo.scene.start('Menu');
