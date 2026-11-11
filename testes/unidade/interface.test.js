@@ -179,12 +179,15 @@ describe('telas', () => {
     /* padrão: 2 jogadores, 1 humano, arquitetura padrão, 1 baralho (o Truco pede 2) */
     assert.deepEqual([$('#m-jogadores').value, $('#m-humanos').value, $('#m-arquitetura').value, $('#m-baralhos').value], ['2', '1', 'padrao', '1']);
     assert.match($('#m-mesa-dica').textContent, /Mesa 3-5-5-5-5-5-4 .*Mão de 10 cartas \(o baralho Truco usa no mínimo 2 baralhos\)/);
-    assert.match($('#m-partida').options[0].textContent, /com truco/);
+    /* cada opção de partida com o seu rótulo: a de mão única não pode virar "12 tentos" */
+    assert.match($('#m-partida option[value="12"]').textContent, /com truco/);
+    assert.equal($('#m-partida option[value="1"]').textContent, 'Mão única, sem truco');
     /* 4 jogadores: a lista de humanos vai até 4, a mesa cresce e o truco sai */
     mudar('m-jogadores', 4);
     assert.equal($('#m-humanos').options.length, 4);
     assert.match($('#m-mesa-dica').textContent, /Mesa 5-7-7-7-7-7-6/);
-    assert.match($('#m-partida').options[0].textContent, /truco só com 2/);
+    assert.match($('#m-partida option[value="12"]').textContent, /truco só com 2/);
+    assert.equal($('#m-partida option[value="1"]').textContent, 'Mão única, sem truco');
     assert.match($('#m-oponente-rotulo').textContent, /Oponentes \(3/);
     /* todos humanos: some a escolha de oponente */
     mudar('m-humanos', 4);

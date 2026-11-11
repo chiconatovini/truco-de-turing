@@ -137,8 +137,8 @@ export function abrirMenu(app) {
     campo('m-mesa-dica').textContent = 'Mesa ' + camadas.join('-') + ' (' + camadas.reduce((a, b) => a + b, 0) + ' neurônios, ' + (camadas.length - 2) + ' camadas ocultas)' +
       (n > 2 ? ', com um neurônio a mais por camada para cada jogador além de 2' : '') + '. Mão de ' + 5 * baralhos + ' cartas' +
       (Number(campo('m-baralhos').value) < minimo ? ' (o baralho Truco usa no mínimo 2 baralhos)' : '') + '.';
-    /* o truco é de um contra um */
-    campo('m-partida').options[0].textContent = n === 2 ? ESCOLHAS_PARTIDA[12] : 'Partida até 12 tentos (truco só com 2)';
+    /* o truco é de um contra um; a opção de 12 tentos é a segunda da lista (chaves numéricas saem em ordem crescente) */
+    campo('m-partida').querySelector('option[value="12"]').textContent = n === 2 ? ESCOLHAS_PARTIDA[12] : 'Partida até 12 tentos (truco só com 2)';
     const baralho = campo('m-baralho').value, terreno = campo('m-terreno').value;
     campo('m-baralho-dica').textContent = BARALHOS[baralho].resumo;
     campo('m-terreno-dica').textContent = TERRENOS[terreno].resumo;
