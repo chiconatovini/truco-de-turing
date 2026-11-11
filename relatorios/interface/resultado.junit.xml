@@ -1,34 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <testsuites>
-	<testsuite name="ações da mesa" time="214.327383" disabled="0" errors="0" tests="7" failures="0" skipped="0" hostname="vm">
-		<testcase name="inspeção, seleção, Esc, tunagem, overfit, stack overflow e early stop na própria rede" time="48.602468" classname="test"/>
-		<testcase name="dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient" time="28.114555" classname="test"/>
-		<testcase name="truco: pedir, responder (aumentar, aceitar, correr) e a mão terminada por corrida" time="43.561115" classname="test"/>
-		<testcase name="dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar" time="25.358615" classname="test"/>
-		<testcase name="celular: segurar um botão mostra a dica sem executar a ação; toque rápido executa" time="18.711336" classname="test"/>
-		<testcase name="celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela" time="15.176023" classname="test"/>
-		<testcase name="som, música, comemorações, derrota e voltar ao menu" time="34.797143" classname="test"/>
+	<testsuite name="ações da mesa" time="311.460080" disabled="0" errors="0" tests="8" failures="0" skipped="0" hostname="vm">
+		<testcase name="inspeção, seleção, Esc, tunagem, overfit, stack overflow e early stop na própria rede" time="67.932933" classname="test"/>
+		<testcase name="barra de ações do NeuroDeck: botões acendem pela seleção, selo de tunagem, pontos por neurônio e painéis de leitura" time="30.154598" classname="test"/>
+		<testcase name="dropout (escolher camadas e pagar), cancelar, transfer learning, passar a vez e vanishing gradient" time="38.121036" classname="test"/>
+		<testcase name="truco: pedir, responder (aumentar, aceitar, correr) e a mão terminada por corrida" time="49.010288" classname="test"/>
+		<testcase name="dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar" time="33.187336" classname="test"/>
+		<testcase name="celular: segurar um botão mostra a dica sem executar a ação; toque rápido executa" time="19.377215" classname="test"/>
+		<testcase name="celular em tela cheia: botão responde mesmo com o polegar apoiado na borda da tela" time="16.631216" classname="test"/>
+		<testcase name="som, música, comemorações, derrota e voltar ao menu" time="57.038565" classname="test"/>
 	</testsuite>
-	<testsuite name="menu e telas" time="48.993775" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
-		<testcase name="carrega, mostra o menu com as escolhas e abre Como jogar, Grimório, Conquistas e Sobre" time="19.096197" classname="test"/>
-		<testcase name="celular na vertical: só o aviso para girar; ao girar, o jogo é criado e o menu aparece" time="26.654061" classname="test"/>
-		<testcase name="renderizador Canvas e resolução forçados pela URL" time="3.237169" classname="test"/>
+	<testsuite name="menu e telas" time="86.403156" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
+		<testcase name="carrega, mostra o menu com as escolhas e abre Regras (abas, ajuda das ações), Biblioteca de conceitos, Conquistas, Mods e Sobre" time="47.148118" classname="test"/>
+		<testcase name="celular na vertical: só o aviso para girar; ao girar, o jogo é criado e o menu aparece" time="36.096847" classname="test"/>
+		<testcase name="renderizador Canvas e resolução forçados pela URL" time="3.151581" classname="test"/>
 	</testsuite>
-	<testsuite name="mãos completas contra o computador" time="241.717337" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
-		<testcase name="Zé do Ruído · clássico · neutro · revela e volta" time="119.199141" classname="test"/>
-		<testcase name="Gradiente Guloso · truco · montanha · revela e descarta" time="68.883709" classname="test"/>
-		<testcase name="Mestre Monte Carlo · fraternidade · pântano · sorteio" time="53.628332" classname="test"/>
+	<testsuite name="mãos completas contra o computador" time="320.695244" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
+		<testcase name="Zé do Ruído · clássico · neutro · revela e volta" time="162.963282" classname="test"/>
+		<testcase name="Gradiente Guloso · truco · montanha · revela e descarta" time="94.294122" classname="test"/>
+		<testcase name="Mestre Monte Carlo · fraternidade · pântano · sorteio" time="63.430614" classname="test"/>
 	</testsuite>
-	<testsuite name="duas pessoas e mão única" time="56.835281" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="vm">
-		<testcase name="duas pessoas no mesmo aparelho (yin-yang, oceano): o aparelho troca de mãos entre as vezes" time="29.628519" classname="test"/>
-		<testcase name="mão única sem truco (Power BI): &amp;quot;Nova partida&amp;quot; recomeça o placar" time="27.206372" classname="test"/>
+	<testsuite name="mesa dinâmica: arquiteturas, 3 a 5 jogadores e vários baralhos" time="183.720650" disabled="0" errors="0" tests="3" failures="0" skipped="0" hostname="vm">
+		<testcase name="4 jogadores (2 humanos e 2 Zé do Ruído), arquitetura profunda, 2 baralhos" time="56.765637" classname="test"/>
+		<testcase name="5 jogadores contra o Gradiente Guloso, arquitetura larga" time="77.324434" classname="test"/>
+		<testcase name="3 jogadores, arquitetura curta, Pântano" time="49.630091" classname="test"/>
 	</testsuite>
-	<!-- tests 15 -->
-	<!-- suites 4 -->
-	<!-- pass 15 -->
+	<testsuite name="duas pessoas e mão única" time="79.129510" disabled="0" errors="0" tests="2" failures="0" skipped="0" hostname="vm">
+		<testcase name="duas pessoas no mesmo aparelho (yin-yang, oceano): o aparelho troca de mãos entre as vezes" time="48.333944" classname="test"/>
+		<testcase name="mão única sem truco (Power BI): &amp;quot;Nova partida&amp;quot; recomeça o placar" time="30.795144" classname="test"/>
+	</testsuite>
+	<!-- tests 19 -->
+	<!-- suites 5 -->
+	<!-- pass 19 -->
 	<!-- fail 0 -->
 	<!-- cancelled 0 -->
 	<!-- skipped 0 -->
 	<!-- todo 0 -->
-	<!-- duration_ms 349378.669218 -->
+	<!-- duration_ms 671729.644013 -->
 </testsuites>

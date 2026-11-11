@@ -1,28 +1,28 @@
 {
   "total": {
     "lines": {
-      "total": 8685,
-      "covered": 8567,
+      "total": 10608,
+      "covered": 10465,
       "skipped": 0,
-      "pct": 98.64
+      "pct": 98.65
     },
     "statements": {
-      "total": 8685,
-      "covered": 8567,
+      "total": 10608,
+      "covered": 10465,
       "skipped": 0,
-      "pct": 98.64
+      "pct": 98.65
     },
     "functions": {
-      "total": 594,
-      "covered": 577,
+      "total": 740,
+      "covered": 716,
       "skipped": 0,
-      "pct": 97.13
+      "pct": 96.75
     },
     "branches": {
-      "total": 3202,
-      "covered": 2970,
+      "total": 3830,
+      "covered": 3530,
       "skipped": 0,
-      "pct": 92.75
+      "pct": 92.16
     },
     "branchesTrue": {
       "total": 0,
@@ -137,8 +137,34 @@
   },
   "src/aplicacao.js": {
     "lines": {
-      "total": 137,
-      "covered": 137,
+      "total": 160,
+      "covered": 160,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 11,
+      "covered": 11,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 160,
+      "covered": 160,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 48,
+      "covered": 43,
+      "skipped": 0,
+      "pct": 89.58
+    }
+  },
+  "src/arte/avatares.js": {
+    "lines": {
+      "total": 284,
+      "covered": 284,
       "skipped": 0,
       "pct": 100
     },
@@ -149,42 +175,16 @@
       "pct": 100
     },
     "statements": {
-      "total": 137,
-      "covered": 137,
+      "total": 284,
+      "covered": 284,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 39,
-      "covered": 38,
+      "total": 64,
+      "covered": 63,
       "skipped": 0,
-      "pct": 97.43
-    }
-  },
-  "src/arte/avatares.js": {
-    "lines": {
-      "total": 159,
-      "covered": 159,
-      "skipped": 0,
-      "pct": 100
-    },
-    "functions": {
-      "total": 2,
-      "covered": 2,
-      "skipped": 0,
-      "pct": 100
-    },
-    "statements": {
-      "total": 159,
-      "covered": 159,
-      "skipped": 0,
-      "pct": 100
-    },
-    "branches": {
-      "total": 40,
-      "covered": 39,
-      "skipped": 0,
-      "pct": 97.5
+      "pct": 98.43
     }
   },
   "src/arte/botoes.js": {
@@ -215,8 +215,8 @@
   },
   "src/arte/cartas.js": {
     "lines": {
-      "total": 240,
-      "covered": 240,
+      "total": 288,
+      "covered": 288,
       "skipped": 0,
       "pct": 100
     },
@@ -227,16 +227,16 @@
       "pct": 100
     },
     "statements": {
-      "total": 240,
-      "covered": 240,
+      "total": 288,
+      "covered": 288,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 72,
-      "covered": 68,
+      "total": 104,
+      "covered": 99,
       "skipped": 0,
-      "pct": 94.44
+      "pct": 95.19
     }
   },
   "src/arte/cartasDeTerreno.js": {
@@ -337,16 +337,16 @@
       "pct": 100
     },
     "branches": {
-      "total": 36,
-      "covered": 33,
+      "total": 37,
+      "covered": 34,
       "skipped": 0,
-      "pct": 91.66
+      "pct": 91.89
     }
   },
   "src/arte/icones.js": {
     "lines": {
-      "total": 50,
-      "covered": 50,
+      "total": 79,
+      "covered": 79,
       "skipped": 0,
       "pct": 100
     },
@@ -357,8 +357,8 @@
       "pct": 100
     },
     "statements": {
-      "total": 50,
-      "covered": 50,
+      "total": 79,
+      "covered": 79,
       "skipped": 0,
       "pct": 100
     },
@@ -501,34 +501,34 @@
   },
   "src/arte/versos.js": {
     "lines": {
-      "total": 288,
-      "covered": 288,
+      "total": 388,
+      "covered": 388,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 10,
-      "covered": 10,
+      "total": 16,
+      "covered": 16,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 288,
-      "covered": 288,
+      "total": 388,
+      "covered": 388,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 79,
-      "covered": 76,
+      "total": 100,
+      "covered": 96,
       "skipped": 0,
-      "pct": 96.2
+      "pct": 96
     }
   },
   "src/cenas/CenaCarregamento.js": {
     "lines": {
-      "total": 49,
-      "covered": 49,
+      "total": 52,
+      "covered": 52,
       "skipped": 0,
       "pct": 100
     },
@@ -539,50 +539,50 @@
       "pct": 100
     },
     "statements": {
-      "total": 49,
-      "covered": 49,
-      "skipped": 0,
-      "pct": 100
-    },
-    "branches": {
-      "total": 13,
-      "covered": 11,
-      "skipped": 0,
-      "pct": 84.61
-    }
-  },
-  "src/cenas/CenaMenu.js": {
-    "lines": {
-      "total": 56,
-      "covered": 56,
-      "skipped": 0,
-      "pct": 100
-    },
-    "functions": {
-      "total": 4,
-      "covered": 4,
-      "skipped": 0,
-      "pct": 100
-    },
-    "statements": {
-      "total": 56,
-      "covered": 56,
+      "total": 52,
+      "covered": 52,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
       "total": 15,
-      "covered": 15,
+      "covered": 13,
+      "skipped": 0,
+      "pct": 86.66
+    }
+  },
+  "src/cenas/CenaMenu.js": {
+    "lines": {
+      "total": 76,
+      "covered": 76,
       "skipped": 0,
       "pct": 100
+    },
+    "functions": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 76,
+      "covered": 76,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 22,
+      "covered": 20,
+      "skipped": 0,
+      "pct": 90.9
     }
   },
   "src/cenas/mesa/CenaMesa.js": {
     "lines": {
-      "total": 83,
-      "covered": 82,
+      "total": 98,
+      "covered": 97,
       "skipped": 0,
-      "pct": 98.79
+      "pct": 98.97
     },
     "functions": {
       "total": 4,
@@ -591,10 +591,10 @@
       "pct": 100
     },
     "statements": {
-      "total": 83,
-      "covered": 82,
+      "total": 98,
+      "covered": 97,
       "skipped": 0,
-      "pct": 98.79
+      "pct": 98.97
     },
     "branches": {
       "total": 10,
@@ -603,56 +603,82 @@
       "pct": 90
     }
   },
-  "src/cenas/mesa/cenario.js": {
+  "src/cenas/mesa/ambiente.js": {
     "lines": {
-      "total": 229,
-      "covered": 229,
+      "total": 155,
+      "covered": 155,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 20,
-      "covered": 20,
+      "total": 12,
+      "covered": 12,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 229,
-      "covered": 229,
+      "total": 155,
+      "covered": 155,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 78,
-      "covered": 73,
+      "total": 32,
+      "covered": 25,
       "skipped": 0,
-      "pct": 93.58
+      "pct": 78.12
+    }
+  },
+  "src/cenas/mesa/cenario.js": {
+    "lines": {
+      "total": 306,
+      "covered": 306,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 29,
+      "covered": 24,
+      "skipped": 0,
+      "pct": 82.75
+    },
+    "statements": {
+      "total": 306,
+      "covered": 306,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 100,
+      "covered": 95,
+      "skipped": 0,
+      "pct": 95
     }
   },
   "src/cenas/mesa/desenho.js": {
     "lines": {
-      "total": 382,
-      "covered": 381,
+      "total": 474,
+      "covered": 470,
       "skipped": 0,
-      "pct": 99.73
+      "pct": 99.15
     },
     "functions": {
-      "total": 18,
-      "covered": 18,
+      "total": 23,
+      "covered": 23,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 382,
-      "covered": 381,
+      "total": 474,
+      "covered": 470,
       "skipped": 0,
-      "pct": 99.73
+      "pct": 99.15
     },
     "branches": {
-      "total": 202,
-      "covered": 192,
+      "total": 289,
+      "covered": 273,
       "skipped": 0,
-      "pct": 95.04
+      "pct": 94.46
     }
   },
   "src/cenas/mesa/dicas.js": {
@@ -675,18 +701,18 @@
       "pct": 98.82
     },
     "branches": {
-      "total": 59,
-      "covered": 33,
+      "total": 60,
+      "covered": 35,
       "skipped": 0,
-      "pct": 55.93
+      "pct": 58.33
     }
   },
   "src/cenas/mesa/efeitos.js": {
     "lines": {
-      "total": 290,
-      "covered": 287,
+      "total": 319,
+      "covered": 316,
       "skipped": 0,
-      "pct": 98.96
+      "pct": 99.05
     },
     "functions": {
       "total": 32,
@@ -695,50 +721,76 @@
       "pct": 100
     },
     "statements": {
-      "total": 290,
-      "covered": 287,
+      "total": 319,
+      "covered": 316,
       "skipped": 0,
-      "pct": 98.96
+      "pct": 99.05
     },
     "branches": {
-      "total": 89,
-      "covered": 81,
+      "total": 101,
+      "covered": 93,
       "skipped": 0,
-      "pct": 91.01
+      "pct": 92.07
     }
   },
   "src/cenas/mesa/entrada.js": {
     "lines": {
-      "total": 189,
-      "covered": 185,
+      "total": 293,
+      "covered": 269,
       "skipped": 0,
-      "pct": 97.88
+      "pct": 91.8
     },
     "functions": {
-      "total": 15,
-      "covered": 15,
+      "total": 21,
+      "covered": 21,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 189,
-      "covered": 185,
+      "total": 293,
+      "covered": 269,
       "skipped": 0,
-      "pct": 97.88
+      "pct": 91.8
     },
     "branches": {
-      "total": 86,
-      "covered": 75,
+      "total": 131,
+      "covered": 98,
       "skipped": 0,
-      "pct": 87.2
+      "pct": 74.8
     }
   },
   "src/cenas/mesa/layout.js": {
     "lines": {
-      "total": 98,
-      "covered": 98,
+      "total": 167,
+      "covered": 167,
       "skipped": 0,
       "pct": 100
+    },
+    "functions": {
+      "total": 10,
+      "covered": 9,
+      "skipped": 0,
+      "pct": 90
+    },
+    "statements": {
+      "total": 167,
+      "covered": 167,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 30,
+      "covered": 29,
+      "skipped": 0,
+      "pct": 96.66
+    }
+  },
+  "src/cenas/mesa/paineis.js": {
+    "lines": {
+      "total": 74,
+      "covered": 73,
+      "skipped": 0,
+      "pct": 98.64
     },
     "functions": {
       "total": 5,
@@ -747,22 +799,22 @@
       "pct": 100
     },
     "statements": {
-      "total": 98,
-      "covered": 98,
+      "total": 74,
+      "covered": 73,
       "skipped": 0,
-      "pct": 100
+      "pct": 98.64
     },
     "branches": {
-      "total": 20,
-      "covered": 20,
+      "total": 25,
+      "covered": 18,
       "skipped": 0,
-      "pct": 100
+      "pct": 72
     }
   },
   "src/cenas/mesa/resultado.js": {
     "lines": {
-      "total": 194,
-      "covered": 194,
+      "total": 196,
+      "covered": 196,
       "skipped": 0,
       "pct": 100
     },
@@ -773,16 +825,16 @@
       "pct": 100
     },
     "statements": {
-      "total": 194,
-      "covered": 194,
+      "total": 196,
+      "covered": 196,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 105,
-      "covered": 90,
+      "total": 114,
+      "covered": 101,
       "skipped": 0,
-      "pct": 85.71
+      "pct": 88.59
     }
   },
   "src/cenas/mesa/truco.js": {
@@ -806,43 +858,17 @@
     },
     "branches": {
       "total": 23,
-      "covered": 20,
+      "covered": 21,
       "skipped": 0,
-      "pct": 86.95
+      "pct": 91.3
     }
   },
   "src/cenas/mesa/turnos.js": {
     "lines": {
-      "total": 229,
-      "covered": 213,
+      "total": 260,
+      "covered": 244,
       "skipped": 0,
-      "pct": 93.01
-    },
-    "functions": {
-      "total": 15,
-      "covered": 15,
-      "skipped": 0,
-      "pct": 100
-    },
-    "statements": {
-      "total": 229,
-      "covered": 213,
-      "skipped": 0,
-      "pct": 93.01
-    },
-    "branches": {
-      "total": 100,
-      "covered": 94,
-      "skipped": 0,
-      "pct": 94
-    }
-  },
-  "src/cenas/recursos.js": {
-    "lines": {
-      "total": 153,
-      "covered": 153,
-      "skipped": 0,
-      "pct": 100
+      "pct": 93.84
     },
     "functions": {
       "total": 17,
@@ -851,22 +877,48 @@
       "pct": 100
     },
     "statements": {
-      "total": 153,
-      "covered": 153,
+      "total": 260,
+      "covered": 244,
+      "skipped": 0,
+      "pct": 93.84
+    },
+    "branches": {
+      "total": 114,
+      "covered": 106,
+      "skipped": 0,
+      "pct": 92.98
+    }
+  },
+  "src/cenas/recursos.js": {
+    "lines": {
+      "total": 172,
+      "covered": 172,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 19,
+      "covered": 19,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 172,
+      "covered": 172,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 39,
-      "covered": 36,
+      "total": 44,
+      "covered": 40,
       "skipped": 0,
-      "pct": 92.3
+      "pct": 90.9
     }
   },
   "src/configuracao.js": {
     "lines": {
-      "total": 46,
-      "covered": 46,
+      "total": 53,
+      "covered": 53,
       "skipped": 0,
       "pct": 100
     },
@@ -877,8 +929,8 @@
       "pct": 100
     },
     "statements": {
-      "total": 46,
-      "covered": 46,
+      "total": 53,
+      "covered": 53,
       "skipped": 0,
       "pct": 100
     },
@@ -889,36 +941,10 @@
       "pct": 100
     }
   },
-  "src/conteudo/conquistas.js": {
+  "src/conteudo/avatares.js": {
     "lines": {
-      "total": 61,
-      "covered": 61,
-      "skipped": 0,
-      "pct": 100
-    },
-    "functions": {
-      "total": 28,
-      "covered": 28,
-      "skipped": 0,
-      "pct": 100
-    },
-    "statements": {
-      "total": 61,
-      "covered": 61,
-      "skipped": 0,
-      "pct": 100
-    },
-    "branches": {
       "total": 44,
       "covered": 44,
-      "skipped": 0,
-      "pct": 100
-    }
-  },
-  "src/conteudo/dicasDeJogo.js": {
-    "lines": {
-      "total": 128,
-      "covered": 128,
       "skipped": 0,
       "pct": 100
     },
@@ -929,22 +955,126 @@
       "pct": 100
     },
     "statements": {
-      "total": 128,
-      "covered": 128,
+      "total": 44,
+      "covered": 44,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 55,
-      "covered": 55,
+      "total": 13,
+      "covered": 12,
+      "skipped": 0,
+      "pct": 92.3
+    }
+  },
+  "src/conteudo/conquistas.js": {
+    "lines": {
+      "total": 71,
+      "covered": 71,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 36,
+      "covered": 36,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 71,
+      "covered": 71,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 61,
+      "covered": 61,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "src/conteudo/dicasDeJogo.js": {
+    "lines": {
+      "total": 134,
+      "covered": 134,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 6,
+      "covered": 6,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 134,
+      "covered": 134,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 65,
+      "covered": 65,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "src/conteudo/figurasDaBiblioteca.js": {
+    "lines": {
+      "total": 153,
+      "covered": 153,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 22,
+      "covered": 22,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 153,
+      "covered": 153,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 67,
+      "covered": 67,
       "skipped": 0,
       "pct": 100
     }
   },
   "src/conteudo/grimorio.js": {
     "lines": {
-      "total": 56,
-      "covered": 56,
+      "total": 145,
+      "covered": 145,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 20,
+      "covered": 20,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 145,
+      "covered": 145,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 21,
+      "covered": 21,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "src/conteudo/modExemplo.js": {
+    "lines": {
+      "total": 36,
+      "covered": 36,
       "skipped": 0,
       "pct": 100
     },
@@ -955,8 +1085,8 @@
       "pct": 100
     },
     "statements": {
-      "total": 56,
-      "covered": 56,
+      "total": 36,
+      "covered": 36,
       "skipped": 0,
       "pct": 100
     },
@@ -1021,54 +1151,54 @@
   },
   "src/interface/menu.js": {
     "lines": {
-      "total": 119,
-      "covered": 119,
+      "total": 172,
+      "covered": 172,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 7,
-      "covered": 7,
+      "total": 9,
+      "covered": 9,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 119,
-      "covered": 119,
+      "total": 172,
+      "covered": 172,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 27,
-      "covered": 25,
+      "total": 46,
+      "covered": 43,
       "skipped": 0,
-      "pct": 92.59
+      "pct": 93.47
     }
   },
   "src/interface/musica.js": {
     "lines": {
-      "total": 267,
-      "covered": 267,
+      "total": 376,
+      "covered": 371,
       "skipped": 0,
-      "pct": 100
+      "pct": 98.67
     },
     "functions": {
-      "total": 14,
-      "covered": 14,
+      "total": 23,
+      "covered": 23,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 267,
-      "covered": 267,
+      "total": 376,
+      "covered": 371,
       "skipped": 0,
-      "pct": 100
+      "pct": 98.67
     },
     "branches": {
-      "total": 88,
-      "covered": 87,
+      "total": 96,
+      "covered": 95,
       "skipped": 0,
-      "pct": 98.86
+      "pct": 98.95
     }
   },
   "src/interface/paineis.js": {
@@ -1099,34 +1229,86 @@
   },
   "src/interface/som.js": {
     "lines": {
-      "total": 123,
-      "covered": 123,
+      "total": 125,
+      "covered": 125,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 20,
-      "covered": 20,
+      "total": 21,
+      "covered": 21,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 123,
-      "covered": 123,
+      "total": 125,
+      "covered": 125,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 60,
-      "covered": 56,
+      "total": 62,
+      "covered": 58,
       "skipped": 0,
-      "pct": 93.33
+      "pct": 93.54
+    }
+  },
+  "src/interface/telas/ajudaDasAcoes.js": {
+    "lines": {
+      "total": 72,
+      "covered": 72,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 2,
+      "covered": 2,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 72,
+      "covered": 72,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 18,
+      "covered": 14,
+      "skipped": 0,
+      "pct": 77.77
+    }
+  },
+  "src/interface/telas/avatares.js": {
+    "lines": {
+      "total": 49,
+      "covered": 49,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 2,
+      "covered": 2,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 49,
+      "covered": 49,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 22,
+      "covered": 20,
+      "skipped": 0,
+      "pct": 90.9
     }
   },
   "src/interface/telas/conquistas.js": {
     "lines": {
-      "total": 50,
-      "covered": 50,
+      "total": 52,
+      "covered": 52,
       "skipped": 0,
       "pct": 100
     },
@@ -1137,8 +1319,8 @@
       "pct": 100
     },
     "statements": {
-      "total": 50,
-      "covered": 50,
+      "total": 52,
+      "covered": 52,
       "skipped": 0,
       "pct": 100
     },
@@ -1151,8 +1333,8 @@
   },
   "src/interface/telas/grimorio.js": {
     "lines": {
-      "total": 41,
-      "covered": 41,
+      "total": 50,
+      "covered": 50,
       "skipped": 0,
       "pct": 100
     },
@@ -1163,74 +1345,100 @@
       "pct": 100
     },
     "statements": {
-      "total": 41,
-      "covered": 41,
+      "total": 50,
+      "covered": 50,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 12,
-      "covered": 12,
+      "total": 18,
+      "covered": 16,
+      "skipped": 0,
+      "pct": 88.88
+    }
+  },
+  "src/interface/telas/mods.js": {
+    "lines": {
+      "total": 66,
+      "covered": 65,
+      "skipped": 0,
+      "pct": 98.48
+    },
+    "functions": {
+      "total": 1,
+      "covered": 1,
       "skipped": 0,
       "pct": 100
+    },
+    "statements": {
+      "total": 66,
+      "covered": 65,
+      "skipped": 0,
+      "pct": 98.48
+    },
+    "branches": {
+      "total": 5,
+      "covered": 4,
+      "skipped": 0,
+      "pct": 80
     }
   },
   "src/interface/telas/regras.js": {
     "lines": {
-      "total": 50,
-      "covered": 50,
+      "total": 141,
+      "covered": 141,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 2,
-      "covered": 2,
+      "total": 6,
+      "covered": 5,
       "skipped": 0,
-      "pct": 100
+      "pct": 83.33
     },
     "statements": {
-      "total": 50,
-      "covered": 50,
+      "total": 141,
+      "covered": 141,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 7,
-      "covered": 7,
+      "total": 31,
+      "covered": 28,
       "skipped": 0,
-      "pct": 100
+      "pct": 90.32
     }
   },
   "src/interface/telas/revisao.js": {
     "lines": {
-      "total": 178,
-      "covered": 178,
+      "total": 188,
+      "covered": 188,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 12,
-      "covered": 12,
+      "total": 13,
+      "covered": 13,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 178,
-      "covered": 178,
+      "total": 188,
+      "covered": 188,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 102,
-      "covered": 101,
+      "total": 113,
+      "covered": 109,
       "skipped": 0,
-      "pct": 99.01
+      "pct": 96.46
     }
   },
   "src/interface/telas/sobre.js": {
     "lines": {
-      "total": 35,
-      "covered": 35,
+      "total": 46,
+      "covered": 46,
       "skipped": 0,
       "pct": 100
     },
@@ -1241,8 +1449,8 @@
       "pct": 100
     },
     "statements": {
-      "total": 35,
-      "covered": 35,
+      "total": 46,
+      "covered": 46,
       "skipped": 0,
       "pct": 100
     },
@@ -1351,10 +1559,10 @@
       "pct": 94.64
     },
     "branches": {
-      "total": 357,
-      "covered": 318,
+      "total": 355,
+      "covered": 316,
       "skipped": 0,
-      "pct": 89.07
+      "pct": 89.01
     }
   },
   "src/motor/engine/decks.js": {
@@ -1386,27 +1594,27 @@
   "src/motor/engine/index.js": {
     "lines": {
       "total": 29,
-      "covered": 24,
+      "covered": 29,
       "skipped": 0,
-      "pct": 82.75
+      "pct": 100
     },
     "functions": {
       "total": 1,
-      "covered": 0,
+      "covered": 1,
       "skipped": 0,
-      "pct": 0
+      "pct": 100
     },
     "statements": {
       "total": 29,
-      "covered": 24,
-      "skipped": 0,
-      "pct": 82.75
-    },
-    "branches": {
-      "total": 4,
-      "covered": 4,
+      "covered": 29,
       "skipped": 0,
       "pct": 100
+    },
+    "branches": {
+      "total": 6,
+      "covered": 5,
+      "skipped": 0,
+      "pct": 83.33
     }
   },
   "src/motor/engine/registry.js": {
@@ -1541,8 +1749,8 @@
   },
   "src/nucleo/baralhos.js": {
     "lines": {
-      "total": 73,
-      "covered": 73,
+      "total": 85,
+      "covered": 85,
       "skipped": 0,
       "pct": 100
     },
@@ -1553,8 +1761,8 @@
       "pct": 100
     },
     "statements": {
-      "total": 73,
-      "covered": 73,
+      "total": 85,
+      "covered": 85,
       "skipped": 0,
       "pct": 100
     },
@@ -1663,42 +1871,68 @@
       "pct": 100
     },
     "branches": {
-      "total": 51,
-      "covered": 47,
+      "total": 49,
+      "covered": 45,
       "skipped": 0,
-      "pct": 92.15
+      "pct": 91.83
     }
   },
   "src/nucleo/partida.js": {
     "lines": {
-      "total": 565,
-      "covered": 564,
+      "total": 576,
+      "covered": 575,
       "skipped": 0,
       "pct": 99.82
     },
     "functions": {
-      "total": 33,
+      "total": 34,
       "covered": 33,
       "skipped": 0,
-      "pct": 100
+      "pct": 97.05
     },
     "statements": {
-      "total": 565,
-      "covered": 564,
+      "total": 576,
+      "covered": 575,
       "skipped": 0,
       "pct": 99.82
     },
     "branches": {
-      "total": 255,
-      "covered": 245,
+      "total": 265,
+      "covered": 255,
       "skipped": 0,
-      "pct": 96.07
+      "pct": 96.22
     }
   },
   "src/nucleo/pontuacao.js": {
     "lines": {
-      "total": 85,
-      "covered": 85,
+      "total": 111,
+      "covered": 111,
+      "skipped": 0,
+      "pct": 100
+    },
+    "functions": {
+      "total": 5,
+      "covered": 5,
+      "skipped": 0,
+      "pct": 100
+    },
+    "statements": {
+      "total": 111,
+      "covered": 111,
+      "skipped": 0,
+      "pct": 100
+    },
+    "branches": {
+      "total": 44,
+      "covered": 44,
+      "skipped": 0,
+      "pct": 100
+    }
+  },
+  "src/nucleo/rede.js": {
+    "lines": {
+      "total": 58,
+      "covered": 58,
       "skipped": 0,
       "pct": 100
     },
@@ -1709,40 +1943,14 @@
       "pct": 100
     },
     "statements": {
-      "total": 85,
-      "covered": 85,
+      "total": 58,
+      "covered": 58,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 32,
-      "covered": 32,
-      "skipped": 0,
-      "pct": 100
-    }
-  },
-  "src/nucleo/rede.js": {
-    "lines": {
-      "total": 30,
-      "covered": 30,
-      "skipped": 0,
-      "pct": 100
-    },
-    "functions": {
-      "total": 2,
-      "covered": 2,
-      "skipped": 0,
-      "pct": 100
-    },
-    "statements": {
-      "total": 30,
-      "covered": 30,
-      "skipped": 0,
-      "pct": 100
-    },
-    "branches": {
-      "total": 9,
-      "covered": 9,
+      "total": 13,
+      "covered": 13,
       "skipped": 0,
       "pct": 100
     }
@@ -1801,26 +2009,26 @@
   },
   "src/nucleo/truco.js": {
     "lines": {
-      "total": 84,
-      "covered": 84,
+      "total": 96,
+      "covered": 96,
       "skipped": 0,
       "pct": 100
     },
     "functions": {
-      "total": 8,
-      "covered": 8,
+      "total": 9,
+      "covered": 9,
       "skipped": 0,
       "pct": 100
     },
     "statements": {
-      "total": 84,
-      "covered": 84,
+      "total": 96,
+      "covered": 96,
       "skipped": 0,
       "pct": 100
     },
     "branches": {
-      "total": 32,
-      "covered": 32,
+      "total": 35,
+      "covered": 35,
       "skipped": 0,
       "pct": 100
     }

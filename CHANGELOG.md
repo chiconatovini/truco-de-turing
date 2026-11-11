@@ -25,6 +25,7 @@ Entra na próxima versão, quando o pull request da fusão for aceito. Plano e d
 - feat: trilhas novas, com temas compostos que se repetem iguais: menu (canção de ninar em Fá, harpa e caixinha de música, começa no primeiro toque na página), Planície (blues mais lento, notas longas e poucos saltos), montanha (trompa macia no lugar do timbre espetado, harpa ao fundo e tambores nos repousos), pântano (no espírito da "Dança da Fada Açucarada", mais lenta, harmônica de vidro, glockenspiel e pizzicato) e oceano (repousos cheios com coro e baixo ligados entre compassos, marimba ao fundo). Os efeitos sonoros não mudaram. (#9)
 - feat: avatares do jogador: 9 retratos (truqueiros, autômato, GatoNet, coruja da validação, monge do forward pass, nobre, decifrador e antimatéria), 3 livres e 6 liberados por conquistas. Escolha em Menu > Avatar (ou em Conquistas); o retrato vai para o placar da mesa e a tela de resultado avisa quando uma conquista libera um avatar. A escolha fica salva no navegador até existirem contas. (#10)
 - feat: 8 conquistas novas, com nomes temáticos: Sangue azul (Nobreza), Forward pass de ouro (Backprop), Ajuste fino, Batch grande, Ensemble, Big data, Deep learning de verdade e Arquiteto de redes; o quadro passa a ter 35. (#10)
+- test: relatórios das três suítes regenerados para as Etapas 1 e 2 (302 de unidade, 19 de interface, 12 de performance; cobertura de 98,7% das linhas) e planilha de validação atualizada (o cenário F-28, dos textos conceituais, passou de Atenção para Passou com a revisão da #7).
 
 ## 1.2.1 — 2026-11-09
 
