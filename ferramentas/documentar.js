@@ -6,7 +6,7 @@
  * Assim a referência nunca fica desatualizada: basta documentar o código e rodar `npm run docs`.
  */
 import { readFileSync, writeFileSync, readdirSync, statSync, mkdirSync } from 'node:fs';
-import { dirname, join, relative } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 /** Pasta do projeto. `TRUCO_RAIZ` permite rodar sobre uma cópia (usado nos testes). */
@@ -64,7 +64,8 @@ const pastas = ['src', 'ferramentas'];
 for (const pasta of pastas) {
   for (const caminho of arquivosJs(join(raiz, pasta))) {
     const { descricao, itens } = lerModulo(caminho);
-    saida += '## `' + relative(raiz, caminho) + '`\n\n' + (descricao ? descricao + '\n\n' : '');
+    /* caminho sempre com "/", também no Windows, para a referência sair igual em qualquer sistema */
+    saida += '## `' + relative(raiz, caminho).split(sep).join('/') + '`\n\n' + (descricao ? descricao + '\n\n' : '');
     if (!itens.length) continue;
     saida += '| Nome | Tipo | Descrição |\n|---|---|---|\n';
     for (const item of itens) {
