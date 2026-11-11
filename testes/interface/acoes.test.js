@@ -242,6 +242,29 @@ describe('ações da mesa', () => {
     } finally { await jogo.fechar(); }
   });
 
+  it('truco com duas pessoas no aparelho: quem responde pega o aparelho antes de ver o pedido', async () => {
+    const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
+    const { pagina } = jogo;
+    try {
+      await comecarPartida(pagina, { jogadores: 2, humanos: 2, baralho: 'classico', terreno: 'neutro', inicio: 'sorteio', partida: '12' });
+      await esperarMinhaVez(pagina);
+      await esperarCena(pagina, 'return cena.quemVe === cena.mao.vez && !cena.ocupada');
+      const pediu = await naCena(pagina, 'return cena.quemVe');
+      await apertar(pagina, 'truco');
+      /* antes do TRUCO! vem o "passe o aparelho", com a mão de quem pediu escondida */
+      await pagina.waitForSelector('.camada .botao.vinho');
+      assert.equal(await naCena(pagina, 'return cena.quemVe'), -1);
+      assert.equal(await pagina.$('.grito-truco'), null);
+      await pagina.locator('.camada .botao.vinho', { hasText: 'Estou pronto' }).click();
+      await pagina.waitForSelector('.grito-truco');
+      assert.equal(await naCena(pagina, 'return cena.quemVe'), 1 - pediu);
+      /* quem respondeu aceita, e a vez volta para quem pediu, de novo pelo "passe o aparelho" */
+      await pagina.locator('.grito-truco .botao.vinho').click();
+      await esperarCena(pagina, 'return cena.quemVe === -1 && !!document.querySelector(".camada .botao.vinho")');
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
   it('dicas: aviso de conquistas, dica de jogo a cada vez, dicas dos botões com o mouse e desligar', async () => {
     const jogo = await abrirJogo(servidor.url, { consulta: '?res=1' });
     const { pagina } = jogo;

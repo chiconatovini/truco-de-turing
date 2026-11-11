@@ -42,6 +42,8 @@ export const metodosDoTruco = {
       this.falar(provocar(resposta), quem);
       return this.aplicarResposta(quem, resposta);
     }
+    /* várias pessoas no aparelho: quem responde pega o aparelho antes, sem ver a mão de quem pediu */
+    if (this.variosHumanos && this.quemVe !== quem) return this.passarAparelho(quem, () => this.pedirResposta());
     const quemPediu = this.mao.jogadores[pedido.por].nome;
     const botoes = [
       /* quem corre entrega o valor atual da mão */
