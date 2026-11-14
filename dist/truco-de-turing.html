@@ -526,6 +526,8 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
 .espera-estado.erro { border-left-color: #a3242f; background: #f6dfd8; color: #6b1a22; }
 @keyframes pulsar-espera { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .espera-estado.aguardando::before { animation: none; } }
+.jogadores-lista { max-height: 52vh; overflow: auto; margin: 8px 0 12px; }
+.jogadores-lista td, .jogadores-lista th { white-space: nowrap; }
 .botao.inativo { filter: grayscale(0.7); opacity: 0.55; box-shadow: none; }
 .online-espera h3 .botao { margin-left: 12px; vertical-align: middle; }
 .online .campos-duplos { margin: 8px 0; }
@@ -3014,12 +3016,22 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
     login: "login",
     // evento recomendado do GA4 (method: google, email, email_novo)
     logout: "logout",
-    salaOnline: "sala_online"
+    salaOnline: "sala_online",
     // criar, entrar ou começar uma sala
+    acesso: "acesso",
+    // abertura do jogo (numero: quantas vezes este jogador já abriu; conta: 0 ou 1)
+    contaRetomada: "conta_retomada"
+    // a conta voltou sozinha ao recarregar a página
   };
-  var PROPRIEDADES_DO_JOGADOR = ["id_jogador", "tipo_conta", "experiencia", "conquistas", "avatar", "verbetes_lidos"];
+  var EVENTOS_DE_PARTIDA = ["jogo_iniciado", "jogo_finalizado", "vitoria_do_jogador", "derrota_jogador", "fim_mao", "jogo_abandonado", "truco"];
+  var PROPRIEDADES_DO_JOGADOR = ["id_jogador", "tipo_conta", "experiencia", "conquistas", "avatar", "verbetes_lidos", "acessos", "partidas", "vitorias"];
   var CHAVE_DO_JOGADOR = "truco-de-turing:id-jogador";
   var estado = { janela: null, carregado: false, conta: null, perfil: {} };
+  var ouvintesDeEventos = /* @__PURE__ */ new Set();
+  function aoRegistrarEvento(cb) {
+    ouvintesDeEventos.add(cb);
+    return () => ouvintesDeEventos.delete(cb);
+  }
   function idDoAparelho(janela = globalThis) {
     try {
       const salvo = janela.localStorage.getItem(CHAVE_DO_JOGADOR);
@@ -3052,7 +3064,7 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
     if (!medindo()) return;
     if (uid) {
       enviarJogador(estado.janela);
-      if (!retomada) registrarEvento(EVENTOS.login, { method: metodo || "conta" });
+      registrarEvento(retomada ? EVENTOS.contaRetomada : EVENTOS.login, { method: metodo || "conta" });
     } else if (antes) {
       registrarEvento(EVENTOS.logout);
       enviarJogador(estado.janela);
@@ -3146,12 +3158,142 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
     else if (escolha === null) mostrarFaixa(janela);
   }
   function registrarEvento(nome, dados = {}) {
+    if (EVENTOS_DE_PARTIDA.includes(nome) && dados.conta === void 0) dados = { ...dados, conta: estado.conta ? 1 : 0 };
+    for (const cb of [...ouvintesDeEventos]) {
+      try {
+        cb(nome, dados);
+      } catch (e) {
+      }
+    }
     if (!medindo()) return;
     try {
       estado.janela.gtag("event", nome, dados);
     } catch (e) {
     }
   }
+
+  // src/online/estatisticas.js
+  function estatisticasIniciais() {
+    return {
+      acessos: 0,
+      primeiroAcesso: 0,
+      ultimoAcesso: 0,
+      versao: "",
+      aparelho: "",
+      partidas: { iniciadas: 0, terminadas: 0, vencidas: 0, abandonadas: 0 },
+      maos: { jogadas: 0, vencidas: 0 },
+      trucos: { pedidos: 0 },
+      online: { salasCriadas: 0, salasEntradas: 0, partidas: 0 },
+      porOponente: {},
+      porBaralho: {},
+      porTerreno: {}
+    };
+  }
+  var GRUPOS = ["partidas", "maos", "trucos", "online"];
+  var TABELAS = ["porOponente", "porBaralho", "porTerreno"];
+  function estatisticasDe(progresso) {
+    const base = estatisticasIniciais(), e = progresso.estatisticas || {};
+    for (const k of Object.keys(base)) {
+      if (GRUPOS.includes(k)) e[k] = { ...base[k], ...e[k] || {} };
+      else if (e[k] === void 0 || e[k] === null) e[k] = base[k];
+    }
+    progresso.estatisticas = e;
+    return e;
+  }
+  function tipoDeAparelho(janela = globalThis) {
+    try {
+      const toque = janela.matchMedia && janela.matchMedia("(pointer: coarse)").matches;
+      return toque ? Math.min(janela.innerWidth, janela.innerHeight) < 600 ? "celular" : "tablet" : "computador";
+    } catch (e) {
+      return "computador";
+    }
+  }
+  function registrarAcesso(progresso, { agora = Date.now(), versao = "", aparelho = "" } = {}) {
+    const e = estatisticasDe(progresso);
+    e.acessos += 1;
+    if (!e.primeiroAcesso) e.primeiroAcesso = agora;
+    e.ultimoAcesso = agora;
+    e.versao = versao;
+    e.aparelho = aparelho;
+    return e.acessos;
+  }
+  var somarNaTabela = (tabela, chave, venceu) => {
+    if (!chave) return;
+    const linha2 = tabela[chave] || (tabela[chave] = { jogadas: 0, vencidas: 0 });
+    linha2.jogadas += 1;
+    if (venceu) linha2.vencidas += 1;
+  };
+  function contarEvento(progresso, nome, dados = {}) {
+    const e = estatisticasDe(progresso);
+    switch (nome) {
+      case "jogo_iniciado":
+        e.partidas.iniciadas += 1;
+        if (dados.online) e.online.partidas += 1;
+        return true;
+      case "jogo_finalizado":
+        e.partidas.terminadas += 1;
+        if (dados.venceu) e.partidas.vencidas += 1;
+        if (!dados.online) somarNaTabela(e.porOponente, dados.oponente, !!dados.venceu);
+        return true;
+      case "jogo_abandonado":
+        e.partidas.abandonadas += 1;
+        return true;
+      case "fim_mao":
+        e.maos.jogadas += 1;
+        if (dados.venceu) e.maos.vencidas += 1;
+        somarNaTabela(e.porBaralho, dados.baralho, !!dados.venceu);
+        somarNaTabela(e.porTerreno, dados.terreno, !!dados.venceu);
+        return true;
+      case "truco":
+        if (!dados.meu) return false;
+        e.trucos.pedidos += 1;
+        return true;
+      case "sala_online":
+        if (dados.acao === "criar") e.online.salasCriadas += 1;
+        else if (dados.acao === "entrar") e.online.salasEntradas += 1;
+        else return false;
+        return true;
+      default:
+        return false;
+    }
+  }
+  function mesclarEstatisticas(local, conta2) {
+    const a = estatisticasDe({ estatisticas: local ? JSON.parse(JSON.stringify(local)) : null });
+    if (!conta2) return a;
+    const b = estatisticasDe({ estatisticas: JSON.parse(JSON.stringify(conta2)) });
+    const m = estatisticasIniciais();
+    m.acessos = Math.max(a.acessos, b.acessos);
+    m.primeiroAcesso = Math.min(a.primeiroAcesso || Infinity, b.primeiroAcesso || Infinity);
+    if (!Number.isFinite(m.primeiroAcesso)) m.primeiroAcesso = 0;
+    const recente = b.ultimoAcesso > a.ultimoAcesso ? b : a;
+    m.ultimoAcesso = recente.ultimoAcesso;
+    m.versao = recente.versao;
+    m.aparelho = recente.aparelho;
+    for (const g of GRUPOS) for (const k of /* @__PURE__ */ new Set([...Object.keys(a[g]), ...Object.keys(b[g])])) m[g][k] = Math.max(a[g][k] || 0, b[g][k] || 0);
+    for (const t of TABELAS) {
+      for (const chave of /* @__PURE__ */ new Set([...Object.keys(a[t]), ...Object.keys(b[t])])) {
+        const x = a[t][chave] || {}, y = b[t][chave] || {};
+        m[t][chave] = { jogadas: Math.max(x.jogadas || 0, y.jogadas || 0), vencidas: Math.max(x.vencidas || 0, y.vencidas || 0) };
+      }
+    }
+    return m;
+  }
+  function resumoDoJogador(progresso) {
+    const e = estatisticasDe(progresso);
+    return {
+      conquistas: Object.keys(progresso.desbloqueadas || {}).length,
+      verbetesLidos: progresso.verbetesLidos || 0,
+      acessos: e.acessos,
+      ultimoAcesso: e.ultimoAcesso,
+      partidas: e.partidas.terminadas,
+      vitorias: e.partidas.vencidas,
+      maos: e.maos.jogadas
+    };
+  }
+
+  // src/versao.js
+  var VERSAO = "2.5.0";
+  var DATA_DA_VERSAO = "2026-11-14";
 
   // src/aplicacao.js
   var OPCOES_PADRAO = {
@@ -3198,16 +3340,27 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
       if (!this.progresso.musicaEscolhida) this.progresso.musica = true;
       this.opcoes = normalizarOpcoes(this.progresso.opcoes);
       Som.definirMudo(!!this.progresso.mudo);
+      registrarAcesso(this.progresso, { versao: VERSAO, aparelho: tipoDeAparelho() });
+      this.salvar();
+      if (this.pararDeContar) this.pararDeContar();
+      this.pararDeContar = aoRegistrarEvento((nome, dados) => {
+        if (!contarEvento(this.progresso, nome, dados)) return;
+        this.salvar();
+        this.atualizarJogadorNasEstatisticas();
+      });
       this.atualizarJogadorNasEstatisticas();
     },
-    /** Passa às estatísticas de uso a experiência, as conquistas, o avatar e os verbetes lidos. */
+    /** Passa às estatísticas de uso a experiência, as conquistas, o avatar, os verbetes lidos, os acessos e as partidas. */
     atualizarJogadorNasEstatisticas() {
-      const p = this.progresso;
+      const p = this.progresso, e = estatisticasDe(p);
       atualizarJogador({
         experiencia: faixaDeExperiencia(p.maos),
         conquistas: Object.keys(p.desbloqueadas || {}).length,
         avatar: p.avatar || "padrao",
-        verbetes_lidos: p.verbetesLidos || 0
+        verbetes_lidos: p.verbetesLidos || 0,
+        acessos: e.acessos,
+        partidas: e.partidas.terminadas,
+        vitorias: e.partidas.vencidas
       });
     },
     /** Grava o progresso. */
@@ -8426,9 +8579,35 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
     return painel;
   }
 
-  // src/versao.js
-  var VERSAO = "2.4.7";
-  var DATA_DA_VERSAO = "2026-11-14";
+  // src/online/contas.js
+  var TEXTO_DA_CONTA = "Quem entra numa conta tem guardados nela, no Firebase do jogo: nome, e-mail, conquistas, verbetes lidos, avatar e as estat\xEDsticas de jogo (acessos, partidas, m\xE3os e vit\xF3rias). Os respons\xE1veis pelo jogo conseguem ver esses dados. Sem conta, tudo isso fica s\xF3 neste aparelho.";
+  var CONTADORES = ["vitorias", "maos", "dropouts", "vitoriasZen"];
+  var CONJUNTOS = ["lidos", "terrenos", "baralhos", "arquiteturas"];
+  function mesclarProgresso(local, conta2) {
+    if (!conta2) return { ...local };
+    const m = { ...local };
+    for (const k of CONTADORES) m[k] = Math.max(local[k] || 0, conta2[k] || 0);
+    for (const k of CONJUNTOS) m[k] = { ...local[k] || {}, ...conta2[k] || {} };
+    m.desbloqueadas = { ...local.desbloqueadas || {} };
+    for (const [id, quando] of Object.entries(conta2.desbloqueadas || {})) {
+      m.desbloqueadas[id] = m.desbloqueadas[id] ? Math.min(m.desbloqueadas[id], quando) : quando;
+    }
+    m.verbetesLidos = Object.keys(m.lidos).length;
+    if (conta2.avatar) m.avatar = conta2.avatar;
+    m.estatisticas = mesclarEstatisticas(local.estatisticas, conta2.estatisticas);
+    return m;
+  }
+  function progressoDaConta(progresso) {
+    const p = {};
+    for (const k of [...CONTADORES, ...CONJUNTOS, "desbloqueadas", "verbetesLidos", "avatar", "estatisticas"]) if (progresso[k] !== void 0) p[k] = progresso[k];
+    return p;
+  }
+  function documentoDaConta(progresso, conta2, metodo) {
+    const doc = progressoDaConta(progresso);
+    if (conta2) doc.perfil = { nome: conta2.nome || "", email: conta2.email || "", metodo: metodo && metodo.startsWith("email") ? "email" : metodo || "conta" };
+    doc.resumo = resumoDoJogador(progresso);
+    return doc;
+  }
 
   // src/interface/telas/sobre.js
   function situacaoDasEstatisticas() {
@@ -8437,7 +8616,7 @@ button.link { background: none; border: 0; padding: 0; color: #6b1a22; text-deco
     return escolha === "sim" ? "Neste aparelho: ligadas." : escolha === "nao" ? "Neste aparelho: desligadas." : "Neste aparelho: ainda sem escolha.";
   }
   function abrirSobre() {
-    const html = '<div class="folha sobre"><button class="fechar-x" data-fechar aria-label="Fechar">\xD7</button><h2>Sobre o jogo</h2><p class="versao">Vers\xE3o ' + VERSAO + " \xB7 " + DATA_DA_VERSAO.split("-").reverse().join("/") + ' \xB7 <a href="https://github.com/welyngton/truco-de-turing/blob/main/CHANGELOG.md" target="_blank" rel="noopener">hist\xF3rico de vers\xF5es</a></p><p>Um jogo de cartas para navegador que ensina redes neurais jogando. Cada carta \xE9 um neur\xF4nio, cada m\xE3o \xE9 uma rede constru\xEDda da entrada \xE0 sa\xEDda, e cada a\xE7\xE3o com as cartas (tunagem, overfit, dropout, early stop, transfer learning) \xE9 um conceito do treino de modelos. Entre dois jogadores, o truco fica por cima de tudo: tentos, pedidos de TRUCO, SEIS, NOVE e DOZE, e blefe.</p><h3>Dois jogos que viraram um</h3><p>A turma fez dois jogos para o mesmo tema, e o professor decidiu juntar o melhor de cada um:</p><ul><li><b>NeuroDeck</b> (<a href="https://neurodeck-fpo.web.app/" target="_blank" rel="noopener">neurodeck-fpo.web.app</a>): as <b>regras</b>. O motor do NeuroDeck decide tudo o que acontece na mesa: jogadas, pontua\xE7\xE3o, terrenos, desempates, as arquiteturas de rede, de 2 a 5 jogadores, os oponentes do computador e a API de mods.</li><li><b>Truco de Turing</b>: a <b>interface</b>. Arte das cartas, menu, mesa, efeitos, sons, m\xFAsica, avatares, conquistas, o Gloss\xE1rio e o modo truco.</li></ul><p>O motor do NeuroDeck foi copiado para o projeto sem altera\xE7\xF5es e conferido contra o site publicado em 1.000 partidas; depois recebeu as decis\xF5es de regra do professor e do grupo, registradas no reposit\xF3rio.</p><h3>A disciplina</h3><p>Trabalho do tema 4 da disciplina Fundamentos em Pesquisa Operacional (FPO), semestre 2026/2, no Programa de P\xF3s-Gradua\xE7\xE3o em Computa\xE7\xE3o Aplicada (PPCA) da Universidade de Bras\xEDlia, com o prof. Peng Yaohao. O tema pede um jogo indie para ensinar conceitos de machine learning e redes neurais, a partir de uma premissa: um jogo educativo precisa, antes de tudo, ser um jogo divertido. Se o jogo for divertido e o docente tiver compet\xEAncia suficiente, ele pode se tornar educativo.</p><h3>As regras originais</h3><ul><li>Mesa com um baralho de 52 cartas: 3 neur\xF4nios na entrada, 5 camadas ocultas de 5 neur\xF4nios e 4 na sa\xEDda. Cada jogador recebe 5 cartas; as 10 restantes v\xE3o para o limbo, como ru\xEDdo.</li><li>Os jogadores se alternam ativando neur\xF4nios para ligar a entrada \xE0 sa\xEDda. Vence a rede de maior soma: 2 a 10 pelo valor, \xC1s 11, figuras 0, com figuras iguais vizinhas valendo 10 cada (par 20, trio 30) e quadras zerando a rede (vanishing gradient).</li><li>A\xE7\xF5es com a m\xE3o: tunagem, overfit, early stop, stack overflow, dropout (o GatoNet) e transfer learning. Entrada e sa\xEDda s\xE3o imunes.</li><li>Desempates em cascata e tr\xEAs formas de decidir quem come\xE7a.</li><li>Extens\xF5es propostas: baralhos com efeitos (truco, fraternidade, yin-yang, Power BI), terrenos (montanha, p\xE2ntano, oceano), coringas e conquistas em gradua\xE7\xF5es de bronze a antimat\xE9ria.</li><li>Inspira\xE7\xF5es citadas: TensorFlow Playground, Balatro, Magic: The Gathering e Geometry Dash.</li></ul><h3>O professor</h3><p><b>Peng Yaohao</b> \xE9 professor da Universidade de Bras\xEDlia, mestre e doutor pela UnB na \xE1rea de Finan\xE7as e M\xE9todos Quantitativos. Pesquisa aprendizado de m\xE1quina, modelos n\xE3o lineares e econometria financeira, com trabalhos sobre previs\xE3o de volatilidade e de pre\xE7os de a\xE7\xF5es e um estudo emp\xEDrico sobre n\xE3o linearidade e overfitting em machine learning com dados da COVID-19.</p><h3>Autores</h3><ul class="autores"><li><b>Francisco Lima</b>: NeuroDeck (regras, motor, oponentes e mods).</li><li><b>Welyngton Jos\xE9 Vinicius Dal Pr\xE1</b>: Truco de Turing (interface, arte, sons, conquistas e modo truco).</li><li><b>Diego Casagrande</b>: testes, valida\xE7\xE3o das regras e fus\xE3o dos dois jogos.</li><li><b>Vin\xEDcius Chiconato</b>: corre\xE7\xF5es da fus\xE3o.</li><li><b>Suzy Arcanjo</b>: verbetes das a\xE7\xF5es no Gloss\xE1rio.</li></ul><p class="contribuicoes">Contribui\xE7\xF5es s\xE3o bem-vindas: o c\xF3digo est\xE1 aberto no reposit\xF3rio.</p><h3>Estat\xEDsticas de uso</h3><p>' + TEXTO_DAS_ESTATISTICAS + '</p><p class="estatisticas-situacao" id="s-estatisticas">' + situacaoDasEstatisticas() + "</p>" + (podeMedir() ? '<div class="linha"><button class="botao pequeno" id="s-estatisticas-sim">Ligar</button><button class="botao pequeno discreto" id="s-estatisticas-nao">Desligar</button></div>' : "") + '<h3>Cr\xE9ditos e licen\xE7a</h3><p>C\xF3digo aberto sob a licen\xE7a <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>, no reposit\xF3rio <a href="https://github.com/welyngton/truco-de-turing" target="_blank" rel="noopener">github.com/welyngton/truco-de-turing</a>. O motor de regras \xE9 o do NeuroDeck, inclu\xEDdo com a concord\xE2ncia do grupo (ver <code>src/motor/ORIGEM.md</code>). Feito com Phaser 3; toda a arte das cartas \xE9 gerada por c\xF3digo; fontes Cinzel e Spectral.</p><div class="linha fim" style="margin-top:14px"><button class="botao" data-fechar>Fechar</button></div></div>';
+    const html = '<div class="folha sobre"><button class="fechar-x" data-fechar aria-label="Fechar">\xD7</button><h2>Sobre o jogo</h2><p class="versao">Vers\xE3o ' + VERSAO + " \xB7 " + DATA_DA_VERSAO.split("-").reverse().join("/") + ' \xB7 <a href="https://github.com/welyngton/truco-de-turing/blob/main/CHANGELOG.md" target="_blank" rel="noopener">hist\xF3rico de vers\xF5es</a></p><p>Um jogo de cartas para navegador que ensina redes neurais jogando. Cada carta \xE9 um neur\xF4nio, cada m\xE3o \xE9 uma rede constru\xEDda da entrada \xE0 sa\xEDda, e cada a\xE7\xE3o com as cartas (tunagem, overfit, dropout, early stop, transfer learning) \xE9 um conceito do treino de modelos. Entre dois jogadores, o truco fica por cima de tudo: tentos, pedidos de TRUCO, SEIS, NOVE e DOZE, e blefe.</p><h3>Dois jogos que viraram um</h3><p>A turma fez dois jogos para o mesmo tema, e o professor decidiu juntar o melhor de cada um:</p><ul><li><b>NeuroDeck</b> (<a href="https://neurodeck-fpo.web.app/" target="_blank" rel="noopener">neurodeck-fpo.web.app</a>): as <b>regras</b>. O motor do NeuroDeck decide tudo o que acontece na mesa: jogadas, pontua\xE7\xE3o, terrenos, desempates, as arquiteturas de rede, de 2 a 5 jogadores, os oponentes do computador e a API de mods.</li><li><b>Truco de Turing</b>: a <b>interface</b>. Arte das cartas, menu, mesa, efeitos, sons, m\xFAsica, avatares, conquistas, o Gloss\xE1rio e o modo truco.</li></ul><p>O motor do NeuroDeck foi copiado para o projeto sem altera\xE7\xF5es e conferido contra o site publicado em 1.000 partidas; depois recebeu as decis\xF5es de regra do professor e do grupo, registradas no reposit\xF3rio.</p><h3>A disciplina</h3><p>Trabalho do tema 4 da disciplina Fundamentos em Pesquisa Operacional (FPO), semestre 2026/2, no Programa de P\xF3s-Gradua\xE7\xE3o em Computa\xE7\xE3o Aplicada (PPCA) da Universidade de Bras\xEDlia, com o prof. Peng Yaohao. O tema pede um jogo indie para ensinar conceitos de machine learning e redes neurais, a partir de uma premissa: um jogo educativo precisa, antes de tudo, ser um jogo divertido. Se o jogo for divertido e o docente tiver compet\xEAncia suficiente, ele pode se tornar educativo.</p><h3>As regras originais</h3><ul><li>Mesa com um baralho de 52 cartas: 3 neur\xF4nios na entrada, 5 camadas ocultas de 5 neur\xF4nios e 4 na sa\xEDda. Cada jogador recebe 5 cartas; as 10 restantes v\xE3o para o limbo, como ru\xEDdo.</li><li>Os jogadores se alternam ativando neur\xF4nios para ligar a entrada \xE0 sa\xEDda. Vence a rede de maior soma: 2 a 10 pelo valor, \xC1s 11, figuras 0, com figuras iguais vizinhas valendo 10 cada (par 20, trio 30) e quadras zerando a rede (vanishing gradient).</li><li>A\xE7\xF5es com a m\xE3o: tunagem, overfit, early stop, stack overflow, dropout (o GatoNet) e transfer learning. Entrada e sa\xEDda s\xE3o imunes.</li><li>Desempates em cascata e tr\xEAs formas de decidir quem come\xE7a.</li><li>Extens\xF5es propostas: baralhos com efeitos (truco, fraternidade, yin-yang, Power BI), terrenos (montanha, p\xE2ntano, oceano), coringas e conquistas em gradua\xE7\xF5es de bronze a antimat\xE9ria.</li><li>Inspira\xE7\xF5es citadas: TensorFlow Playground, Balatro, Magic: The Gathering e Geometry Dash.</li></ul><h3>O professor</h3><p><b>Peng Yaohao</b> \xE9 professor da Universidade de Bras\xEDlia, mestre e doutor pela UnB na \xE1rea de Finan\xE7as e M\xE9todos Quantitativos. Pesquisa aprendizado de m\xE1quina, modelos n\xE3o lineares e econometria financeira, com trabalhos sobre previs\xE3o de volatilidade e de pre\xE7os de a\xE7\xF5es e um estudo emp\xEDrico sobre n\xE3o linearidade e overfitting em machine learning com dados da COVID-19.</p><h3>Autores</h3><ul class="autores"><li><b>Francisco Lima</b>: NeuroDeck (regras, motor, oponentes e mods).</li><li><b>Welyngton Jos\xE9 Vinicius Dal Pr\xE1</b>: Truco de Turing (interface, arte, sons, conquistas e modo truco).</li><li><b>Diego Casagrande</b>: testes, valida\xE7\xE3o das regras e fus\xE3o dos dois jogos.</li><li><b>Vin\xEDcius Chiconato</b>: corre\xE7\xF5es da fus\xE3o.</li><li><b>Suzy Arcanjo</b>: verbetes das a\xE7\xF5es no Gloss\xE1rio.</li></ul><p class="contribuicoes">Contribui\xE7\xF5es s\xE3o bem-vindas: o c\xF3digo est\xE1 aberto no reposit\xF3rio.</p><h3>Estat\xEDsticas de uso</h3><p>' + TEXTO_DAS_ESTATISTICAS + '</p><p class="estatisticas-situacao" id="s-estatisticas">' + situacaoDasEstatisticas() + "</p>" + (podeMedir() ? '<div class="linha"><button class="botao pequeno" id="s-estatisticas-sim">Ligar</button><button class="botao pequeno discreto" id="s-estatisticas-nao">Desligar</button></div>' : "") + '<h3>Dados da conta</h3><p id="s-conta">' + TEXTO_DA_CONTA + '</p><h3>Cr\xE9ditos e licen\xE7a</h3><p>C\xF3digo aberto sob a licen\xE7a <a href="https://github.com/welyngton/truco-de-turing#GPL-3.0-1-ov-file" target="_blank" rel="noopener">GPL-3.0</a>, no reposit\xF3rio <a href="https://github.com/welyngton/truco-de-turing" target="_blank" rel="noopener">github.com/welyngton/truco-de-turing</a>. O motor de regras \xE9 o do NeuroDeck, inclu\xEDdo com a concord\xE2ncia do grupo (ver <code>src/motor/ORIGEM.md</code>). Feito com Phaser 3; toda a arte das cartas \xE9 gerada por c\xF3digo; fontes Cinzel e Spectral.</p><div class="linha fim" style="margin-top:14px"><button class="botao" data-fechar>Fechar</button></div></div>';
     const painel = abrirPainel(html, { fechaAoClicarFora: true });
     for (const escolha of ["sim", "nao"]) {
       const botao = painel.elemento.querySelector("#s-estatisticas-" + escolha);
@@ -8853,6 +9032,19 @@ export default function (NeuroDeck) {
     const { fs, banco } = await carregar2();
     await fs.setDoc(fs.doc(banco, "contas", uid), JSON.parse(JSON.stringify(progresso)));
   }
+  async function ehAdministrador(uid) {
+    try {
+      const { fs, banco } = await carregar2();
+      return (await fs.getDoc(fs.doc(banco, "admins", uid))).exists();
+    } catch (e) {
+      return false;
+    }
+  }
+  async function listarContas() {
+    const { fs, banco } = await carregar2();
+    const resultado = await fs.getDocs(fs.collection(banco, "contas"));
+    return resultado.docs.map((d) => ({ ...d.data(), uid: d.id }));
+  }
   async function transporteFirebase(codigo) {
     const { fs, banco, autenticacao } = await carregar2();
     const usuario = autenticacao.currentUser;
@@ -8945,31 +9137,105 @@ export default function (NeuroDeck) {
     return texto || "Algo deu errado com o Firebase.";
   }
 
-  // src/online/contas.js
-  var CONTADORES = ["vitorias", "maos", "dropouts", "vitoriasZen"];
-  var CONJUNTOS = ["lidos", "terrenos", "baralhos", "arquiteturas"];
-  function mesclarProgresso(local, conta2) {
-    if (!conta2) return { ...local };
-    const m = { ...local };
-    for (const k of CONTADORES) m[k] = Math.max(local[k] || 0, conta2[k] || 0);
-    for (const k of CONJUNTOS) m[k] = { ...local[k] || {}, ...conta2[k] || {} };
-    m.desbloqueadas = { ...local.desbloqueadas || {} };
-    for (const [id, quando] of Object.entries(conta2.desbloqueadas || {})) {
-      m.desbloqueadas[id] = m.desbloqueadas[id] ? Math.min(m.desbloqueadas[id], quando) : quando;
-    }
-    m.verbetesLidos = Object.keys(m.lidos).length;
-    if (conta2.avatar) m.avatar = conta2.avatar;
-    return m;
+  // src/interface/telas/jogadores.js
+  var COLUNAS = [
+    ["Nome", (j) => j.nome],
+    ["E-mail", (j) => j.email],
+    ["Login", (j) => j.metodo],
+    ["\xDAltimo acesso", (j) => dataHora(j.ultimoAcesso)],
+    ["Primeiro acesso", (j) => dataHora(j.primeiroAcesso)],
+    ["Acessos", (j) => j.acessos],
+    ["Conquistas", (j) => j.conquistas],
+    ["Verbetes lidos", (j) => j.verbetesLidos],
+    ["Partidas iniciadas", (j) => j.partidasIniciadas],
+    ["Partidas terminadas", (j) => j.partidas],
+    ["Vit\xF3rias", (j) => j.vitorias],
+    ["Abandonos", (j) => j.abandonos],
+    ["M\xE3os jogadas", (j) => j.maos],
+    ["M\xE3os vencidas", (j) => j.maosVencidas],
+    ["Trucos pedidos", (j) => j.trucos],
+    ["Partidas online", (j) => j.partidasOnline],
+    ["Aparelho", (j) => j.aparelho],
+    ["Vers\xE3o", (j) => j.versao],
+    ["Identificador", (j) => j.uid]
+  ];
+  var NA_TELA = ["Nome", "\xDAltimo acesso", "Acessos", "Conquistas", "Partidas terminadas", "Vit\xF3rias", "M\xE3os jogadas"];
+  var dois = (n) => String(n).padStart(2, "0");
+  function dataHora(ms) {
+    if (!ms) return "";
+    const d = new Date(ms);
+    return d.getFullYear() + "-" + dois(d.getMonth() + 1) + "-" + dois(d.getDate()) + " " + dois(d.getHours()) + ":" + dois(d.getMinutes());
   }
-  function progressoDaConta(progresso) {
-    const p = {};
-    for (const k of [...CONTADORES, ...CONJUNTOS, "desbloqueadas", "verbetesLidos", "avatar"]) if (progresso[k] !== void 0) p[k] = progresso[k];
-    return p;
+  function linhaDoJogador(doc) {
+    const e = doc.estatisticas || {}, perfil = doc.perfil || {}, p = e.partidas || {}, m = e.maos || {};
+    return {
+      uid: doc.uid,
+      nome: perfil.nome || "(sem nome)",
+      email: perfil.email || "",
+      metodo: perfil.metodo || "",
+      ultimoAcesso: e.ultimoAcesso || 0,
+      primeiroAcesso: e.primeiroAcesso || 0,
+      acessos: e.acessos || 0,
+      conquistas: Object.keys(doc.desbloqueadas || {}).length,
+      verbetesLidos: doc.verbetesLidos || 0,
+      partidasIniciadas: p.iniciadas || 0,
+      partidas: p.terminadas || 0,
+      vitorias: p.vencidas || 0,
+      abandonos: p.abandonadas || 0,
+      maos: m.jogadas || doc.maos || 0,
+      maosVencidas: m.vencidas || doc.vitorias || 0,
+      trucos: (e.trucos || {}).pedidos || 0,
+      partidasOnline: (e.online || {}).partidas || 0,
+      aparelho: e.aparelho || "",
+      versao: e.versao || ""
+    };
+  }
+  function ordenarJogadores(linhas) {
+    return [...linhas].sort((a, b) => b.ultimoAcesso - a.ultimoAcesso || a.nome.localeCompare(b.nome));
+  }
+  function csvDosJogadores(linhas) {
+    const celula = (v) => {
+      let t = String(v === void 0 || v === null ? "" : v);
+      if (/^[=+\-@\t\r]/.test(t)) t = "'" + t;
+      return /[";\n\r]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+    };
+    return "\uFEFF" + [COLUNAS.map(([titulo]) => celula(titulo)).join(";"), ...linhas.map((j) => COLUNAS.map(([, valor]) => celula(valor(j))).join(";"))].join("\r\n") + "\r\n";
+  }
+  async function abrirJogadores() {
+    const painel = abrirPainel('<div class="folha jogadores"><button class="fechar" data-fechar aria-label="Fechar">\xD7</button><h2>Jogadores</h2><p class="nota" id="j-estado" role="status">Carregando as contas\u2026</p><div class="jogadores-lista" id="j-lista"></div><div class="linha fim"><button class="botao discreto" id="j-csv" disabled>Baixar CSV</button><button class="botao" data-fechar>Fechar</button></div></div>');
+    const $2 = (id) => painel.elemento.querySelector("#" + id);
+    let linhas;
+    try {
+      linhas = ordenarJogadores((await listarContas()).map(linhaDoJogador));
+    } catch (e) {
+      if ($2("j-estado")) $2("j-estado").textContent = "N\xE3o deu para ler as contas. " + (explicarErroFirebase(e) || "");
+      return painel;
+    }
+    if (!$2("j-estado")) return painel;
+    const comConquistas = linhas.filter((j) => j.conquistas > 0).length;
+    $2("j-estado").textContent = linhas.length + (linhas.length === 1 ? " conta" : " contas") + ", " + comConquistas + " com conquistas (de " + CONQUISTAS.length + " poss\xEDveis). O CSV leva todas as colunas.";
+    const colunas = COLUNAS.filter(([titulo]) => NA_TELA.includes(titulo));
+    $2("j-lista").innerHTML = '<table class="tabela-partida"><thead><tr>' + colunas.map(([titulo]) => "<th>" + escaparHtml(titulo) + "</th>").join("") + "</tr></thead><tbody>" + linhas.map((j) => "<tr>" + colunas.map(([titulo, valor]) => "<td" + (titulo === "Nome" ? ' title="' + escaparHtml(j.email) + '"' : "") + ">" + escaparHtml(String(valor(j))) + "</td>").join("") + "</tr>").join("") + "</tbody></table>";
+    $2("j-csv").disabled = false;
+    $2("j-csv").addEventListener("click", () => {
+      const url = URL.createObjectURL(new Blob([csvDosJogadores(linhas)], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "truco-de-turing-jogadores-" + dataHora(Date.now()).slice(0, 10) + ".csv";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1e3);
+      mostrarAviso("Jogadores", "CSV baixado com " + linhas.length + (linhas.length === 1 ? " conta." : " contas."), null, 3e3);
+    });
+    return painel;
   }
 
   // src/interface/conta.js
   var MARCA_DE_CONTA = "truco-de-turing:conta";
   var atual2 = null;
+  var metodoAtual = "";
+  var acessoContadoNaConta = false;
   var ouvintes = /* @__PURE__ */ new Set();
   var avisouFalhaAoSalvar = false;
   function contaAtual() {
@@ -8982,6 +9248,9 @@ export default function (NeuroDeck) {
   function mudar(conta2) {
     atual2 = conta2;
     for (const cb of [...ouvintes]) cb(conta2);
+  }
+  function haMarcaDeConta() {
+    return !!lerMarca();
   }
   var lerMarca = () => {
     try {
@@ -9006,7 +9275,12 @@ export default function (NeuroDeck) {
     const naConta = await carregarProgressoDaConta(conta2.uid);
     const mesclado = mesclarProgresso(app.progresso, naConta);
     mesclado.nomeOnline = mesclado.nomeOnline || conta2.nome;
-    await salvarProgressoNaConta(conta2.uid, progressoDaConta(mesclado));
+    const jaNaConta = naConta && naConta.estatisticas ? naConta.estatisticas.acessos || 0 : 0;
+    const estatisticas = estatisticasDe(mesclado);
+    if (!acessoContadoNaConta) estatisticas.acessos = Math.max(estatisticas.acessos, jaNaConta + 1);
+    await salvarProgressoNaConta(conta2.uid, documentoDaConta(mesclado, conta2, metodo));
+    acessoContadoNaConta = true;
+    metodoAtual = metodo;
     app.progresso = mesclado;
     avisouFalhaAoSalvar = false;
     gravarMarca(metodo);
@@ -9017,7 +9291,7 @@ export default function (NeuroDeck) {
       app.salvar = function() {
         this.salvarSoLocal();
         if (!atual2) return;
-        salvarProgressoNaConta(atual2.uid, progressoDaConta(this.progresso)).then(() => {
+        salvarProgressoNaConta(atual2.uid, documentoDaConta(this.progresso, atual2, metodoAtual)).then(() => {
           avisouFalhaAoSalvar = false;
         }, (e) => {
           if (avisouFalhaAoSalvar) return;
@@ -9086,7 +9360,7 @@ export default function (NeuroDeck) {
     const nuvem = firebaseConfigurado();
     const nome = app.progresso.nomeOnline || "";
     const maxPessoas = app.opcoes.jogadores;
-    const html = '<div class="folha online"><button class="fechar-x" data-fechar aria-label="Fechar">\xD7</button><h2>Jogar online</h2><section class="online-conta"><h3>Conta</h3>' + (nuvem ? '<p id="o-conta-estado">' + (contaAtual() ? "Conectado como <b>" + escaparHtml(contaAtual().nome) + "</b>. O progresso fica na conta." : "Entre para guardar conquistas, avatares e progresso na conta e jogar pela internet.") + '</p><div class="linha"><button class="botao" id="o-google">Entrar com Google</button><button class="botao discreto" id="o-sair"' + (contaAtual() ? "" : " hidden") + '>Sair da conta</button></div><div class="campos-duplos"><input id="o-email" type="email" placeholder="e-mail" autocomplete="email"><input id="o-senha" type="password" placeholder="senha" autocomplete="current-password"></div><div class="linha"><button class="botao discreto" id="o-email-entrar">Entrar com e-mail</button><button class="botao discreto" id="o-email-criar">Criar conta</button></div>' : '<p class="nota">As contas na nuvem e as salas pela internet entram quando o projeto Firebase do grupo for configurado. Por enquanto o progresso fica neste navegador, e as salas funcionam entre abas e janelas dele (abra o jogo em outra janela para testar).</p>') + '<div class="campo"><label for="o-nome">Seu nome na mesa</label><input id="o-nome" maxlength="20" value="' + escaparHtml(nome) + '" placeholder="Como os outros v\xE3o ver voc\xEA"></div></section><section class="online-sala" id="o-escolha"><h3>Sala</h3><p>A sala usa as op\xE7\xF5es do menu (jogadores, oponente, arquitetura, baralho, terreno e partida). Cadeiras sem pessoa ficam com o computador.</p><div class="campos-duplos"><div class="campo"><label for="o-pessoas">Pessoas na sala</label><select id="o-pessoas">' + Array.from({ length: maxPessoas - 1 }, (_, i) => '<option value="' + (i + 2) + '">' + (i + 2) + " de " + maxPessoas + " cadeiras</option>").join("") + '</select></div><div class="campo"><label>&nbsp;</label><button class="botao vinho" id="o-criar">Criar sala</button></div></div><div class="campos-duplos"><div class="campo"><label for="o-codigo">C\xF3digo da sala</label><input id="o-codigo" maxlength="5" placeholder="ABCDE" autocapitalize="characters"></div><div class="campo"><label>&nbsp;</label><button class="botao" id="o-entrar">Entrar na sala</button></div></div></section><section class="online-espera" id="o-espera" hidden><h3>Sala <span class="codigo-sala" id="o-codigo-sala"></span><button class="botao discreto pequeno" id="o-copiar" type="button">Copiar c\xF3digo</button></h3><p class="espera-estado" id="o-espera-nota" role="status" aria-live="polite"></p><ol class="cadeiras" id="o-cadeiras"></ol><p class="nota" id="o-espera-alcance"></p><div class="linha fim"><button class="botao discreto" id="o-desistir">Sair da sala</button><button class="botao vinho" id="o-comecar" hidden>Come\xE7ar partida</button></div></section></div>';
+    const html = '<div class="folha online"><button class="fechar-x" data-fechar aria-label="Fechar">\xD7</button><h2>Jogar online</h2><section class="online-conta"><h3>Conta</h3>' + (nuvem ? '<p id="o-conta-estado">' + (contaAtual() ? "Conectado como <b>" + escaparHtml(contaAtual().nome) + "</b>. O progresso fica na conta." : "Entre para guardar conquistas, avatares e progresso na conta e jogar pela internet.") + '</p><div class="linha"><button class="botao" id="o-google">Entrar com Google</button><button class="botao discreto" id="o-sair"' + (contaAtual() ? "" : " hidden") + '>Sair da conta</button><button class="botao discreto" id="o-jogadores" hidden>Jogadores</button></div><div class="campos-duplos"><input id="o-email" type="email" placeholder="e-mail" autocomplete="email"><input id="o-senha" type="password" placeholder="senha" autocomplete="current-password"></div><div class="linha"><button class="botao discreto" id="o-email-entrar">Entrar com e-mail</button><button class="botao discreto" id="o-email-criar">Criar conta</button></div><p class="nota" id="o-conta-dados">' + TEXTO_DA_CONTA + "</p>" : '<p class="nota">As contas na nuvem e as salas pela internet entram quando o projeto Firebase do grupo for configurado. Por enquanto o progresso fica neste navegador, e as salas funcionam entre abas e janelas dele (abra o jogo em outra janela para testar).</p>') + '<div class="campo"><label for="o-nome">Seu nome na mesa</label><input id="o-nome" maxlength="20" value="' + escaparHtml(nome) + '" placeholder="Como os outros v\xE3o ver voc\xEA"></div></section><section class="online-sala" id="o-escolha"><h3>Sala</h3><p>A sala usa as op\xE7\xF5es do menu (jogadores, oponente, arquitetura, baralho, terreno e partida). Cadeiras sem pessoa ficam com o computador.</p><div class="campos-duplos"><div class="campo"><label for="o-pessoas">Pessoas na sala</label><select id="o-pessoas">' + Array.from({ length: maxPessoas - 1 }, (_, i) => '<option value="' + (i + 2) + '">' + (i + 2) + " de " + maxPessoas + " cadeiras</option>").join("") + '</select></div><div class="campo"><label>&nbsp;</label><button class="botao vinho" id="o-criar">Criar sala</button></div></div><div class="campos-duplos"><div class="campo"><label for="o-codigo">C\xF3digo da sala</label><input id="o-codigo" maxlength="5" placeholder="ABCDE" autocapitalize="characters"></div><div class="campo"><label>&nbsp;</label><button class="botao" id="o-entrar">Entrar na sala</button></div></div></section><section class="online-espera" id="o-espera" hidden><h3>Sala <span class="codigo-sala" id="o-codigo-sala"></span><button class="botao discreto pequeno" id="o-copiar" type="button">Copiar c\xF3digo</button></h3><p class="espera-estado" id="o-espera-nota" role="status" aria-live="polite"></p><ol class="cadeiras" id="o-cadeiras"></ol><p class="nota" id="o-espera-alcance"></p><div class="linha fim"><button class="botao discreto" id="o-desistir">Sair da sala</button><button class="botao vinho" id="o-comecar" hidden>Come\xE7ar partida</button></div></section></div>';
     let sala = null;
     let procurando = null;
     let pararDeOuvirConta = () => {
@@ -9223,7 +9497,14 @@ export default function (NeuroDeck) {
         $2("o-conta-estado").innerHTML = conta2 ? "Conectado como <b>" + escaparHtml(conta2.nome) + "</b>. O progresso fica na conta." : "Entre para guardar o progresso na conta e jogar pela internet.";
         $2("o-sair").hidden = !conta2;
         if (conta2 && !$2("o-nome").value) $2("o-nome").value = conta2.nome;
+        $2("o-jogadores").hidden = true;
+        if (conta2) ehAdministrador(conta2.uid).then((sim) => {
+          const b = $2("o-jogadores");
+          if (b && contaAtual() && contaAtual().uid === conta2.uid) b.hidden = !sim;
+        });
       };
+      $2("o-jogadores").addEventListener("click", () => abrirJogadores());
+      mostrarConta();
       pararDeOuvirConta = aoMudarDeConta(() => {
         if (painel.elemento.isConnected) mostrarConta();
         else pararDeOuvirConta();
@@ -9408,7 +9689,7 @@ export default function (NeuroDeck) {
   }
 
   // src/cenas/CenaMenu.js
-  var COLUNAS = [3, 5, 5, 5, 4];
+  var COLUNAS2 = [3, 5, 5, 5, 4];
   var CenaMenu = class extends Phaser.Scene {
     constructor() {
       super("Menu");
@@ -9417,7 +9698,7 @@ export default function (NeuroDeck) {
       ajustarCamera(this);
       colocarFundo(this);
       this.rede = this.add.graphics();
-      this.pontos = COLUNAS.map((n, c) => Array.from({ length: n }, (_, i) => ({ x: 120 + c * 260, y: 360 + (i - (n - 1) / 2) * 120 })));
+      this.pontos = COLUNAS2.map((n, c) => Array.from({ length: n }, (_, i) => ({ x: 120 + c * 260, y: 360 + (i - (n - 1) / 2) * 120 })));
       this.espalharCartas();
       fecharTodos();
       abrirMenu(Aplicacao);
@@ -10955,7 +11236,8 @@ export default function (NeuroDeck) {
     anunciarTruco(j, daRede = false) {
       if (this.online && !daRede) return this.enviarOnline({ tipo: "truco", cadeira: j });
       pedirTruco(this.partida, j);
-      registrarEvento(EVENTOS.truco, { valor: this.partida.pedido.para, quem: this.mao.jogadores[j].tipo });
+      const meu2 = this.mao.jogadores[j].tipo === "humano" && (!this.online || j === this.cadeiraOnline());
+      registrarEvento(EVENTOS.truco, { valor: this.partida.pedido.para, quem: this.mao.jogadores[j].tipo, meu: meu2 ? 1 : 0 });
       this.impactoDoTruco(this.partida.pedido.para);
       this.avisarVerbete("truco");
       this.faixa(GRITO_TRUCO[this.partida.pedido.para], COR_JOGADOR_CSS[j], 72);
@@ -12619,6 +12901,7 @@ export default function (NeuroDeck) {
   iniciarJogo();
   retomarConta(Aplicacao);
   iniciarAnalise();
+  registrarEvento(EVENTOS.acesso, { numero: Aplicacao.progresso.estatisticas.acessos, conta: haMarcaDeConta() ? 1 : 0 });
   globalThis.__TRUCO_DE_TURING__ = Aplicacao;
 })();
 
