@@ -72,7 +72,7 @@ describe('analise.js', () => {
     assert.equal(padrao[2].ad_storage, 'denied');
     assert.ok(medindo());
     registrarEvento('fim_mao', { venceu: 1, baralho: 'backprop' });
-    assert.deepEqual(comandos(w).at(-1), ['event', 'fim_mao', { venceu: 1, baralho: 'backprop' }]);
+    assert.deepEqual(comandos(w).at(-1), ['event', 'fim_mao', { venceu: 1, baralho: 'backprop', conta: 0 }]);
   });
 
   it('quem já aceitou mede direto, sem faixa; quem recusou não vê a faixa nem é medido', () => {
@@ -148,7 +148,7 @@ describe('eventos do jogo', () => {
 
     metodosDoResultado.registrarEstatisticas.call(cena(false), 0, true, true, 3);
     assert.deepEqual(eventos().map((e) => e[0]), ['fim_mao']);
-    assert.deepEqual(eventos()[0][1], { baralho: 'backprop', terreno: 'oceano', oponente: 'montecarlo', jogadores: 2, online: 0, venceu: 1, completa: 1, valor: 3, soma: 42, dicas: 0 });
+    assert.deepEqual(eventos()[0][1], { baralho: 'backprop', terreno: 'oceano', oponente: 'montecarlo', jogadores: 2, online: 0, venceu: 1, completa: 1, valor: 3, soma: 42, dicas: 0, conta: 0 });
 
     metodosDoResultado.registrarEstatisticas.call(cena(true), 0, true, true, 3);
     assert.deepEqual(eventos().slice(1).map((e) => e[0]), ['fim_mao', 'jogo_finalizado', 'vitoria_do_jogador']);
@@ -202,6 +202,15 @@ describe('jogadores diferentes', () => {
     assert.ok(comandos(w).some((c) => c[0] === 'event' && c[1] === 'logout'));
   });
 
+  it('conta retomada ao recarregar (#60): volta o user_id, sem contar um login novo', () => {
+    const w = janela(SITE, { escolha: 'sim' });
+    iniciarAnalise(w);
+    definirConta('uidFirebase123', 'google', { retomada: true });
+    assert.equal(idDoJogador(w), 'c-uidFirebase123');
+    assert.equal(userIds(w).at(-1), 'uidFirebase123');
+    assert.equal(comandos(w).some((c) => c[0] === 'event' && c[1] === 'login'), false);
+  });
+
   it('conta de e-mail fica como tipo_conta "email"; atualizar o jogador reenvia as propriedades', () => {
     const w = janela(SITE, { escolha: 'sim' });
     iniciarAnalise(w);
@@ -245,6 +254,6 @@ describe('jogadas e abandono', () => {
       ['acao_jogada', { acao: 'dropout', baralho: 'classico', terreno: 'pantano', camada: 2, mao: 3 }],
     ]);
     metodosDeEntrada.registrarAbandono.call(cena);
-    assert.deepEqual(eventos().at(-1), ['jogo_abandonado', { baralho: 'classico', terreno: 'pantano', oponente: 'guloso', maos: 3, tentos: 4, online: 0 }]);
+    assert.deepEqual(eventos().at(-1), ['jogo_abandonado', { baralho: 'classico', terreno: 'pantano', oponente: 'guloso', maos: 3, tentos: 4, online: 0, conta: 0 }]);
   });
 });

@@ -1,7 +1,8 @@
 /**
- * @file Conta pelo Firebase no navegador (issue #40), com um SDK falso servido no lugar do CDN:
- * cada caso de configuração que falta no console vira um aviso que diz onde mexer, a conta só
- * passa a valer depois de ler e gravar no Firestore, e a falha ao salvar é avisada uma vez.
+ * @file Conta pelo Firebase no navegador (issues #40 e #60), com um SDK falso servido no lugar do
+ * CDN: cada caso de configuração que falta no console vira um aviso que diz onde mexer, a conta só
+ * passa a valer depois de ler e gravar no Firestore, a falha ao salvar é avisada uma vez, e a
+ * conta volta sozinha ao recarregar a página, sem baixar o SDK para quem nunca entrou.
  */
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
@@ -15,19 +16,22 @@ const erro = `(codigo) => Object.assign(new Error('Firebase: Error (' + codigo +
 
 /**
  * SDK falso, controlado por `globalThis.__FIREBASE_FALSO__`:
- * `login` e `banco` ('ok' ou um código de erro) e `docs` (o que foi gravado no Firestore).
+ * `login` e `banco` ('ok' ou um código de erro), `docs` (o que foi gravado no Firestore) e
+ * `sessao` (a sessão que o Firebase guardou no navegador: entrar liga, sair desliga).
  */
 const SDK = {
   'firebase-app.js': 'export const initializeApp = (config) => ({ config });',
   'firebase-auth.js': `
     const f = () => globalThis.__FIREBASE_FALSO__; const erro = ${erro};
     const usuario = { uid: 'uid-teste', displayName: 'Ada', email: 'ada@exemplo.com' };
-    const entrar = async () => { if (f().login !== 'ok') throw erro(f().login); return { user: usuario }; };
-    export const getAuth = () => ({});
+    const entrar = async () => { if (f().login !== 'ok') throw erro(f().login); f().sessao = true; return { user: usuario }; };
+    const autenticacao = { get currentUser() { return f().sessao ? usuario : null; } };
+    export const getAuth = () => autenticacao;
     export class GoogleAuthProvider {}
     export const signInWithPopup = entrar, signInWithEmailAndPassword = entrar, createUserWithEmailAndPassword = entrar;
-    export const signOut = async () => {};
-    export const onAuthStateChanged = () => () => {};`,
+    export const signOut = async () => { f().sessao = false; };
+    /* como o de verdade: avisa a sessão guardada depois de lê-la (aqui, um instante depois) */
+    export const onAuthStateChanged = (_a, cb) => { const t = setTimeout(() => cb(f().sessao ? usuario : null), 150); return () => clearTimeout(t); };`,
   'firebase-firestore.js': `
     const f = () => globalThis.__FIREBASE_FALSO__; const erro = ${erro};
     const banco = () => { if (f().banco !== 'ok') throw erro(f().banco); };
@@ -36,19 +40,65 @@ const SDK = {
     export const getDoc = async (c) => { banco(); const d = f().docs[c]; return { exists: () => !!d, data: () => d }; };
     export const setDoc = async (c, dados) => { banco(); f().docs[c] = dados; };
     export const collection = (_b, ...partes) => partes.join('/');
-    export const query = (c) => c, orderBy = () => null, serverTimestamp = () => 0;
+    export const collectionGroup = (_b, nome) => 'grupo:' + nome;
+    export const query = (c) => c, orderBy = () => null, where = () => null, limit = () => null, serverTimestamp = () => 0;
+    export const Timestamp = { fromMillis: (ms) => ({ ms }) };
     export const onSnapshot = () => () => {};
-    export const addDoc = async () => { banco(); };`,
+    /* mensagens enviadas às salas ficam em \`enviadas\` */
+    export const addDoc = async (c, dados) => { banco(); (f().enviadas = f().enviadas || []).push({ c, dados }); };
+    /* a limpeza acha as mensagens de \`vencidas\` e as apagadas vão para \`apagadas\` */
+    export const getDocs = async (c) => {
+      banco();
+      /* a lista de contas (tela Jogadores) só sai para quem está em \`admins/\`, como nas regras */
+      if (c === 'contas') {
+        if (!f().docs['admins/uid-teste']) throw erro('permission-denied');
+        return { docs: Object.keys(f().docs).filter((k) => k.startsWith('contas/')).map((k) => ({ id: k.slice(7), data: () => f().docs[k] })) };
+      }
+      f().buscas = (f().buscas || 0) + 1; return { docs: (f().vencidas || []).map((ref) => ({ ref })) };
+    };
+    export const writeBatch = () => { const lote = []; return { delete: (ref) => lote.push(ref), commit: async () => { banco(); f().apagadas = (f().apagadas || []).concat(lote); } }; };`,
 };
+
+/**
+ * Serve o SDK falso no lugar do CDN e conta quantos arquivos dele a página pediu
+ * (`jogo.pedidosDoSdk`). Ao recarregar, o estado do SDK falso volta de `sessionStorage` (as contas
+ * e a sessão guardada continuam, como no Firebase de verdade; ver `recarregar`).
+ */
+async function servirSdkFalso(jogo) {
+  jogo.pedidosDoSdk = 0;
+  await jogo.pagina.route(/www\.gstatic\.com\/firebasejs\//, (r) => {
+    jogo.pedidosDoSdk++;
+    const arquivo = new URL(r.request().url()).pathname.split('/').pop();
+    return r.fulfill({ body: SDK[arquivo] || '', contentType: 'text/javascript', headers: { 'access-control-allow-origin': '*' } });
+  });
+  await jogo.pagina.addInitScript(() => {
+    try { const salvo = sessionStorage.getItem('__firebase_falso__'); if (salvo) globalThis.__FIREBASE_FALSO__ = JSON.parse(salvo); } catch (e) { /* primeira carga */ }
+  });
+}
+
+/** Recarrega a página guardando o estado do SDK falso e espera o menu; zera `jogo.pedidosDoSdk`. */
+async function recarregar(jogo) {
+  const { pagina } = jogo;
+  await pagina.evaluate(() => { if (globalThis.__FIREBASE_FALSO__) sessionStorage.setItem('__firebase_falso__', JSON.stringify(globalThis.__FIREBASE_FALSO__)); });
+  jogo.pedidosDoSdk = 0;
+  await pagina.reload();
+  await esperarMenu(pagina);
+}
+
+/** Marca de conta no localStorage (ver src/interface/conta.js). */
+const marca = (pagina) => pagina.evaluate(() => localStorage.getItem('truco-de-turing:conta'));
+
+/** Entra com o Google na tela "Jogar online" e espera a conta valer. */
+async function entrar(pagina) {
+  await pagina.click('#o-google');
+  await pagina.waitForFunction(() => /Conectado como/.test(document.querySelector('#o-conta-estado').textContent));
+}
 
 /** Abre o jogo com o SDK falso e a tela "Jogar online". */
 async function abrirConta(estado) {
   const jogo = await abrirJogo(servidor.url);
   const { pagina } = jogo;
-  await pagina.route(/www\.gstatic\.com\/firebasejs\//, (r) => {
-    const arquivo = new URL(r.request().url()).pathname.split('/').pop();
-    return r.fulfill({ body: SDK[arquivo] || '', contentType: 'text/javascript', headers: { 'access-control-allow-origin': '*' } });
-  });
+  await servirSdkFalso(jogo);
   await esperarMenu(pagina);
   await pagina.evaluate((e) => {
     globalThis.__FIREBASE_FALSO__ = { docs: {}, ...e };
@@ -123,6 +173,199 @@ describe('conta pelo Firebase (#40)', () => {
       await pagina.evaluate(() => { document.querySelector('#avisos').innerHTML = ''; const app = globalThis.__TRUCO_DE_TURING__; app.salvar(); app.salvar(); });
       await pagina.waitForTimeout(800);
       assert.equal(await pagina.locator('#avisos .aviso').count(), 0);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+});
+
+describe('conta retomada ao recarregar a página (#60)', () => {
+  it('quem nunca entrou numa conta: abrir o jogo não baixa o SDK do Firebase', async () => {
+    const jogo = await abrirJogo(servidor.url);
+    const { pagina } = jogo;
+    try {
+      await servirSdkFalso(jogo);
+      await recarregar(jogo);
+      await pagina.waitForTimeout(1000);
+      assert.equal(jogo.pedidosDoSdk, 0);
+      assert.equal(await pagina.locator('#m-conta').isHidden(), true);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('entrar, recarregar e continuar conectado, com o progresso indo para a conta', async () => {
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok', docs: { 'contas/uid-teste': { lidos: { overfit: true }, verbetesLidos: 1 } } });
+    const { pagina } = jogo;
+    try {
+      const avatarDoAparelho = await pagina.locator('#m-avatar-img').getAttribute('src');
+      await entrar(pagina);
+      assert.equal(await marca(pagina), 'google');
+      assert.match(await pagina.locator('#m-conta').textContent(), /Conectado como Ada/, 'o menu mostra quem entrou');
+      /* outro aparelho avança o progresso da conta e troca o avatar enquanto esta aba está fechada */
+      await pagina.evaluate(() => { const d = globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste']; d.lidos.backprop = true; d.avatar = 'robo'; });
+      await recarregar(jogo);
+      await pagina.waitForSelector('#m-conta:not([hidden])');
+      assert.match(await pagina.locator('#m-conta').textContent(), /Conectado como Ada/);
+      assert.equal(await pagina.evaluate(() => globalThis.__TRUCO_DE_TURING__.progresso.avatar), 'robo');
+      assert.notEqual(await pagina.locator('#m-avatar-img').getAttribute('src'), avatarDoAparelho, 'o botão Avatar mostra o avatar da conta');
+      const lidos = await pagina.evaluate(() => globalThis.__TRUCO_DE_TURING__.progresso.lidos);
+      assert.equal(lidos.overfit && lidos.backprop, true, 'a retomada junta o progresso da conta com o do aparelho');
+      /* depois da retomada, salvar continua indo para a conta */
+      await pagina.evaluate(() => { const app = globalThis.__TRUCO_DE_TURING__; app.progresso.lidos.dropout = true; app.salvar(); });
+      await pagina.waitForFunction(() => globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste'].lidos.dropout);
+      /* e a tela "Jogar online" já abre conectada, com a sala pela internet */
+      await pagina.click('#m-online');
+      await pagina.waitForSelector('#o-conta-estado');
+      assert.match(await pagina.locator('#o-conta-estado').textContent(), /Conectado como Ada/);
+      assert.equal(await pagina.locator('#o-sair').isVisible(), true);
+      assert.equal(await pagina.locator('#avisos .aviso').count(), 0);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('sair da conta apaga a marca: depois de recarregar, nem o SDK é baixado', async () => {
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok' });
+    const { pagina } = jogo;
+    try {
+      await entrar(pagina);
+      await pagina.click('#o-sair');
+      await pagina.waitForFunction(() => /^Entre para/.test(document.querySelector('#o-conta-estado').textContent));
+      assert.equal(await marca(pagina), null);
+      assert.equal(await pagina.locator('#m-conta').isHidden(), true, 'o menu deixa de mostrar a conta');
+      await recarregar(jogo);
+      await pagina.waitForTimeout(1000);
+      assert.equal(jogo.pedidosDoSdk, 0);
+      assert.equal(await pagina.locator('#m-conta').isHidden(), true);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('sessão encerrada fora do jogo: apaga a marca e segue sem conta, sem aviso', async () => {
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok' });
+    const { pagina } = jogo;
+    try {
+      await entrar(pagina);
+      await pagina.evaluate(() => { globalThis.__FIREBASE_FALSO__.sessao = false; });
+      await recarregar(jogo);
+      await pagina.waitForFunction(() => localStorage.getItem('truco-de-turing:conta') === null);
+      assert.equal(await pagina.locator('#m-conta').isHidden(), true);
+      assert.equal(await pagina.locator('#avisos .aviso').count(), 0);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('Firestore fora do ar na retomada: avisa, segue com o progresso do aparelho e tenta de novo na próxima visita', async () => {
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok' });
+    const { pagina } = jogo;
+    try {
+      await entrar(pagina);
+      await pagina.evaluate(() => { globalThis.__FIREBASE_FALSO__.banco = 'unavailable'; });
+      await recarregar(jogo);
+      assert.match(await aviso(pagina), /Não deu para retomar a conta de Ada.*Sem conexão/);
+      assert.equal(await marca(pagina), 'google');
+      assert.equal(await pagina.locator('#m-conta').isHidden(), true);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+});
+
+describe('sala pela internet com conta (#62)', () => {
+  it('cada mensagem leva o uid da conta e a validade; a primeira sala da visita limpa as mensagens vencidas', async () => {
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok', vencidas: ['salas/VELHA/mensagens/m1', 'salas/VELHA/mensagens/m2'] });
+    const { pagina } = jogo;
+    try {
+      await entrar(pagina);
+      await pagina.click('#o-criar');
+      await pagina.waitForFunction(() => (globalThis.__FIREBASE_FALSO__.enviadas || []).length > 0);
+      const { enviadas, apagadas, buscas } = await pagina.evaluate(() => globalThis.__FIREBASE_FALSO__);
+      const agora = Date.now(), seisHoras = 6 * 3600 * 1000;
+      for (const { c, dados } of enviadas) {
+        assert.match(c, /^salas\/[A-Z2-9]{5}\/mensagens$/);
+        assert.equal(dados.uid, 'uid-teste', 'a mensagem leva o uid da conta');
+        assert.ok(Math.abs(dados.expira.ms - agora - seisHoras) < 60000, 'vence em 6 horas');
+      }
+      const sala = enviadas.find((m) => m.dados.tipo === 'sala');
+      assert.equal(sala.dados.config.cadeiras[0].uid, 'uid-teste', 'a cadeira do anfitrião guarda o uid');
+      await pagina.waitForFunction(() => (globalThis.__FIREBASE_FALSO__.apagadas || []).length === 2);
+      assert.equal(buscas, 1);
+      assert.deepEqual(apagadas, ['salas/VELHA/mensagens/m1', 'salas/VELHA/mensagens/m2']);
+      /* outra sala na mesma visita não limpa de novo */
+      await pagina.click('#o-desistir');
+      await pagina.click('#o-criar');
+      await pagina.waitForTimeout(500);
+      assert.equal(await pagina.evaluate(() => globalThis.__FIREBASE_FALSO__.buscas), 1);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('rastreio (#66): a conta guarda perfil, acessos, partidas e resumo; cada abertura conta um acesso', async () => {
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok' });
+    const { pagina } = jogo;
+    const doc = () => pagina.evaluate(() => globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste']);
+    try {
+      assert.match(await pagina.locator('#o-conta-dados').textContent(), /nome, e-mail, conquistas/, 'a tela diz o que fica guardado na conta');
+      await entrar(pagina);
+      let d = await doc();
+      assert.deepEqual(d.perfil, { nome: 'Ada', email: 'ada@exemplo.com', metodo: 'google' });
+      assert.equal(d.estatisticas.acessos, 1);
+      assert.ok(d.estatisticas.primeiroAcesso > 0 && d.estatisticas.ultimoAcesso >= d.estatisticas.primeiroAcesso);
+      assert.equal(d.estatisticas.aparelho, 'computador');
+      assert.match(d.estatisticas.versao, /^\d+\.\d+\.\d+$/);
+      /* os eventos do jogo viram contadores na conta, mesmo sem medição do Analytics (testes não medem) */
+      await pagina.evaluate(async () => {
+        const { registrarEvento, EVENTOS } = await import('/src/interface/analise.js');
+        registrarEvento(EVENTOS.jogoIniciado, { oponente: 'guloso', online: 0 });
+        registrarEvento(EVENTOS.truco, { valor: 3, quem: 'humano', meu: 1 });
+        registrarEvento(EVENTOS.truco, { valor: 6, quem: 'computador', meu: 0 });
+        registrarEvento(EVENTOS.fimDaMao, { baralho: 'backprop', terreno: 'oceano', venceu: 1 });
+        registrarEvento(EVENTOS.jogoFinalizado, { oponente: 'guloso', online: 0, venceu: 1 });
+        globalThis.__TRUCO_DE_TURING__.progresso.desbloqueadas.primeira = 1;
+        globalThis.__TRUCO_DE_TURING__.salvar();
+      });
+      await pagina.waitForFunction(() => globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste'].resumo.conquistas === 1);
+      d = await doc();
+      assert.deepEqual(d.estatisticas.partidas, { iniciadas: 1, terminadas: 1, vencidas: 1, abandonadas: 0 });
+      assert.deepEqual(d.estatisticas.maos, { jogadas: 1, vencidas: 1 });
+      assert.deepEqual(d.estatisticas.trucos, { pedidos: 1 });
+      assert.deepEqual(d.estatisticas.porOponente, { guloso: { jogadas: 1, vencidas: 1 } });
+      assert.deepEqual(d.estatisticas.porBaralho, { backprop: { jogadas: 1, vencidas: 1 } });
+      assert.deepEqual({ ...d.resumo, ultimoAcesso: 0 }, { conquistas: 1, verbetesLidos: 0, acessos: 1, ultimoAcesso: 0, partidas: 1, vitorias: 1, maos: 1 });
+      /* nova abertura com a conta retomada: mais um acesso, sem perder os contadores */
+      await recarregar(jogo);
+      await pagina.waitForFunction(() => globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste'].estatisticas.acessos === 2);
+      d = await doc();
+      assert.equal(d.estatisticas.partidas.vencidas, 1);
+      /* outro aparelho já acessou mais vezes: esta abertura soma uma à conta, não some na mescla */
+      await pagina.evaluate(() => { globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste'].estatisticas.acessos = 40; });
+      await recarregar(jogo);
+      await pagina.waitForFunction(() => globalThis.__FIREBASE_FALSO__.docs['contas/uid-teste'].estatisticas.acessos === 41);
+      assert.deepEqual(jogo.erros, []);
+    } finally { await jogo.fechar(); }
+  });
+
+  it('rastreio (#66): só o administrador vê o botão Jogadores; a lista mostra as contas e baixa o CSV', async () => {
+    const outra = { perfil: { nome: 'Bia', email: 'bia@exemplo.com', metodo: 'email' }, desbloqueadas: { primeira: 1, dez: 2 }, verbetesLidos: 4,
+      estatisticas: { acessos: 9, primeiroAcesso: 1794000000000, ultimoAcesso: 1794600000000, partidas: { iniciadas: 5, terminadas: 4, vencidas: 3, abandonadas: 1 }, maos: { jogadas: 30, vencidas: 17 } } };
+    const jogo = await abrirConta({ login: 'ok', banco: 'ok', docs: { 'contas/uid-bia': outra, 'contas/uid-antiga': { maos: 12, vitorias: 5 } } });
+    const { pagina } = jogo;
+    try {
+      await entrar(pagina);
+      await pagina.waitForTimeout(400);
+      assert.equal(await pagina.locator('#o-jogadores').isHidden(), true, 'conta comum não vê o botão');
+      /* vira administradora (documento em admins/, criado no console) e reabre a tela */
+      await pagina.evaluate(() => { globalThis.__FIREBASE_FALSO__.docs['admins/uid-teste'] = { desde: 1 }; });
+      await pagina.click('.folha.online [data-fechar]');
+      await pagina.click('#m-online');
+      await pagina.waitForSelector('#o-jogadores:not([hidden])');
+      await pagina.click('#o-jogadores');
+      await pagina.waitForSelector('.jogadores-lista tbody tr');
+      const linhas = await pagina.locator('.jogadores-lista tbody tr').allTextContents();
+      assert.equal(linhas.length, 3);
+      assert.match(await pagina.locator('#j-estado').textContent(), /^3 contas, 1 com conquistas/);
+      assert.match(linhas[0], /^Ada/, 'último acesso mais recente primeiro');
+      assert.match(linhas[1], /^Bia.*9.*2.*4.*3.*30$/);
+      assert.match(linhas[2], /^\(sem nome\).*12$/, 'conta gravada antes das estatísticas aparece com o que tem');
+      const [baixado] = await Promise.all([pagina.waitForEvent('download'), pagina.click('#j-csv')]);
+      assert.match(baixado.suggestedFilename(), /^truco-de-turing-jogadores-\d{4}-\d{2}-\d{2}\.csv$/);
       assert.deepEqual(jogo.erros, []);
     } finally { await jogo.fechar(); }
   });

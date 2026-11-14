@@ -2,7 +2,8 @@
  * @file Tela "Jogar online": conta e sala.
  *
  * - Conta: com o projeto Firebase configurado (src/online/configuracao.js), entrar com Google ou
- *   e-mail e senha guarda o progresso na conta. Sem ele, o jogo usa o nome deste aparelho.
+ *   e-mail e senha guarda o progresso na conta (interface/conta.js, que também retoma a conta ao
+ *   recarregar a página). Sem ele, o jogo usa o nome deste aparelho.
  * - Sala: criar (com as opções do menu e quantas pessoas vão jogar) ou entrar com o código. Com o
  *   Firebase, a sala funciona pela internet; sem ele, entre abas e janelas deste navegador.
  * - Espera: o código em destaque (com botão de copiar), as cadeiras e o estado da sala sempre
@@ -13,12 +14,14 @@
  */
 import { Sala, codigoDeSala, idDeCliente } from '../../online/sala.js';
 import { transporteLocal } from '../../online/transportes.js';
-import { mesclarProgresso, progressoDaConta } from '../../online/contas.js';
-import { firebaseConfigurado, entrarComGoogle, entrarComEmail, sairDaConta, carregarProgressoDaConta, salvarProgressoNaConta, transporteFirebase } from '../../online/firebase.js';
+import { firebaseConfigurado, entrarComGoogle, entrarComEmail, transporteFirebase, limparMensagensVencidas, ehAdministrador } from '../../online/firebase.js';
+import { abrirJogadores } from './jogadores.js';
+import { TEXTO_DA_CONTA } from '../../online/contas.js';
 import { explicarErroFirebase } from '../../online/errosFirebase.js';
 import { avatarDoJogador } from '../../conteudo/avatares.js';
 import { abrirPainel, escaparHtml, mostrarAviso } from '../paineis.js';
-import { registrarEvento, definirConta, EVENTOS } from '../analise.js';
+import { registrarEvento, EVENTOS } from '../analise.js';
+import { contaAtual, aoMudarDeConta, usarConta, sairDaContaAtual } from '../conta.js';
 
 /** Identificador deste aparelho, o mesmo depois de recarregar a aba (para voltar à cadeira). */
 function clienteDaAba() {
@@ -31,52 +34,23 @@ function clienteDaAba() {
   } catch (e) { return idDeCliente(); }
 }
 
-/** Conta atual nesta sessão (Firebase), ou null. */
-let contaAtual = null;
-
 /** Tempo sem resposta do anfitrião até a tela dizer que não achou a sala. */
 export const ESPERA_PELA_SALA = 8000;
 
-/** Já avisou que salvar na conta falhou? (um aviso só, até voltar a dar certo) */
-let avisouFalhaAoSalvar = false;
+/** A sala deste aparelho vai pela internet (Firebase configurado e conta conectada)? */
+const pelaInternet = () => firebaseConfigurado() && !!contaAtual();
+
+/** Já limpou as mensagens vencidas do Firestore nesta visita? (uma vez só; ver firebase.js) */
+let limpouSalas = false;
 
 /**
- * Entrou numa conta: junta o progresso do aparelho com o da conta e passa a salvar nela. A conta
- * só passa a valer depois de ler e gravar no Firestore; se isso falhar, o erro sobe para a tela e
- * o jogo continua com o progresso do aparelho, sem fingir que salvou na nuvem.
+ * Cria o transporte da sala: Firebase com conta, senão entre abas deste navegador. Na primeira
+ * sala pela internet da visita, apaga em segundo plano as mensagens vencidas das salas antigas.
  */
-async function usarConta(app, conta, metodo) {
-  const naConta = await carregarProgressoDaConta(conta.uid);
-  const mesclado = mesclarProgresso(app.progresso, naConta);
-  mesclado.nomeOnline = mesclado.nomeOnline || conta.nome;
-  await salvarProgressoNaConta(conta.uid, progressoDaConta(mesclado));
-  app.progresso = mesclado;
-  contaAtual = conta;
-  avisouFalhaAoSalvar = false;
-  definirConta(conta.uid, metodo);
-  /* daqui em diante, cada vez que o progresso é salvo, ele vai também para a conta */
-  if (!app.salvarSoLocal) {
-    app.salvarSoLocal = app.salvar;
-    app.salvar = function () {
-      this.salvarSoLocal();
-      if (!contaAtual) return;
-      salvarProgressoNaConta(contaAtual.uid, progressoDaConta(this.progresso)).then(() => { avisouFalhaAoSalvar = false; }, (e) => {
-        if (avisouFalhaAoSalvar) return;
-        avisouFalhaAoSalvar = true;
-        mostrarAviso('Conta', 'O progresso ficou só neste aparelho. ' + (explicarErroFirebase(e) || ''), null, 7000);
-      });
-    };
-  }
-  app.salvar();
-}
-
-/** A sala deste aparelho vai pela internet (Firebase configurado e conta conectada)? */
-const pelaInternet = () => firebaseConfigurado() && !!contaAtual;
-
-/** Cria o transporte da sala: Firebase com conta, senão entre abas deste navegador. */
 async function transporte(codigo) {
-  if (pelaInternet()) return transporteFirebase(codigo);
-  return transporteLocal(codigo);
+  if (!pelaInternet()) return transporteLocal(codigo);
+  if (!limpouSalas) { limpouSalas = true; limparMensagensVencidas().catch(() => { /* fica para a próxima visita */ }); }
+  return transporteFirebase(codigo);
 }
 
 /**
@@ -91,10 +65,11 @@ export function abrirOnline(app) {
     '<h2>Jogar online</h2>' +
     '<section class="online-conta"><h3>Conta</h3>' +
     (nuvem
-      ? '<p id="o-conta-estado">' + (contaAtual ? 'Conectado como <b>' + escaparHtml(contaAtual.nome) + '</b>. O progresso fica na conta.' : 'Entre para guardar conquistas, avatares e progresso na conta e jogar pela internet.') + '</p>' +
-        '<div class="linha"><button class="botao" id="o-google">Entrar com Google</button><button class="botao discreto" id="o-sair"' + (contaAtual ? '' : ' hidden') + '>Sair da conta</button></div>' +
+      ? '<p id="o-conta-estado">' + (contaAtual() ? 'Conectado como <b>' + escaparHtml(contaAtual().nome) + '</b>. O progresso fica na conta.' : 'Entre para guardar conquistas, avatares e progresso na conta e jogar pela internet.') + '</p>' +
+        '<div class="linha"><button class="botao" id="o-google">Entrar com Google</button><button class="botao discreto" id="o-sair"' + (contaAtual() ? '' : ' hidden') + '>Sair da conta</button><button class="botao discreto" id="o-jogadores" hidden>Jogadores</button></div>' +
         '<div class="campos-duplos"><input id="o-email" type="email" placeholder="e-mail" autocomplete="email"><input id="o-senha" type="password" placeholder="senha" autocomplete="current-password"></div>' +
-        '<div class="linha"><button class="botao discreto" id="o-email-entrar">Entrar com e-mail</button><button class="botao discreto" id="o-email-criar">Criar conta</button></div>'
+        '<div class="linha"><button class="botao discreto" id="o-email-entrar">Entrar com e-mail</button><button class="botao discreto" id="o-email-criar">Criar conta</button></div>' +
+        '<p class="nota" id="o-conta-dados">' + TEXTO_DA_CONTA + '</p>'
       : '<p class="nota">As contas na nuvem e as salas pela internet entram quando o projeto Firebase do grupo for configurado. Por enquanto o progresso fica neste navegador, e as salas funcionam entre abas e janelas dele (abra o jogo em outra janela para testar).</p>') +
     '<div class="campo"><label for="o-nome">Seu nome na mesa</label><input id="o-nome" maxlength="20" value="' + escaparHtml(nome) + '" placeholder="Como os outros vão ver você"></div>' +
     '</section>' +
@@ -114,13 +89,15 @@ export function abrirOnline(app) {
     '</div>';
   let sala = null;
   let procurando = null; /* relógio de "sala não encontrada" de quem entrou com o código */
-  const painel = abrirPainel(html, { aoFechar: () => { clearTimeout(procurando); if (sala && !app.online) sala.sair(); } });
+  let pararDeOuvirConta = () => {};
+  const painel = abrirPainel(html, { aoFechar: () => { clearTimeout(procurando); pararDeOuvirConta(); if (sala && !app.online) sala.sair(); } });
   const $ = (id) => painel.elemento.querySelector('#' + id);
 
   const eu = () => {
     const nomeMesa = ($('o-nome').value.trim() || app.progresso.nomeOnline || 'Jogador').slice(0, 20);
     if (nomeMesa !== app.progresso.nomeOnline) { app.progresso.nomeOnline = nomeMesa; app.salvar(); }
-    return { cliente: clienteDaAba(), nome: nomeMesa, avatar: avatarDoJogador(app.progresso) };
+    /* pela internet, a sala amarra a cadeira à conta (ver sala.js) */
+    return { cliente: clienteDaAba(), nome: nomeMesa, avatar: avatarDoJogador(app.progresso), uid: pelaInternet() ? contaAtual().uid : undefined };
   };
 
   /** Quantas pessoas estão sentadas na sala. */
@@ -185,7 +162,7 @@ export function abrirOnline(app) {
     let s;
     try { s = await abrirSala(codigo); } catch (e) { falhaAoAbrir(e); return; }
     s.criar(codigo, { ...app.opcoes }, Number($('o-pessoas').value), Math.floor(Math.random() * 2 ** 31));
-    registrarEvento(EVENTOS.salaOnline, { acao: 'criar', pessoas: Number($('o-pessoas').value), conta: contaAtual ? 1 : 0 });
+    registrarEvento(EVENTOS.salaOnline, { acao: 'criar', pessoas: Number($('o-pessoas').value), conta: contaAtual() ? 1 : 0 });
     esperar(s);
     mostrarAviso('Sala ' + codigo + ' criada', 'Aguardando o(s) outro(s) jogador(es). O código da sala é ' + codigo + '.', null, 8000);
   });
@@ -205,7 +182,7 @@ export function abrirOnline(app) {
       estadoDaEspera('Não achei a sala ' + codigo + '. Confira o código e se quem criou a sala continua com ela aberta' +
         (pelaInternet() ? '.' : firebaseConfigurado() ? '. Sem conta, só dá para entrar em salas abertas neste navegador.' : ' neste navegador.'), 'erro');
     }, ESPERA_PELA_SALA);
-    registrarEvento(EVENTOS.salaOnline, { acao: 'entrar', conta: contaAtual ? 1 : 0 });
+    registrarEvento(EVENTOS.salaOnline, { acao: 'entrar', conta: contaAtual() ? 1 : 0 });
   });
   $('o-comecar').addEventListener('click', () => {
     if (!sala) return;
@@ -225,12 +202,20 @@ export function abrirOnline(app) {
 
   if (nuvem) {
     const mostrarConta = () => {
-      $('o-conta-estado').innerHTML = contaAtual ? 'Conectado como <b>' + escaparHtml(contaAtual.nome) + '</b>. O progresso fica na conta.' : 'Entre para guardar o progresso na conta e jogar pela internet.';
-      $('o-sair').hidden = !contaAtual;
-      if (contaAtual && !$('o-nome').value) $('o-nome').value = contaAtual.nome;
+      const conta = contaAtual();
+      $('o-conta-estado').innerHTML = conta ? 'Conectado como <b>' + escaparHtml(conta.nome) + '</b>. O progresso fica na conta.' : 'Entre para guardar o progresso na conta e jogar pela internet.';
+      $('o-sair').hidden = !conta;
+      if (conta && !$('o-nome').value) $('o-nome').value = conta.nome;
+      /* a lista de jogadores só é oferecida a quem as regras do Firestore deixam ler as contas */
+      $('o-jogadores').hidden = true;
+      if (conta) ehAdministrador(conta.uid).then((sim) => { const b = $('o-jogadores'); if (b && contaAtual() && contaAtual().uid === conta.uid) b.hidden = !sim; });
     };
+    $('o-jogadores').addEventListener('click', () => abrirJogadores());
+    mostrarConta();
+    /* a conta pode voltar (retomada ao recarregar) ou mudar com a tela aberta */
+    pararDeOuvirConta = aoMudarDeConta(() => { if (painel.elemento.isConnected) mostrarConta(); else pararDeOuvirConta(); });
     const tentar = (acao, metodo) => async () => {
-      try { await usarConta(app, await acao(), metodo); mostrarConta(); } catch (e) {
+      try { await usarConta(app, await acao(), metodo); } catch (e) {
         /* quem fechou a janela do Google desistiu: sem aviso */
         const texto = explicarErroFirebase(e);
         if (texto) mostrarAviso('Conta', texto, null, 8000);
@@ -239,7 +224,9 @@ export function abrirOnline(app) {
     $('o-google').addEventListener('click', tentar(() => entrarComGoogle(), 'google'));
     $('o-email-entrar').addEventListener('click', tentar(() => entrarComEmail($('o-email').value, $('o-senha').value), 'email'));
     $('o-email-criar').addEventListener('click', tentar(() => entrarComEmail($('o-email').value, $('o-senha').value, true), 'email_novo'));
-    $('o-sair').addEventListener('click', async () => { await sairDaConta(); contaAtual = null; definirConta(null); mostrarConta(); });
+    $('o-sair').addEventListener('click', async () => {
+      try { await sairDaContaAtual(); } catch (e) { const texto = explicarErroFirebase(e); if (texto) mostrarAviso('Conta', texto, null, 8000); }
+    });
   }
   return painel;
 }

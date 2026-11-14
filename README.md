@@ -1,7 +1,7 @@
 # Truco de Turing
 
 <!-- versao -->
-**Versão 2.4.5** (2026-11-14) · [histórico de versões](CHANGELOG.md)
+**Versão 2.5.0** (2026-11-14) · [histórico de versões](CHANGELOG.md)
 <!-- /versao -->
 
 Jogo de cartas para navegador, feito em **Phaser 3**, para ensinar redes neurais e deep learning jogando.
@@ -180,7 +180,7 @@ Eventos (`EVENTOS` em `analise.js`):
 | `jogo_abandonado` | saiu da partida antes do fim | baralho, terreno, oponente, maos, tentos, online |
 | `fim_mao` | fim de cada mão | baralho, terreno, oponente, jogadores, online, venceu, completa, valor, soma, dicas |
 | `acao_jogada` | cada jogada de quem está no aparelho | acao (inicio, ativar, tunagem, overfit, earlystop, stackoverflow, dropout, transfer, passar), baralho, terreno, camada, mao |
-| `truco` | pedido de truco | valor, quem |
+| `truco` | pedido de truco | valor, quem, meu (1 se foi de quem joga no aparelho) |
 | `menu_clique` | botões do menu inicial | botao (jogar, jogar_online, como_jogar, glossario, conquistas, avatar, mods, sobre) |
 | `menu_opcao` | mudança numa escolha do menu | campo, valor |
 | `mesa_clique` | REGRAS e MENU da mesa e as opções deles | botao |
@@ -191,13 +191,23 @@ Eventos (`EVENTOS` em `analise.js`):
 | `avatar_escolhido` | troca de avatar | avatar |
 | `audio_alterado` | som ou música | tipo, ligado |
 | `login` / `logout` | entrar ou sair da conta | method |
+| `conta_retomada` | a conta voltou sozinha ao recarregar a página | method |
+| `acesso` | cada abertura do jogo | numero (quantas vezes o jogador já abriu), conta |
 | `sala_online` | criar, entrar ou começar uma sala | acao, pessoas, conta |
 
 **Jogadores diferentes.** Cada aparelho recebe um código anônimo (`a-…`); quem entra numa conta vira
 `c-<uid da conta>` e o uid vai também como `user_id`. O código e o perfil vão como propriedades do
 usuário: `id_jogador`, `tipo_conta` (local, google, email), `experiencia` (novato, iniciante,
-intermediario, veterano), `conquistas`, `avatar` e `verbetes_lidos`. Nome, e-mail e nome na mesa não
-são enviados.
+intermediario, veterano), `conquistas`, `avatar`, `verbetes_lidos`, `acessos`, `partidas` e `vitorias`.
+Nome, e-mail e nome na mesa não são enviados. Os eventos de partida (`jogo_iniciado`,
+`jogo_finalizado`, vitória, derrota, `fim_mao`, `jogo_abandonado` e `truco`) levam `conta`: 1 com
+conta conectada, 0 sem.
+
+**Na conta, o registro exato.** O Analytics só conta quem aceitou a medição. Os mesmos eventos
+alimentam as estatísticas de cada jogador (`src/online/estatisticas.js`), que valem sempre: ficam no
+aparelho e, com conta, em `contas/<uid>` no Firestore, junto com o perfil (nome, e-mail e método de
+login) e um resumo. Administradores veem a lista na tela **Jogadores** (em "Jogar online") e baixam
+o CSV. Detalhes em [docs/FIREBASE.md](docs/FIREBASE.md).
 
 O jogo envia esses nomes direto: no Google Analytics não é preciso regra em "Criar eventos" (uma
 regra que recria um evento com o próprio nome o conta em dobro). Para separar os dados por jogador,
@@ -211,6 +221,8 @@ Botão **Jogar online** no menu:
 
 - **Conta**: entrar com Google ou e-mail e senha guarda conquistas, avatares e progresso na conta,
   que vale em qualquer aparelho; o progresso do aparelho e o da conta se juntam sem contar nada em dobro.
+  A conta continua conectada ao recarregar a página ou voltar outro dia (até sair dela), e o menu
+  mostra quem está conectado. Quem nunca entrou numa conta não baixa nada do Firebase.
 - **Sala**: quem cria a sala escolhe quantas pessoas vão jogar e passa o código de 5 letras; as
   cadeiras que sobrarem ficam com o computador. A sala usa as opções do menu, e o truco vale entre 2 jogadores.
 - **Como funciona**: todos os aparelhos criam a mesma mão com a mesma semente e aplicam as mesmas
@@ -219,6 +231,9 @@ Botão **Jogar online** no menu:
   recarrega a aba volta à mesma cadeira.
 - **Onde roda**: pela internet, com o projeto Firebase do grupo (`src/online/configuracao.js`,
   regras em `firestore.rules`); sem login, a sala funciona entre abas e janelas do mesmo navegador.
+- **Contas na sala**: cada mensagem leva o uid da conta (as regras recusam outro), e cada cadeira
+  fica com a conta de quem sentou, então uma conta não joga no lugar de outra. As mensagens vencem
+  em 6 horas, e o jogo apaga as vencidas quando alguém abre uma sala (detalhes em `docs/FIREBASE.md`).
 
 Limite conhecido: cada aparelho tem o estado completo da mão (é assim que a sincronia funciona sem
 servidor próprio), então quem abrir o console do navegador consegue ver as cartas dos outros.
