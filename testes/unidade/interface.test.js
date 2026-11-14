@@ -339,6 +339,8 @@ describe('telas', () => {
     abrirConquistas(app);
     assert.match($('.conquistas-resumo').textContent, /1 de 35/);
     assert.equal($$('.conquista').length, CONQUISTAS.length);
+    /* sem conta: a tela diz que as conquistas são só deste aparelho e como levá-las para a conta */
+    assert.match($('.conquistas-origem').textContent, /só deste aparelho.*Jogar online/);
     await esperar(50);
     assert.ok($('#c-retrato canvas'));
     assert.match(medalhaHtml(CONQUISTAS[0], true), /medalha/);
